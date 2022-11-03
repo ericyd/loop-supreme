@@ -3,10 +3,10 @@ import logo from "./iconmonstr-refresh-2.svg";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
+    <div className="sm:container mx-auto">
+      <h1 className="text-xl">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>
+        <p className="font-serif">
           Edit <code>src/App.tsx</code> and save to reload.
         </p>
         <a
@@ -17,7 +17,7 @@ function App() {
         >
           Learn React
         </a>
-      </header>
+      </h1>
     </div>
   );
 }
