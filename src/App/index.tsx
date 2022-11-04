@@ -1,5 +1,6 @@
 import React from 'react'
-import logo from './iconmonstr-refresh-2.svg'
+import logo from '../icons/iconmonstr-refresh-2.svg'
+import { Metronome } from '../Metronome'
 
 function App() {
   return (
@@ -9,14 +10,7 @@ function App() {
         <p className="font-serif">
           Edit <code>src/App.tsx</code> and save to reload.
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <Metronome />
       </h1>
     </div>
   )
