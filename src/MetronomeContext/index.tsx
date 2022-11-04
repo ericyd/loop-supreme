@@ -40,15 +40,20 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
   })
   const [measureCount, setMeasureCount] = useState(1)
   useInterval(() => {
-    setCurrentTick((value) => (value + 1) % timeSignature.beatsPerMeasure)
+    setCurrentTick(
+      (value) => (value + 1) % (timeSignature.beatsPerMeasure * measureCount)
+    )
     return null
   }, (60 / bpm) * 1000)
+  // TODO: this is logging twice, which probably means it's mounting twice and not getting cleared when the first one unmounts
+  // it probably is not an issue this early in development but should be handled eventually
+  // console.log({ currentTick })
   const reader = {
     bpm,
-    currentTick,
+    currentTick: currentTick % timeSignature.beatsPerMeasure,
     timeSignature,
     measureCount,
-    currentMeasure: 0,
+    currentMeasure: Math.floor(currentTick / timeSignature.beatsPerMeasure),
   }
   const writer = {
     setBpm,
