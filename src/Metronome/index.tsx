@@ -45,7 +45,7 @@ export const Metronome: React.FC = () => {
 
   return (
     <div className="p-2 border border-zinc-400 border-solid rounded-md">
-      <h2 className="">Metronome</h2>
+      <h2 className="font-bold text-xl">Metronome</h2>
       <div>current tick: {metronomeReader.currentTick}</div>
       <div>current measure: {metronomeReader.currentMeasure}</div>
       {/* TODO: read directly from the input[type="range"] below. This reads the debounced value which is confusing form a UX perspective */}
