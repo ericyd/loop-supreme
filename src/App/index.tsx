@@ -4,7 +4,7 @@ import { Metronome } from '../Metronome'
 
 function App() {
   return (
-    <div className="sm:container mx-auto">
+    <div>
       <Metronome />
     </div>
   )
