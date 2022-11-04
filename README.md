@@ -1,4 +1,4 @@
-# audio-loop
+# loop-supreme
 
 A project that I'm building in public!
 

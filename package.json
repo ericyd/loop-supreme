@@ -1,5 +1,5 @@
 {
-  "name": "audio-loop",
+  "name": "loop-supreme",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -44,7 +44,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ericyd/audio-loop.git"
+    "url": "git+https://github.com/ericyd/loop-supreme.git"
   },
   "keywords": [
     "audio",
@@ -52,7 +52,7 @@
   ],
   "author": "Eric Dauenhauer",
   "license": "SEE LICENSE IN LICENSE",
-  "homepage": "https://github.com/ericyd/audio-loop",
+  "homepage": "https://github.com/ericyd/loop-supreme",
   "devDependencies": {
     "autoprefixer": "^10.4.13",
     "postcss": "^8.4.18",

@@ -4,9 +4,9 @@ This is a rough list of tasks that should be completed to consider this project 
 
 ## Project setup
 
-- [x] create-react-app https://github.com/ericyd/audio-loop/pull/1
-- [x] configure tailwind https://github.com/ericyd/audio-loop/pull/1
-- [x] add project roadmap https://github.com/ericyd/audio-loop/pull/2
+- [x] create-react-app https://github.com/ericyd/loop-supreme/pull/1
+- [x] configure tailwind https://github.com/ericyd/loop-supreme/pull/1
+- [x] add project roadmap https://github.com/ericyd/loop-supreme/pull/2
 
 ## Metronome
 
@@ -36,7 +36,6 @@ A `Scene` is a collection of one or more Tracks. All Tracks in a Scene are synch
 - [ ] Component can remove Tracks
 - [ ] Component has x-axis that visually corresponds to the time signature and measure count
 - [ ] Component has a vertical line that tracks the current tick/current measure
-- [ ]
 
 ## Track
 
