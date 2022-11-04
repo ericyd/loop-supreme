@@ -1,5 +1,5 @@
-import React from "react";
-import logo from "./iconmonstr-refresh-2.svg";
+import React from 'react'
+import logo from './iconmonstr-refresh-2.svg'
 
 function App() {
   return (
@@ -19,7 +19,7 @@ function App() {
         </a>
       </h1>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
