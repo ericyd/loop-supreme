@@ -1,25 +1,39 @@
 import React from 'react'
+import { useDebouncedCallback } from 'use-debounce'
 import { useMetronome } from '../MetronomeContext'
 export const Metronome: React.FC = () => {
   const [metronomeReader, metronomeWriter] = useMetronome()
 
-  // TODO: debounce
-  const handleSetBpm: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    // TODO: error handling in case this is ever not a number?
-    metronomeWriter.setBpm(Number(event.target.value))
-  }
+  const handleSetBpm: React.ChangeEventHandler<HTMLInputElement> =
+    useDebouncedCallback((event) => {
+      const bpm = Number(event.target.value)
+      if (Number.isNaN(bpm)) {
+        throw new Error(
+          `Could not convert bpm "${event.target.value}" to numeric`
+        )
+      }
+      metronomeWriter.setBpm(bpm)
+    }, 100)
 
   const handleSetTimeSignature: React.ChangeEventHandler<HTMLSelectElement> = (
     event
   ) => {
-    const [beatsPerMeasure, beatUnit] = event.target.value?.split('/')
-    if (!beatsPerMeasure || !beatUnit) {
-      throw new Error(`Could not parse time signature ${event.target.value}`)
+    const [beatsPerMeasureStr, beatUnitStr] = event.target.value?.split('/')
+    if (!beatsPerMeasureStr || !beatUnitStr) {
+      throw new Error(`Could not parse time signature "${event.target.value}"`)
     }
-    // TODO: add validation for non-numeric values
+    const [beatsPerMeasure, beatUnit] = [
+      Number(beatsPerMeasureStr),
+      Number(beatUnitStr),
+    ]
+    if (Number.isNaN(beatsPerMeasure) || Number.isNaN(beatUnit)) {
+      throw new Error(
+        `Could not convert time signature "${event.target.value}" to numeric values`
+      )
+    }
     metronomeWriter.setTimeSignature({
-      beatsPerMeasure: Number(beatsPerMeasure),
-      beatUnit: Number(beatUnit),
+      beatsPerMeasure,
+      beatUnit,
     })
   }
 
@@ -30,9 +44,11 @@ export const Metronome: React.FC = () => {
   }
 
   return (
-    <>
+    <div className="p-2 border border-zinc-400 border-solid rounded-md">
+      <h2 className="">Metronome</h2>
       <div>current tick: {metronomeReader.currentTick}</div>
       <div>current measure: {metronomeReader.currentMeasure}</div>
+      {/* TODO: read directly from the input[type="range"] below. This reads the debounced value which is confusing form a UX perspective */}
       <div>bpm: {metronomeReader.bpm}</div>
       <input
         type="range"
@@ -40,14 +56,16 @@ export const Metronome: React.FC = () => {
         min={20}
         max={300}
         step={0.1}
-        value={metronomeReader.bpm}
+        defaultValue={metronomeReader.bpm}
       />
       <div>
         time signature: {metronomeReader.timeSignature.beatsPerMeasure}/
         {metronomeReader.timeSignature.beatUnit}
       </div>
-      <select onChange={handleSetTimeSignature}>
-        {/* TODO: set 4/4 by default */}
+      <select
+        onChange={handleSetTimeSignature}
+        value={`${metronomeReader.timeSignature.beatsPerMeasure}/${metronomeReader.timeSignature.beatUnit}`}
+      >
         <option value="4/4">4/4</option>
         <option value="7/8">7/8</option>
       </select>
@@ -60,6 +78,6 @@ export const Metronome: React.FC = () => {
         value={metronomeReader.measureCount}
         onChange={handleChangeMeasureCount}
       />
-    </>
+    </div>
   )
 }
