@@ -12,19 +12,20 @@ This is a rough list of tasks that should be completed to consider this project 
 
 The `Metronome` is the heart of the app. The BPM, measure, current tick, and time signature should be synchronized to all the components. The metronome will probably be a Context, accessed via a hook that returns a Reader and Writer
 
-- [ ] create context
-- [ ] add hook to return Writer and Reader
-- [ ] Reader must be able to read
+- [x] create context https://github.com/ericyd/loop-supreme/pull/3
+- [x] add hook to return Writer and Reader https://github.com/ericyd/loop-supreme/pull/3
+- [x] Reader must be able to read https://github.com/ericyd/loop-supreme/pull/3
   - current tick
   - measure
   - BPM
   - time signature
-- [ ] Writer must be able to set
+- [x] Writer must be able to set https://github.com/ericyd/loop-supreme/pull/3
   - BPM
   - time signature
+  - measure count
 - [ ] when Writer updates Metronome, current tick and measure reset to 0
-- [ ] Metronome Component must use Writer to set properties
-- [ ] Metronome Component must use Reader to display properties
+- [x] Metronome Component must use Writer to set properties https://github.com/ericyd/loop-supreme/pull/3
+- [x] Metronome Component must use Reader to display properties https://github.com/ericyd/loop-supreme/pull/3
 - [ ] Metronome must play an audible click on each tick
 
 ## Scene
