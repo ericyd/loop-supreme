@@ -1,6 +1,9 @@
 import React from 'react'
 import { useDebouncedCallback } from 'use-debounce'
 import { useMetronome } from '../MetronomeContext'
+import play from '../icons/iconmonstr-media-control-48.svg'
+import pause from '../icons/iconmonstr-media-control-49.svg'
+
 export const Metronome: React.FC = () => {
   const [metronomeReader, metronomeWriter] = useMetronome()
 
@@ -44,8 +47,10 @@ export const Metronome: React.FC = () => {
   }
 
   return (
-    <div className="p-2 border border-zinc-400 border-solid rounded-md">
-      <h2 className="font-bold text-xl">Metronome</h2>
+    <div className="p-2 border border-zinc-400 border-solid rounded-sm">
+      <h2 className="font-bold text-xl font-serif border-b border-r border-zinc-400 rounded-sm inline-block pr-2">
+        Metronome
+      </h2>
       <div>current tick: {metronomeReader.currentTick}</div>
       <div>current measure: {metronomeReader.currentMeasure}</div>
       {/* TODO: read directly from the input[type="range"] below. This reads the debounced value which is confusing form a UX perspective */}
@@ -78,6 +83,14 @@ export const Metronome: React.FC = () => {
         value={metronomeReader.measureCount}
         onChange={handleChangeMeasureCount}
       />
+      <div>
+        <button onClick={metronomeWriter.togglePlaying}>
+          <img
+            src={metronomeReader.playing ? pause : play}
+            alt={metronomeReader.playing ? 'Pause' : 'Play'}
+          />
+        </button>
+      </div>
     </div>
   )
 }
