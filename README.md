@@ -15,3 +15,10 @@ You can check out [The Roadmap](./roadmap.md)!
 I'm planning to blog about the experience of building it.
 
 You can [check out my blog here!](https://ericyd.hashnode.dev/)
+
+## Useful resources in my Web Audio journey
+
+- https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API
+- https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Simple_synth: great example of building a simple OscillatorNode!
+- https://github.com/mdn/webaudio-examples
+- https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Advanced_techniques#playing_the_audio_in_time
