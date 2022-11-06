@@ -53,12 +53,16 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
   // TODO: should this happen in useEffect?
   mainGainNode.connect(audioContext.destination)
 
-  function playTone(time: number, length = 0.15) {
+  function playTone(time: number, startOfMeasure: boolean) {
+    const frequency = startOfMeasure ? 490 : 440
+    // we want (frequency/duration) to always be a whole number,
+    // so the sine wave doesn't clip
+    const duration = 0.1
     // OscillatorNodes can only be played once! Therefore, they must be instantiated every time we need a "beep".
     // https://stackoverflow.com/a/33723682 suggests an alternative of connecting/disconnecting as needed,
     // but I don't believe that will fit our needs because we want the disconnect to be a very specific timing interval after the start.
     const osc = new OscillatorNode(audioContext, {
-      frequency: 440,
+      frequency,
       // can be "sine", "square", "sawtooth", "triangle", or "custom"
       // when "custom", need to create a custom waveform, then set it like so:
       //    const sineTerms = new Float32Array([0, 0, 1, 0, 1]);
@@ -72,7 +76,7 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
     osc.connect(mainGainNode)
     if (audioContext.state === 'running') {
       osc.start(time)
-      osc.stop(time + length)
+      osc.stop(time + duration)
     }
     return osc
   }
@@ -92,7 +96,12 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
   // For now, this seems to be working ok and it accomplishes the basic goal
   useInterval(
     () => {
-      playTone(audioContext.currentTime)
+      playTone(
+        audioContext.currentTime,
+        // TODO: this works, but the first beat is skipped when you first press "play".
+        // I'm going to punt on this for now simply because I expect lots of refactoring in the future
+        currentTick === timeSignature.beatsPerMeasure * measureCount - 1
+      )
       // Advance the beat number, wrap to zero when reaching end of measure
       setCurrentTick(
         (value) => (value + 1) % (timeSignature.beatsPerMeasure * measureCount)
