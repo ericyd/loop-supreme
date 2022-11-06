@@ -26,7 +26,8 @@ The `Metronome` is the heart of the app. The BPM, measure, current tick, and tim
 - [ ] when Writer updates Metronome, current tick and measure reset to 0
 - [x] Metronome Component must use Writer to set properties https://github.com/ericyd/loop-supreme/pull/3
 - [x] Metronome Component must use Reader to display properties https://github.com/ericyd/loop-supreme/pull/3
-- [ ] Metronome must play an audible click on each tick
+- [x] Metronome must play an audible click on each tick
+- [x] Metronome must initialize as "stopped", and can be "started" by user input
 
 ## Scene
 
