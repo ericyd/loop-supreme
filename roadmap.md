@@ -33,8 +33,8 @@ The `Metronome` is the heart of the app. The BPM, measure, current tick, and tim
 
 A `Scene` is a collection of one or more Tracks. All Tracks in a Scene are synchronized to the same length.
 
-- [x] Component has one or more Tracks
-- [x] Component can add Tracks
+- [x] Component has one or more Tracks https://github.com/ericyd/loop-supreme/pull/5
+- [x] Component can add Tracks https://github.com/ericyd/loop-supreme/pull/5
 - [ ] ~Component can remove Tracks~ moving functionality to `Track`
 - [ ] Component has x-axis that visually corresponds to the time signature and measure count
 - [ ] Component has a vertical line that tracks the current tick/current measure
@@ -43,9 +43,9 @@ A `Scene` is a collection of one or more Tracks. All Tracks in a Scene are synch
 
 A `Track` is a single mono or stereo audio buffer that contains audio data. A `Track` can be armed for recording, de-armed, muted, and unmuted. By default, the audio data in a `Track` will loop indefinitely. The audio data in a `Track` can be cleared.
 
-- [x] create Component
+- [x] create Component https://github.com/ericyd/loop-supreme/pull/5
   - shape: rectangle. Spans width of `Scene`
-- [x] Component can remove itself from scene
+- [x] Component can remove itself from scene https://github.com/ericyd/loop-supreme/pull/5
 - [ ] Component has arm toggle button
 - [ ] Component has mute toggle button
 - [ ] audio data can be cleared from component
