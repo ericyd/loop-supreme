@@ -26,16 +26,16 @@ The `Metronome` is the heart of the app. The BPM, measure, current tick, and tim
 - [ ] when Writer updates Metronome, current tick and measure reset to 0
 - [x] Metronome Component must use Writer to set properties https://github.com/ericyd/loop-supreme/pull/3
 - [x] Metronome Component must use Reader to display properties https://github.com/ericyd/loop-supreme/pull/3
-- [x] Metronome must play an audible click on each tick
-- [x] Metronome must initialize as "stopped", and can be "started" by user input
+- [x] Metronome must play an audible click on each tick https://github.com/ericyd/loop-supreme/pull/4
+- [x] Metronome must initialize as "stopped", and can be "started" by user input https://github.com/ericyd/loop-supreme/pull/4
 
 ## Scene
 
 A `Scene` is a collection of one or more Tracks. All Tracks in a Scene are synchronized to the same length.
 
-- [ ] Component has one or more Tracks
-- [ ] Component can add Tracks
-- [ ] Component can remove Tracks
+- [x] Component has one or more Tracks https://github.com/ericyd/loop-supreme/pull/5
+- [x] Component can add Tracks https://github.com/ericyd/loop-supreme/pull/5
+- [ ] ~Component can remove Tracks~ moving functionality to `Track`
 - [ ] Component has x-axis that visually corresponds to the time signature and measure count
 - [ ] Component has a vertical line that tracks the current tick/current measure
 
@@ -43,8 +43,9 @@ A `Scene` is a collection of one or more Tracks. All Tracks in a Scene are synch
 
 A `Track` is a single mono or stereo audio buffer that contains audio data. A `Track` can be armed for recording, de-armed, muted, and unmuted. By default, the audio data in a `Track` will loop indefinitely. The audio data in a `Track` can be cleared.
 
-- [ ] create Component
+- [x] create Component https://github.com/ericyd/loop-supreme/pull/5
   - shape: rectangle. Spans width of `Scene`
+- [x] Component can remove itself from scene https://github.com/ericyd/loop-supreme/pull/5
 - [ ] Component has arm toggle button
 - [ ] Component has mute toggle button
 - [ ] audio data can be cleared from component
