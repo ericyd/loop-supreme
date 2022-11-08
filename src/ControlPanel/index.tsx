@@ -5,7 +5,7 @@ import play from '../icons/iconmonstr-media-control-48.svg'
 import pause from '../icons/iconmonstr-media-control-49.svg'
 import { Container } from '../Container'
 
-export const Metronome: React.FC = () => {
+export const ControlPanel: React.FC = () => {
   const [metronomeReader, metronomeWriter] = useMetronome()
 
   const handleSetBpm: React.ChangeEventHandler<HTMLInputElement> =
