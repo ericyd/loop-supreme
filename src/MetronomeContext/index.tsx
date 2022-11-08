@@ -56,11 +56,11 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
 
   async function togglePlaying() {
     if (playing) {
-      await audioRouter.audioContext.suspend()
+      await audioRouter.suspend()
       setPlaying(false)
     } else {
       audioRouter.init()
-      await audioRouter.audioContext?.resume()
+      await audioRouter.resume()
       setPlaying(true)
     }
   }
@@ -70,9 +70,6 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
   // For now, this seems to be working ok and it accomplishes the basic goal
   useInterval(
     () => {
-      if (audioRouter.audioContext.state !== 'running') {
-        return
-      }
       const isFirstBeat =
         (currentTick + 1) % (timeSignature.beatsPerMeasure * measureCount) === 0
       if (isFirstBeat) {
@@ -80,7 +77,7 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
       }
       events.current.dispatchEvent(new Event('beat'))
       audioRouter.playTone(
-        audioRouter.audioContext.currentTime,
+        // audioRouter.audioContext.currentTime, // TODO: hmmm...
         (currentTick + 1) % timeSignature.beatsPerMeasure === 0
       )
       // Advance the beat number, wrap to zero when reaching end of measure
