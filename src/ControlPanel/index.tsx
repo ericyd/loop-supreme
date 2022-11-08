@@ -1,6 +1,6 @@
 import React from 'react'
 import { useDebouncedCallback } from 'use-debounce'
-import { useMetronome } from '../MetronomeContext'
+import { useMetronome } from '../Metronome'
 import play from '../icons/iconmonstr-media-control-48.svg'
 import pause from '../icons/iconmonstr-media-control-49.svg'
 import { Container } from '../Container'

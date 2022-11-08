@@ -1,6 +1,6 @@
 import React, { ChangeEventHandler, useState } from 'react'
 
-type Props = {
+type Props = {../Metronome
   id: number
   onRemove(): void
 }
