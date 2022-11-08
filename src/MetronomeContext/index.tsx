@@ -108,10 +108,13 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
       const isFirstBeat =
         (currentTick + 1) % (timeSignature.beatsPerMeasure * measureCount) === 0
       if (isFirstBeat) {
-        events.current.dispatchEvent(new Event('downbeat'))
+        events.current.dispatchEvent(new Event('loopstart'))
       }
       events.current.dispatchEvent(new Event('beat'))
-      playTone(audioContext.currentTime, isFirstBeat)
+      playTone(
+        audioContext.currentTime,
+        (currentTick + 1) % timeSignature.beatsPerMeasure === 0
+      )
       // Advance the beat number, wrap to zero when reaching end of measure
       setCurrentTick(
         (value) => (value + 1) % (timeSignature.beatsPerMeasure * measureCount)
