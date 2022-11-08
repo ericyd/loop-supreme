@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, useContext, useRef, useState } from 'react'
 import { useInterval } from '../hooks/useInterval'
 
 type TimeSignature = {
@@ -16,6 +16,7 @@ type MetronomeReader = {
   measureCount: number
   currentMeasure: number
   playing: boolean
+  events: EventTarget
 }
 
 type MetronomeWriter = {
@@ -43,6 +44,13 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
   const [measureCount, setMeasureCount] = useState(1)
   // no autoplay!
   const [playing, setPlaying] = useState(false)
+  // An EventTarget with React? Why?
+  // Although the metronome settings (currentTick, BPM, etc) are all stored as state,
+  // the metronome needs a way to communicate to components that a beat occured.
+  // As far as I know, there is no natural way to subscribe to state changes in an event-driven way,
+  // but given that we're running in a browser, EventTargets are still a totally natural way
+  // to build a pub/sub notification system.
+  const events = useRef(new EventTarget())
 
   // TODO: should this be a ref, so it doesn't autoplay immediately? https://developer.chrome.com/blog/autoplay/#webaudio
   const audioContext = new AudioContext()
@@ -97,12 +105,13 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
       if (audioContext.state !== 'running') {
         return
       }
-      playTone(
-        audioContext.currentTime,
-        // TODO: this works, but the first beat is skipped when you first press "play".
-        // I'm going to punt on this for now simply because I expect lots of refactoring in the future
+      const isFirstBeat =
         (currentTick + 1) % (timeSignature.beatsPerMeasure * measureCount) === 0
-      )
+      if (isFirstBeat) {
+        events.current.dispatchEvent(new Event('downbeat'))
+      }
+      events.current.dispatchEvent(new Event('beat'))
+      playTone(audioContext.currentTime, isFirstBeat)
       // Advance the beat number, wrap to zero when reaching end of measure
       setCurrentTick(
         (value) => (value + 1) % (timeSignature.beatsPerMeasure * measureCount)
@@ -128,6 +137,7 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
     // TODO: if `audioContext.state` were a piece of React state, we could simply do `playing: audioContext.state === 'running'`
     // However, since audioContext.state is just a mutable variable, updates to it don't get sent downstream.
     playing,
+    events: events.current,
   }
   const writer = {
     setBpm,
