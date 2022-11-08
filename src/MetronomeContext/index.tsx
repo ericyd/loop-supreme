@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useRef, useState } from 'react'
+import { useAudioRouter } from '../AudioRouter'
 import { useInterval } from '../hooks/useInterval'
 
 type TimeSignature = {
@@ -35,6 +36,7 @@ type Props = {
 }
 
 export const MetronomeProvider: React.FC<Props> = (props) => {
+  const audioRouter = useAudioRouter()
   const [currentTick, setCurrentTick] = useState(-1)
   const [bpm, setBpm] = useState(120)
   const [timeSignature, setTimeSignature] = useState<TimeSignature>({
@@ -52,47 +54,13 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
   // to build a pub/sub notification system.
   const events = useRef(new EventTarget())
 
-  // TODO: should this be a ref, so it doesn't autoplay immediately? https://developer.chrome.com/blog/autoplay/#webaudio
-  const audioContext = new AudioContext()
-  const mainGainNode = new GainNode(audioContext, {
-    // must be in range [0.0, 1.0]
-    gain: 0.15,
-  })
-  // TODO: should this happen in useEffect?
-  mainGainNode.connect(audioContext.destination)
-
-  function playTone(time: number, startOfMeasure: boolean) {
-    const frequency = startOfMeasure ? 490 : 440
-    // we want (frequency/duration) to always be a whole number,
-    // so the sine wave doesn't clip
-    const duration = 0.1
-    // OscillatorNodes can only be played once! Therefore, they must be instantiated every time we need a "beep".
-    // https://stackoverflow.com/a/33723682 suggests an alternative of connecting/disconnecting as needed,
-    // but I don't believe that will fit our needs because we want the disconnect to be a very specific timing interval after the start.
-    const osc = new OscillatorNode(audioContext, {
-      frequency,
-      // can be "sine", "square", "sawtooth", "triangle", or "custom"
-      // when "custom", need to create a custom waveform, then set it like so:
-      //    const sineTerms = new Float32Array([0, 0, 1, 0, 1]);
-      //    const cosineTerms = new Float32Array(sineTerms.length);
-      //    const customWaveform = audioContext.createPeriodicWave(cosineTerms, sineTerms);
-      //    osc.setPeriodicWave(customWaveform);
-      // this could be nice for customizing the metronome sound (eventually...)
-      type: 'sine',
-    })
-
-    osc.connect(mainGainNode)
-    osc.start(time)
-    osc.stop(time + duration)
-    return osc
-  }
-
   async function togglePlaying() {
     if (playing) {
-      await audioContext.suspend()
+      await audioRouter.audioContext.suspend()
       setPlaying(false)
     } else {
-      await audioContext.resume()
+      audioRouter.init()
+      await audioRouter.audioContext?.resume()
       setPlaying(true)
     }
   }
@@ -102,7 +70,7 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
   // For now, this seems to be working ok and it accomplishes the basic goal
   useInterval(
     () => {
-      if (audioContext.state !== 'running') {
+      if (audioRouter.audioContext.state !== 'running') {
         return
       }
       const isFirstBeat =
@@ -111,8 +79,8 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
         events.current.dispatchEvent(new Event('loopstart'))
       }
       events.current.dispatchEvent(new Event('beat'))
-      playTone(
-        audioContext.currentTime,
+      audioRouter.playTone(
+        audioRouter.audioContext.currentTime,
         (currentTick + 1) % timeSignature.beatsPerMeasure === 0
       )
       // Advance the beat number, wrap to zero when reaching end of measure

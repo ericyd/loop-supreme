@@ -4,13 +4,16 @@ import App from './App'
 import reportWebVitals from './reportWebVitals'
 import './index.css'
 import { MetronomeProvider } from './MetronomeContext'
+import { AudioProvider } from './AudioRouter'
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
   <React.StrictMode>
-    <MetronomeProvider>
-      <App />
-    </MetronomeProvider>
+    <AudioProvider>
+      <MetronomeProvider>
+        <App />
+      </MetronomeProvider>
+    </AudioProvider>
   </React.StrictMode>
 )
 
