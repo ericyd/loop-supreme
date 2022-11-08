@@ -34,7 +34,7 @@ type Props = {
 }
 
 export const MetronomeProvider: React.FC<Props> = (props) => {
-  const [currentTick, setCurrentTick] = useState(0)
+  const [currentTick, setCurrentTick] = useState(-1)
   const [bpm, setBpm] = useState(120)
   const [timeSignature, setTimeSignature] = useState<TimeSignature>({
     beatsPerMeasure: 4,
@@ -74,10 +74,8 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
     })
 
     osc.connect(mainGainNode)
-    if (audioContext.state === 'running') {
-      osc.start(time)
-      osc.stop(time + duration)
-    }
+    osc.start(time)
+    osc.stop(time + duration)
     return osc
   }
 
@@ -96,17 +94,19 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
   // For now, this seems to be working ok and it accomplishes the basic goal
   useInterval(
     () => {
+      if (audioContext.state !== 'running') {
+        return
+      }
       playTone(
         audioContext.currentTime,
         // TODO: this works, but the first beat is skipped when you first press "play".
         // I'm going to punt on this for now simply because I expect lots of refactoring in the future
-        currentTick === timeSignature.beatsPerMeasure * measureCount - 1
+        (currentTick + 1) % (timeSignature.beatsPerMeasure * measureCount) === 0
       )
       // Advance the beat number, wrap to zero when reaching end of measure
       setCurrentTick(
         (value) => (value + 1) % (timeSignature.beatsPerMeasure * measureCount)
       )
-      return null
     },
     playing ? (60 / bpm) * 1000 : null
   )
@@ -116,10 +116,17 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
   console.log({ currentTick })
   const reader = {
     bpm,
-    currentTick: currentTick % timeSignature.beatsPerMeasure,
+    // we start at -1 to make the first beat work easily,
+    // but we don't want to *show* -1 to the user
+    currentTick: Math.max(currentTick % timeSignature.beatsPerMeasure, 0),
     timeSignature,
     measureCount,
-    currentMeasure: Math.floor(currentTick / timeSignature.beatsPerMeasure),
+    currentMeasure: Math.max(
+      Math.floor(currentTick / timeSignature.beatsPerMeasure),
+      0
+    ),
+    // TODO: if `audioContext.state` were a piece of React state, we could simply do `playing: audioContext.state === 'running'`
+    // However, since audioContext.state is just a mutable variable, updates to it don't get sent downstream.
     playing,
   }
   const writer = {
