@@ -1,4 +1,8 @@
-import React, { ChangeEventHandler, useState } from 'react'
+import React, { ChangeEventHandler, useEffect, useState } from 'react'
+import { useAudioRouter } from '../AudioRouter'
+import { Record } from '../icons/Record'
+import { X } from '../icons/X'
+import { useMetronome } from '../Metronome'
 
 type Props = {
   id: number
@@ -10,16 +14,14 @@ const black = '#000000'
 
 export const Track: React.FC<Props> = (props) => {
   const [metronome] = useMetronome()
+  const audioRouter = useAudioRouter()
   const [title, setTitle] = useState(`Track ${props.id}`)
   const [armed, setArmed] = useState(false)
   const [recording, setRecording] = useState(false)
-  const [audioData, setAudioData] = useState<Blob[]>([])
   // TODO: should I be using a tailwind class for this?
   const [recordButtonColor, setRecordButtonColor] = useState(
     recording ? red : black
   )
-
-  const audioRouter = useAudioRouter()
 
   const handleChangeTitle: ChangeEventHandler<HTMLInputElement> = (event) => {
     setTitle(event.target.value)
@@ -36,7 +38,16 @@ export const Track: React.FC<Props> = (props) => {
   }
 
   function handleLoopstart() {
-    // TODO
+    if (recording) {
+      setRecording(false)
+      audioRouter.recordStop()
+    }
+    if (armed) {
+      audioRouter.recordStart()
+      setRecording(true)
+      setArmed(false)
+      setRecordButtonColor(red)
+    }
   }
 
   useEffect(() => {
@@ -47,6 +58,25 @@ export const Track: React.FC<Props> = (props) => {
       metronome.events.removeEventListener('loopstart', handleLoopstart)
     }
   })
+
+  // TODO: need some sort of global lock to prevent recording to multiple tracks at once
+  async function handleArmRecording() {
+    if (armed) {
+      setArmed(false)
+      return
+    }
+    try {
+      await audioRouter.getMedia()
+      setArmed(true)
+    } catch (err) {
+      // TODO: better error UX
+      console.error(err)
+      alert(
+        'Unable to get access to a recording device. This app is useless now!'
+      )
+    }
+  }
+
   return (
     <div>
       <input value={title} onChange={handleChangeTitle} />
