@@ -12,6 +12,8 @@
  */
 import React, { createContext, useContext, useRef, useState } from 'react'
 
+const mimeType = 'audio/ogg; codecs=opus'
+
 type AudioAdapter = {
   init(): void
   suspend(): Promise<void>
@@ -116,8 +118,8 @@ export const AudioProvider: React.FC<Props> = (props) => {
     // maybe `audio/webm` ?
     // the mimeType should match the blob that is created
     recorder.current = new MediaRecorder(stream.current, {
-      mimeType: 'audio/ogg',
-      audioBitsPerSecond: 192000,
+      mimeType,
+      audioBitsPerSecond: 192_000 * 24, // 192kHz sample rate * 24-bit depth
     })
 
     // This is the only documented method I can find for capturing recorded data
@@ -151,8 +153,8 @@ export const AudioProvider: React.FC<Props> = (props) => {
 
     // convert the raw audio chunks into an AudioBufferSourceNode:
     // Blob[] -> Blob -> ArrayBuffer -> AudioBuffer -> AudioBufferSourceNode
-    const blob = new Blob(audioData, { type: 'audio/ogg; codecs=opus' })
-    const arrayBuffer = await new Response(blob).arrayBuffer()
+    const blob = new Blob(audioData, { type: mimeType })
+    const arrayBuffer = await blob.arrayBuffer()
     const buffer = await audioContext.current!.decodeAudioData(arrayBuffer)
     const bufferSource = new AudioBufferSourceNode(audioContext.current, {
       buffer,
