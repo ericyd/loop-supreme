@@ -43,7 +43,7 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
     beatsPerMeasure: 4,
     beatUnit: 4,
   })
-  const [measureCount, setMeasureCount] = useState(1)
+  const [measureCount, setMeasureCount] = useState(2)
   // no autoplay!
   const [playing, setPlaying] = useState(false)
   // An EventTarget with React? Why?
