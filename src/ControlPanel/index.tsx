@@ -9,15 +9,19 @@ export const ControlPanel: React.FC = () => {
   const [metronomeReader, metronomeWriter] = useMetronome()
 
   const handleSetBpm: React.ChangeEventHandler<HTMLInputElement> =
-    useDebouncedCallback((event) => {
-      const bpm = Number(event.target.value)
-      if (Number.isNaN(bpm)) {
-        throw new Error(
-          `Could not convert bpm "${event.target.value}" to numeric`
-        )
-      }
-      metronomeWriter.setBpm(bpm)
-    }, 100)
+    useDebouncedCallback(
+      (event) => {
+        const bpm = Number(event.target.value)
+        if (Number.isNaN(bpm)) {
+          throw new Error(
+            `Could not convert bpm "${event.target.value}" to numeric`
+          )
+        }
+        metronomeWriter.setBpm(bpm)
+      },
+      100,
+      { leading: true, trailing: false }
+    )
 
   const handleSetTimeSignature: React.ChangeEventHandler<HTMLSelectElement> = (
     event
@@ -48,43 +52,55 @@ export const ControlPanel: React.FC = () => {
   }
 
   return (
-    <Container title="Metronome">
-      <div>current tick: {metronomeReader.currentTick}</div>
-      <div>current measure: {metronomeReader.currentMeasure}</div>
-      {/* TODO: read directly from the input[type="range"] below. This reads the debounced value which is confusing form a UX perspective */}
-      <div>bpm: {metronomeReader.bpm}</div>
-      <input
-        type="range"
-        onChange={handleSetBpm}
-        min={20}
-        max={300}
-        step={0.1}
-        defaultValue={metronomeReader.bpm}
-      />
-      <div>
-        time signature: {metronomeReader.timeSignature.beatsPerMeasure}/
-        {metronomeReader.timeSignature.beatUnit}
-      </div>
-      <select
-        onChange={handleSetTimeSignature}
-        value={`${metronomeReader.timeSignature.beatsPerMeasure}/${metronomeReader.timeSignature.beatUnit}`}
-      >
-        <option value="4/4">4/4</option>
-        <option value="7/8">7/8</option>
-      </select>
-      <div>measure count: {metronomeReader.measureCount}</div>
-      <input
-        type="range"
-        min="1"
-        max="4"
-        step="1"
-        value={metronomeReader.measureCount}
-        onChange={handleChangeMeasureCount}
-      />
-      <div>
+    <Container title="Control panel">
+      <div className="flex items-start content-center mb-2">
+        <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2">
+          <div>tick: {metronomeReader.currentTick}</div>
+        </div>
+
+        <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2">
+          <div>measure: {metronomeReader.currentMeasure}</div>
+        </div>
+
+        <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2">
+          {/* TODO: read directly from the input[type="range"] below. This reads the debounced value which is confusing from a UX perspective */}
+          <div>bpm: {metronomeReader.bpm}</div>
+          <input
+            type="range"
+            onChange={handleSetBpm}
+            min={20}
+            max={300}
+            step={0.1}
+            defaultValue={metronomeReader.bpm}
+          />
+        </div>
+
+        <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2">
+          <div>time signature</div>
+          <select
+            onChange={handleSetTimeSignature}
+            value={`${metronomeReader.timeSignature.beatsPerMeasure}/${metronomeReader.timeSignature.beatUnit}`}
+          >
+            <option value="4/4">4/4</option>
+            <option value="7/8">7/8</option>
+          </select>
+        </div>
+
+        <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2">
+          <div>measure count: {metronomeReader.measureCount}</div>
+          <input
+            type="range"
+            min="1"
+            max="4"
+            step="1"
+            value={metronomeReader.measureCount}
+            onChange={handleChangeMeasureCount}
+          />
+        </div>
+
         <button
           onClick={metronomeWriter.togglePlaying}
-          className="p-1 border border-zinc-400 border-solid rounded-sm"
+          className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
         >
           <img
             src={metronomeReader.playing ? pause : play}
