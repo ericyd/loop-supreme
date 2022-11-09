@@ -78,13 +78,25 @@ export const Track: React.FC<Props> = (props) => {
   }
 
   return (
-    <div>
-      <input value={title} onChange={handleChangeTitle} />
+    <div className="flex items-start content-center mb-2">
+      <input
+        value={title}
+        onChange={handleChangeTitle}
+        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
+      />
+      {/* TODO: make a "confirm" flow so tracks are not accidentally deleted */}
       <button
-        className="p-2 border border-zinc-400 border-solid rounded-sm"
+        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
         onClick={props.onRemove}
       >
-        Remove
+        <X />
+      </button>
+      <button
+        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
+        onClick={handleArmRecording}
+      >
+        {/* TODO: two pieces of state for a ... button color????? 🤮🤮🤮 */}
+        <Record fill={recording ? red : recordButtonColor} />
       </button>
     </div>
   )
