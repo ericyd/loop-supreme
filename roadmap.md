@@ -66,3 +66,18 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
   - `1`, `2`, `3`, etc select a track
   - once a track is selected, `r` toggles "armed for recording", `m` toggles mute
   - `t` is "tap tempo"
+
+## Misc
+
+- [ ] Allow user to change inputs https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/enumerateDevices. This method returns `Array<MediaDeviceInfo>` which looks like this:
+
+```json
+[
+  {
+    "deviceId": "fawzsPrkZbQN9fojBcmG6nlJp0DMXbkmPUxyNMrepqk=",
+    "groupId": "oJkNwmfoCVJ/Gy/1koTeGXQCaMLs22CBhWe2KT0Tdxs=",
+    "kind": "audioinput",
+    "label": "HD Pro Webcam C920"
+  }
+]
+```

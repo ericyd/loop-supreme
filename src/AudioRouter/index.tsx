@@ -12,11 +12,16 @@
  */
 import React, { createContext, useContext, useRef, useState } from 'react'
 
+const mimeType = 'audio/ogg; codecs=opus'
+
 type AudioAdapter = {
   init(): void
   suspend(): Promise<void>
   resume(): Promise<void>
   playTone(startOfMeasure: boolean): void
+  getMedia(): Promise<void>
+  recordStart(): void
+  recordStop(): Promise<void>
 }
 
 const AudioRouter = createContext<AudioAdapter | null>(null)
@@ -27,6 +32,8 @@ type Props = {
 
 export const AudioProvider: React.FC<Props> = (props) => {
   const audioContext = useRef<AudioContext>()
+  const stream = useRef<MediaStream>()
+  const recorder = useRef<MediaRecorder>()
 
   // This just feels strange. But the user has to initiate this. Hm. Not really sure the best way
   function init() {
@@ -89,7 +96,90 @@ export const AudioProvider: React.FC<Props> = (props) => {
     return osc
   }
 
-  const adapter = { init, playTone, suspend, resume }
+  const [audioData, setAudioData] = useState<Blob[]>([])
+
+  async function getMedia() {
+    if (!audioContext.current) {
+      console.error('Called "getMedia" before AudioContext initilized!')
+      return
+    }
+    stream.current = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: false,
+    })
+    const source = audioContext.current.createMediaStreamSource(stream.current)
+
+    // this provides monitoring of the input.
+    // If monitoring is disabled, simply skip this `connect()` call
+    source.connect(audioContext.current.destination)
+
+    // The MediaRecorder is what actually captures the data and puts it into memory.
+    // TODO: investigate the options a bit more and optimize
+    // maybe `audio/webm` ?
+    // the mimeType should match the blob that is created
+    recorder.current = new MediaRecorder(stream.current, {
+      mimeType,
+      audioBitsPerSecond: 192_000 * 24, // 192kHz sample rate * 24-bit depth
+    })
+
+    // This is the only documented method I can find for capturing recorded data
+    recorder.current.addEventListener('dataavailable', (event) => {
+      setAudioData((data) => [...data, event.data])
+    })
+  }
+
+  function recordStart() {
+    if (!recorder.current) {
+      console.error('Called "recordStart" before MediaRecorder was initialized')
+      return
+    }
+    recorder.current.start(1000)
+  }
+
+  // TODO: create the Blob immediatly when recording stops
+  // https://www.twilio.com/blog/mediastream-recording-api
+  async function recordStop() {
+    if (!recorder.current) {
+      console.error('Called "recordStart" before MediaRecorder was initialized')
+      return
+    }
+    recorder.current.requestData()
+    recorder.current.stop()
+
+    if (!audioContext.current || !stream.current) {
+      console.error('Somehow audioContext or stream is not initialized!')
+      return
+    }
+
+    // convert the raw audio chunks into an AudioBufferSourceNode:
+    // Blob[] -> Blob -> ArrayBuffer -> AudioBuffer -> AudioBufferSourceNode
+    const blob = new Blob(audioData, { type: mimeType })
+    const arrayBuffer = await blob.arrayBuffer()
+    const buffer = await audioContext.current!.decodeAudioData(arrayBuffer)
+    const bufferSource = new AudioBufferSourceNode(audioContext.current, {
+      buffer,
+      loop: true,
+    })
+
+    // Volume control for track playback
+    const gain = new GainNode(audioContext.current, {
+      // must be in range [0.0, 1.0]
+      gain: 0.99,
+    })
+    gain.connect(audioContext.current.destination)
+    bufferSource.connect(gain)
+    bufferSource.start()
+  }
+
+  const adapter = {
+    init,
+    playTone,
+    suspend,
+    resume,
+    getMedia,
+    recordStart,
+    recordStop,
+  }
 
   return (
     <AudioRouter.Provider value={adapter}>
