@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Container } from '../Container'
+import { Plus } from '../icons/Plus'
 import { Track } from '../Track'
 
 export const Scene: React.FC = () => {
@@ -23,12 +24,12 @@ export const Scene: React.FC = () => {
 
   return (
     <Container title="Scene">
-      <div>
+      <div className="mb-2">
         <button
           className="p-2 border border-zinc-400 border-solid rounded-sm"
           onClick={handleAddTrack}
         >
-          Add track
+          <Plus />
         </button>
       </div>
       {tracks.map(({ id }) => (
