@@ -24,3 +24,4 @@ You can [check out my blog here!](https://ericyd.hashnode.dev/)
 - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Advanced_techniques#playing_the_audio_in_time
 - https://developer.mozilla.org/en-US/docs/Web/API/MediaStream_Recording_API
 - https://developer.mozilla.org/en-US/docs/Web/API/MediaStream_Recording_API/Using_the_MediaStream_Recording_API
+- https://www.1001freefonts.com/chicle.font (used in the logo)
