@@ -1,6 +1,11 @@
-import React, { createContext, useContext, useRef, useState } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import { useAudioRouter } from '../AudioRouter'
-import { useInterval } from '../hooks/useInterval'
 
 type TimeSignature = {
   beatsPerMeasure: number
@@ -59,38 +64,134 @@ export const MetronomeProvider: React.FC<Props> = (props) => {
       await audioRouter.suspend()
       setPlaying(false)
     } else {
-      audioRouter.init()
+      // await audioRouter.init()
       await audioRouter.resume()
+      // setTimeout(() => , 100)
       setPlaying(true)
     }
   }
 
-  // The Web Audio API documentation has a substantially more involved looking description of how to make this work:
-  //    https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Advanced_techniques#playing_the_audio_in_time
-  // For now, this seems to be working ok and it accomplishes the basic goal
-  useInterval(
-    () => {
+  // const incrementBeat = useCallback(() => {
+  //   const isFirstBeat =
+  //     (currentTick + 1) % (timeSignature.beatsPerMeasure * measureCount) === 0
+  //   if (isFirstBeat) {
+  //     events.current.dispatchEvent(new Event('loopstart'))
+  //   }
+  //   events.current.dispatchEvent(new Event('beat'))
+  //   // audioRouter.playTone(
+  //   //   // audioRouter.audioContext.currentTime, // TODO: hmmm...
+  //   //   (currentTick + 1) % timeSignature.beatsPerMeasure === 0
+  //   // )
+  //   // Advance the beat number, wrap to zero when reaching end of measure
+  //   setCurrentTick(
+  //     (value) => (value + 1) % (timeSignature.beatsPerMeasure * measureCount)
+  //   )
+  // }, [currentTick, measureCount, timeSignature.beatsPerMeasure])
+
+  useEffect(() => {
+    if (!playing) {
+      return
+    }
+    const incrementBeat = () => {
+      console.log({ incrementBeatCalled: true })
       const isFirstBeat =
         (currentTick + 1) % (timeSignature.beatsPerMeasure * measureCount) === 0
       if (isFirstBeat) {
         events.current.dispatchEvent(new Event('loopstart'))
       }
       events.current.dispatchEvent(new Event('beat'))
-      audioRouter.playTone(
-        // audioRouter.audioContext.currentTime, // TODO: hmmm...
-        (currentTick + 1) % timeSignature.beatsPerMeasure === 0
-      )
+
       // Advance the beat number, wrap to zero when reaching end of measure
       setCurrentTick(
         (value) => (value + 1) % (timeSignature.beatsPerMeasure * measureCount)
       )
-    },
-    playing ? (60 / bpm) * 1000 : null
-  )
+    }
+    console.log(audioRouter.audioContext?.state)
+    if (audioRouter.audioContext?.state === 'running') {
+      // copied from https://blog.paul.cx/post/metronome/
+      const audioCtx = audioRouter.audioContext
+      // const audioCtx = new AudioContext()
+      const buffer = audioCtx.createBuffer(
+        1,
+        audioCtx.sampleRate * (60 / bpm),
+        audioCtx.sampleRate
+      )
+      const channel = buffer.getChannelData(0)
+
+      // create a quickly decaying sine wave
+      const durationMs = 100
+      const durationFrames = buffer.sampleRate / (1000 / durationMs)
+      let metronomeVolume = 0.5
+      const volumeDecayRate = metronomeVolume / durationFrames
+      const frequency = 330
+
+      const samplesPerWave = buffer.sampleRate / frequency
+      // I'm not exactly sure what to call this
+      const sampleWaveDisplacement = samplesPerWave / 2 / Math.PI
+
+      for (var i = 0; i < durationFrames; i++) {
+        channel[i] = Math.sin(i / sampleWaveDisplacement) * metronomeVolume
+        metronomeVolume -= volumeDecayRate
+      }
+
+      console.debug({
+        amp: metronomeVolume,
+        samplesPerSine: samplesPerWave,
+      })
+
+      const source = new AudioBufferSourceNode(audioCtx, {
+        buffer,
+        loop: true,
+        loopEnd: 60 / bpm,
+      })
+      source.connect(audioCtx.destination)
+      source.addEventListener('ended', incrementBeat)
+      source.start(0)
+      console.debug({ metronomeStarted: true })
+
+      return () => {
+        source.removeEventListener('ended', incrementBeat)
+        source.stop()
+      }
+    }
+  }, [
+    audioRouter.audioContext,
+    audioRouter.audioContext?.state,
+    // incrementBeat,
+    bpm,
+    currentTick,
+    setCurrentTick,
+    timeSignature.beatsPerMeasure,
+    measureCount,
+    playing,
+  ])
+
+  // The Web Audio API documentation has a substantially more involved looking description of how to make this work:
+  //    https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Advanced_techniques#playing_the_audio_in_time
+  // For now, this seems to be working ok and it accomplishes the basic goal
+  // useInterval(
+  //   () => {
+  //     const isFirstBeat =
+  //       (currentTick + 1) % (timeSignature.beatsPerMeasure * measureCount) === 0
+  //     if (isFirstBeat) {
+  //       events.current.dispatchEvent(new Event('loopstart'))
+  //     }
+  //     events.current.dispatchEvent(new Event('beat'))
+  //     audioRouter.playTone(
+  //       // audioRouter.audioContext.currentTime, // TODO: hmmm...
+  //       (currentTick + 1) % timeSignature.beatsPerMeasure === 0
+  //     )
+  //     // Advance the beat number, wrap to zero when reaching end of measure
+  //     setCurrentTick(
+  //       (value) => (value + 1) % (timeSignature.beatsPerMeasure * measureCount)
+  //     )
+  //   },
+  //   playing ? (60 / bpm) * 1000 : null
+  // )
 
   // TODO: this is logging twice, which probably means it's mounting twice and not getting cleared when the first one unmounts
   // it probably is not an issue this early in development but should be handled eventually
-  console.log({ currentTick })
+  // console.debug({ currentTick })
   const reader = {
     bpm,
     // we start at -1 to make the first beat work easily,

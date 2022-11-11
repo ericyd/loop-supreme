@@ -10,67 +10,66 @@
  *    However, it led to a lot of awkward nullability checks. Maybe this is OK, but it makes me wonder if there is
  *    a more ergonomic way to expose an audioContext to the rest of the app.
  */
-import React, { createContext, useContext, useRef, useState } from 'react'
+import React, { createContext, useContext, useState } from 'react'
 
 const mimeType = 'audio/ogg; codecs=opus'
 
 type AudioAdapter = {
-  init(): void
   suspend(): Promise<void>
   resume(): Promise<void>
   playTone(startOfMeasure: boolean): void
-  getMedia(): Promise<void>
   recordStart(): void
   recordStop(): Promise<void>
+  audioContext: AudioContext
 }
 
 const AudioRouter = createContext<AudioAdapter | null>(null)
 
 type Props = {
+  stream: MediaStream
   children: React.ReactNode
 }
 
 export const AudioProvider: React.FC<Props> = (props) => {
-  const audioContext = useRef<AudioContext>()
-  const stream = useRef<MediaStream>()
-  const recorder = useRef<MediaRecorder>()
+  const audioContext = new AudioContext()
+  const stream = props.stream
+  const recorder = new MediaRecorder(stream, {
+    mimeType,
+    audioBitsPerSecond: 192_000 * 24, // 192kHz sample rate * 24-bit depth
+  })
+  const [audioData, setAudioData] = useState<Blob[]>([])
 
-  // This just feels strange. But the user has to initiate this. Hm. Not really sure the best way
-  function init() {
-    if (!audioContext.current) {
-      audioContext.current = new AudioContext()
-    }
-  }
+  // not sure if this should happen on mount, or in `recordStart` method
+  const source = audioContext.createMediaStreamSource(stream)
+  // this provides monitoring of the input.
+  // If monitoring is disabled, simply skip this `connect()` call
+  source.connect(audioContext.destination)
+  // This is the only documented method I can find for capturing recorded data
+  recorder.addEventListener('dataavailable', (event) => {
+    setAudioData((data) => [...data, event.data])
+  })
 
   async function suspend() {
-    if (!audioContext.current) {
-      console.error('Attempted to suspend before audio context was initialized')
-      return
-    }
-    await audioContext.current.suspend()
+    await audioContext.suspend()
   }
 
   async function resume() {
-    if (!audioContext.current) {
-      console.error('Attempted to resume before audio context was initialized')
-      return
-    }
-    await audioContext.current.resume()
+    await audioContext.resume()
   }
 
   function playTone(startOfMeasure: boolean) {
-    if (!audioContext.current || audioContext.current.state !== 'running') {
+    if (audioContext.state !== 'running') {
       console.error(
-        `Attempted to play a tone when audio context is not running. Current state: ${audioContext.current?.state}`
+        `Attempted to play a tone when audio context is not running. Current state: ${audioContext?.state}`
       )
       return
     }
-    const time = audioContext.current.currentTime
-    const mainGainNode = new GainNode(audioContext.current, {
+    const time = audioContext.currentTime
+    const mainGainNode = new GainNode(audioContext, {
       // must be in range [0.0, 1.0]
       gain: 0.15,
     })
-    mainGainNode.connect(audioContext.current.destination)
+    mainGainNode.connect(audioContext.destination)
     const frequency = startOfMeasure ? 490 : 440
     // we want (frequency/duration) to always be a whole number,
     // so the sine wave doesn't clip
@@ -78,7 +77,7 @@ export const AudioProvider: React.FC<Props> = (props) => {
     // OscillatorNodes can only be played once! Therefore, they must be instantiated every time we need a "beep".
     // https://stackoverflow.com/a/33723682 suggests an alternative of connecting/disconnecting as needed,
     // but I don't believe that will fit our needs because we want the disconnect to be a very specific timing interval after the start.
-    const osc = new OscillatorNode(audioContext.current, {
+    const osc = new OscillatorNode(audioContext, {
       frequency,
       // can be "sine", "square", "sawtooth", "triangle", or "custom"
       // when "custom", need to create a custom waveform, then set it like so:
@@ -96,89 +95,43 @@ export const AudioProvider: React.FC<Props> = (props) => {
     return osc
   }
 
-  const [audioData, setAudioData] = useState<Blob[]>([])
-
-  async function getMedia() {
-    if (!audioContext.current) {
-      console.error('Called "getMedia" before AudioContext initilized!')
-      return
-    }
-    stream.current = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: false,
-    })
-    const source = audioContext.current.createMediaStreamSource(stream.current)
-
-    // this provides monitoring of the input.
-    // If monitoring is disabled, simply skip this `connect()` call
-    source.connect(audioContext.current.destination)
-
-    // The MediaRecorder is what actually captures the data and puts it into memory.
-    // TODO: investigate the options a bit more and optimize
-    // maybe `audio/webm` ?
-    // the mimeType should match the blob that is created
-    recorder.current = new MediaRecorder(stream.current, {
-      mimeType,
-      audioBitsPerSecond: 192_000 * 24, // 192kHz sample rate * 24-bit depth
-    })
-
-    // This is the only documented method I can find for capturing recorded data
-    recorder.current.addEventListener('dataavailable', (event) => {
-      setAudioData((data) => [...data, event.data])
-    })
-  }
-
   function recordStart() {
-    if (!recorder.current) {
-      console.error('Called "recordStart" before MediaRecorder was initialized')
-      return
-    }
-    recorder.current.start(1000)
+    recorder.start(1000)
   }
 
   // TODO: create the Blob immediatly when recording stops
   // https://www.twilio.com/blog/mediastream-recording-api
   async function recordStop() {
-    if (!recorder.current) {
-      console.error('Called "recordStart" before MediaRecorder was initialized')
-      return
-    }
-    recorder.current.requestData()
-    recorder.current.stop()
-
-    if (!audioContext.current || !stream.current) {
-      console.error('Somehow audioContext or stream is not initialized!')
-      return
-    }
+    recorder.requestData()
+    recorder.stop()
 
     // convert the raw audio chunks into an AudioBufferSourceNode:
     // Blob[] -> Blob -> ArrayBuffer -> AudioBuffer -> AudioBufferSourceNode
     const blob = new Blob(audioData, { type: mimeType })
     const arrayBuffer = await blob.arrayBuffer()
-    const buffer = await audioContext.current!.decodeAudioData(arrayBuffer)
-    const bufferSource = new AudioBufferSourceNode(audioContext.current, {
+    const buffer = await audioContext!.decodeAudioData(arrayBuffer)
+    const bufferSource = new AudioBufferSourceNode(audioContext, {
       buffer,
       loop: true,
     })
 
     // Volume control for track playback
-    const gain = new GainNode(audioContext.current, {
+    const gain = new GainNode(audioContext, {
       // must be in range [0.0, 1.0]
       gain: 0.99,
     })
-    gain.connect(audioContext.current.destination)
+    gain.connect(audioContext.destination)
     bufferSource.connect(gain)
     bufferSource.start()
   }
 
   const adapter = {
-    init,
     playTone,
     suspend,
     resume,
-    getMedia,
     recordStart,
     recordStop,
+    audioContext,
   }
 
   return (

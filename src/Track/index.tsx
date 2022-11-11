@@ -65,16 +65,7 @@ export const Track: React.FC<Props> = (props) => {
       setArmed(false)
       return
     }
-    try {
-      await audioRouter.getMedia()
-      setArmed(true)
-    } catch (err) {
-      // TODO: better error UX
-      console.error(err)
-      alert(
-        'Unable to get access to a recording device. This app is useless now!'
-      )
-    }
+    setArmed(true)
   }
 
   return (
