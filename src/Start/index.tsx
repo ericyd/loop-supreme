@@ -3,6 +3,7 @@ import App from '../App'
 
 export const Start: React.FC = () => {
   const [stream, setStream] = useState<MediaStream>()
+  const [audioContext, setAudioContext] = useState<AudioContext>()
 
   async function handleClick() {
     try {
@@ -12,14 +13,19 @@ export const Start: React.FC = () => {
           video: false,
         })
       )
+      const audioContext = new AudioContext()
+
+      // adding modules is async; since it needs to happen "on mount", this is probably the best place for it
+      // await audioContext.audioWorklet.addModule('worklets/click.js')
+      setAudioContext(audioContext)
     } catch (e) {
       // TODO: better error handling
       console.error(e)
     }
   }
 
-  return stream ? (
-    <App stream={stream} />
+  return stream && audioContext ? (
+    <App stream={stream} audioContext={audioContext} />
   ) : (
     <button onClick={handleClick}>Start</button>
   )

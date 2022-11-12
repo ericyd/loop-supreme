@@ -27,11 +27,12 @@ const AudioRouter = createContext<AudioAdapter | null>(null)
 
 type Props = {
   stream: MediaStream
+  audioContext: AudioContext
   children: React.ReactNode
 }
 
 export const AudioProvider: React.FC<Props> = (props) => {
-  const audioContext = new AudioContext()
+  const audioContext = props.audioContext
   const stream = props.stream
   const recorder = new MediaRecorder(stream, {
     mimeType,

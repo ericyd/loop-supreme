@@ -6,11 +6,12 @@ import { Scene } from '../Scene'
 
 type Props = {
   stream: MediaStream
+  audioContext: AudioContext
 }
 
 function App(props: Props) {
   return (
-    <AudioProvider stream={props.stream}>
+    <AudioProvider stream={props.stream} audioContext={props.audioContext}>
       <MetronomeProvider>
         <ControlPanel />
         <Scene />
