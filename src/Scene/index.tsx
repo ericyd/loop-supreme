@@ -1,9 +1,14 @@
 import React, { useState } from 'react'
 import { Container } from '../Container'
 import { Plus } from '../icons/Plus'
+import { MetronomeReader } from '../Metronome'
 import { Track } from '../Track'
 
-export const Scene: React.FC = () => {
+type Props = {
+  metronome: MetronomeReader
+}
+
+export const Scene: React.FC<Props> = ({ metronome }) => {
   const [tracks, setTracks] = useState([{ id: 1 }])
 
   function handleAddTrack() {
@@ -33,7 +38,12 @@ export const Scene: React.FC = () => {
         </button>
       </div>
       {tracks.map(({ id }) => (
-        <Track key={id} id={id} onRemove={handleRemoveTrack(id)} />
+        <Track
+          key={id}
+          id={id}
+          onRemove={handleRemoveTrack(id)}
+          metronome={metronome}
+        />
       ))}
     </Container>
   )
