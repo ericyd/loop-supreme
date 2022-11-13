@@ -1,14 +1,7 @@
 /**
  * Why a Worker instead of an AudioWorkletProcessor?
  *    Turns out AudioWorkletProcessors don't have access to setInterval!
- * Why JS?
- *    I don't want to go through the hassle of getting a TS file into my build pipeline;
- *    The AudioContext.audioWorklet.addModule method expects a JS file path. If this were TS
- *    I believe I'd have to compile it first, then output the JS file to the src directory.
- *    That feels like a massive headache so going with the simple option first.
- *    (This is also why this is located in the public directory)
- * The code in this file was heavily inspired by this Google example, and Monica Dinculescu's fantastic metronome test/example code:
- *    https://github.com/GoogleChromeLabs/web-audio-samples/blob/eed2a8613af551f2b1d166a01c834e8431fdf3c6/src/audio-worklet/migration/worklet-recorder/recording-processor.js
+ * The code in this file was heavily inspired by Monica Dinculescu's fantastic metronome test/example code:
  *    https://glitch.com/edit/#!/metronomes?path=worker.js%3A1%3A0
  * Why setInterval?
  *    I found that using setInterval in the client-side app was creating really bad latency
@@ -27,16 +20,24 @@
  *     This is a learning process for me and this may change in the future.
  */
 
-postMessage('worker says hi')
+import type { ClockWorkerMessage } from './ClockWorker'
 
-let timeoutId
+postMessage({ message: 'ready' })
+
+let timeoutId: NodeJS.Timer | null = null
 let currentTick = -1
 
 // eslint-disable-next-line no-restricted-globals
-self.onmessage = (e) => {
-  if (e.data.message === 'start') {
-    const { bpm, beatsPerMeasure, measureCount } = e.data
-
+self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
+  function start(bpm: number, beatsPerMeasure: number, measureCount: number) {
+    // post one message immediately so the start doesn't appear delayed by one beat
+    currentTick = (currentTick + 1) % (beatsPerMeasure * measureCount)
+    postMessage({
+      message: 'tick',
+      currentTick,
+      downbeat: currentTick % beatsPerMeasure === 0,
+      loopStart: currentTick === 0,
+    })
     timeoutId = setInterval(() => {
       currentTick = (currentTick + 1) % (beatsPerMeasure * measureCount)
       postMessage({
@@ -46,7 +47,22 @@ self.onmessage = (e) => {
         loopStart: currentTick === 0,
       })
     }, (60 / bpm) * 1000)
+  }
+
+  if (e.data.message === 'start') {
+    start(e.data.bpm, e.data.beatsPerMeasure, e.data.measureCount)
   } else if (e.data.message === 'stop') {
-    clearInterval(timeoutId)
+    clearInterval(timeoutId!)
+    timeoutId = null
+  } else if (e.data.message === 'update') {
+    // only start if it was already running
+    if (timeoutId) {
+      clearInterval(timeoutId)
+      start(e.data.bpm, e.data.beatsPerMeasure, e.data.measureCount)
+    }
   }
 }
+
+// " 'clock.ts' cannot be compiled under '--isolatedModules' because it is considered a global script file.
+//   Add an import, export, or an empty 'export {}' statement to make it a module.ts(1208) "
+export {}
