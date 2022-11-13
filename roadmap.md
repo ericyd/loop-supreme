@@ -28,6 +28,7 @@ The `Metronome` is the heart of the app. The BPM, measure, current tick, and tim
 - [x] Metronome Component must use Reader to display properties https://github.com/ericyd/loop-supreme/pull/3
 - [x] Metronome must play an audible click on each tick https://github.com/ericyd/loop-supreme/pull/4
 - [x] Metronome must initialize as "stopped", and can be "started" by user input https://github.com/ericyd/loop-supreme/pull/4
+- [ ] Metronome can be muted, while still running
 
 ## Scene
 
@@ -46,13 +47,13 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [x] create Component https://github.com/ericyd/loop-supreme/pull/5
   - shape: rectangle. Spans width of `Scene`
 - [x] Component can remove itself from scene https://github.com/ericyd/loop-supreme/pull/5
-- [ ] Component has arm toggle button
+- [x] Component has arm toggle button https://github.com/ericyd/loop-supreme/pull/8
 - [ ] Component has mute toggle button
 - [ ] audio data can be cleared from component
-- [ ] Component can record data from user device
+- [x] Component can record data from user device https://github.com/ericyd/loop-supreme/pull/8
 - [ ] Component shows waveform of recorded audio
 - [ ] Component can adjust volume of playback
-- [ ] When Component is armed for recording, audio data is recorded starting at the beginning of the next loop, and automatically stops at the beginning of the following loop
+- [x] When Component is armed for recording, audio data is recorded starting at the beginning of the next loop, and automatically stops at the beginning of the following loop https://github.com/ericyd/loop-supreme/pull/9
 
 ## Saving audio
 
@@ -66,6 +67,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
   - `1`, `2`, `3`, etc select a track
   - once a track is selected, `r` toggles "armed for recording", `m` toggles mute
   - `t` is "tap tempo"
+  - `space` is play/pause
 
 ## Misc
 

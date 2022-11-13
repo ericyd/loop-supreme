@@ -1,13 +1,19 @@
 import React from 'react'
 import { useDebouncedCallback } from 'use-debounce'
-import { useMetronome } from '../Metronome'
+import { MetronomeReader, MetronomeWriter } from '../Metronome'
 import play from '../icons/iconmonstr-media-control-48.svg'
 import pause from '../icons/iconmonstr-media-control-49.svg'
 import { Container } from '../Container'
 
-export const ControlPanel: React.FC = () => {
-  const [metronomeReader, metronomeWriter] = useMetronome()
+type Props = {
+  metronome: MetronomeReader
+  metronomeWriter: MetronomeWriter
+}
 
+export const ControlPanel: React.FC<Props> = ({
+  metronome,
+  metronomeWriter,
+}) => {
   const handleSetBpm: React.ChangeEventHandler<HTMLInputElement> =
     useDebouncedCallback(
       (event) => {
@@ -55,23 +61,23 @@ export const ControlPanel: React.FC = () => {
     <Container title="Control panel">
       <div className="flex items-start content-center mb-2">
         <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2">
-          <div>tick: {metronomeReader.currentTick}</div>
+          <div>tick: {metronome.currentTick}</div>
         </div>
 
         <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2">
-          <div>measure: {metronomeReader.currentMeasure}</div>
+          <div>measure: {metronome.currentMeasure}</div>
         </div>
 
         <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2">
           {/* TODO: read directly from the input[type="range"] below. This reads the debounced value which is confusing from a UX perspective */}
-          <div>bpm: {metronomeReader.bpm}</div>
+          <div>bpm: {metronome.bpm}</div>
           <input
             type="range"
             onChange={handleSetBpm}
             min={20}
             max={300}
             step={0.1}
-            defaultValue={metronomeReader.bpm}
+            defaultValue={metronome.bpm}
           />
         </div>
 
@@ -79,7 +85,7 @@ export const ControlPanel: React.FC = () => {
           <div>time signature</div>
           <select
             onChange={handleSetTimeSignature}
-            value={`${metronomeReader.timeSignature.beatsPerMeasure}/${metronomeReader.timeSignature.beatUnit}`}
+            value={`${metronome.timeSignature.beatsPerMeasure}/${metronome.timeSignature.beatUnit}`}
           >
             <option value="4/4">4/4</option>
             <option value="7/8">7/8</option>
@@ -87,13 +93,13 @@ export const ControlPanel: React.FC = () => {
         </div>
 
         <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2">
-          <div>measure count: {metronomeReader.measureCount}</div>
+          <div>measure count: {metronome.measureCount}</div>
           <input
             type="range"
             min="1"
             max="4"
             step="1"
-            value={metronomeReader.measureCount}
+            value={metronome.measureCount}
             onChange={handleChangeMeasureCount}
           />
         </div>
@@ -103,8 +109,8 @@ export const ControlPanel: React.FC = () => {
           className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
         >
           <img
-            src={metronomeReader.playing ? pause : play}
-            alt={metronomeReader.playing ? 'Pause' : 'Play'}
+            src={metronome.playing ? pause : play}
+            alt={metronome.playing ? 'Pause' : 'Play'}
           />
         </button>
       </div>

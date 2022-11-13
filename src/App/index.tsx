@@ -1,13 +1,17 @@
 import React from 'react'
-import { ControlPanel } from '../ControlPanel'
-import { Scene } from '../Scene'
+import { AudioProvider } from '../AudioRouter'
+import { Metronome } from '../Metronome'
 
-function App() {
+type Props = {
+  stream: MediaStream
+  audioContext: AudioContext
+}
+
+function App(props: Props) {
   return (
-    <>
-      <ControlPanel />
-      <Scene />
-    </>
+    <AudioProvider stream={props.stream} audioContext={props.audioContext}>
+      <Metronome />
+    </AudioProvider>
   )
 }
 
