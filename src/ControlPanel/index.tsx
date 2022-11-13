@@ -3,6 +3,11 @@ import { useDebouncedCallback } from 'use-debounce'
 import { MetronomeReader, MetronomeWriter } from '../Metronome'
 import play from '../icons/iconmonstr-media-control-48.svg'
 import pause from '../icons/iconmonstr-media-control-49.svg'
+import ControlPanelItem from './ControlPanelItem'
+import MeasureCount from './MeasureCount'
+import TimeSignature from './TimeSignature'
+import Tempo from './Tempo'
+import BeatCounter from './BeatCounter'
 
 type Props = {
   metronome: MetronomeReader
@@ -64,62 +69,27 @@ export const ControlPanel: React.FC<Props> = ({
   return (
     <div className="flex flex-col">
       <div className="flex items-stretch justify-between content-center mb-2">
-        <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-grow mr-2">
-          <span className="font-serif text-4xl pr-3">
-            {/* `+ 1` to convert "computer numbers" to "musician numbers"  */}
-            {metronome.currentTick + 1}
-          </span>
-          <span className="font-serif text-xl">
-            / {metronome.currentMeasure + 1}
-          </span>
-        </div>
+        <BeatCounter
+          currentTick={metronome.currentTick}
+          currentMeasure={metronome.currentMeasure}
+        />
 
-        <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-grow mr-2">
-          <div>
-            <span className="font-serif text-4xl pr-3">
-              {visualBpm.toFixed(1)}
-            </span>
-            <span className="font-serif text-xl">BPM</span>
-          </div>
-          <input
-            type="range"
-            onChange={handleSetBpm}
-            min={20}
-            max={300}
-            step={0.1}
-            defaultValue={metronome.bpm}
-          />
-        </div>
+        <Tempo
+          handleChange={handleSetBpm}
+          defaultValue={metronome.bpm}
+          value={visualBpm.toFixed(1)}
+        />
 
-        <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-grow mr-2">
-          <select
-            onChange={handleSetTimeSignature}
-            value={`${metronome.timeSignature.beatsPerMeasure}/${metronome.timeSignature.beatUnit}`}
-            className="p-2 font-serif text-4xl bg-white"
-          >
-            <option value="4/4">4/4</option>
-            <option value="7/8">7/8</option>
-          </select>
-        </div>
+        <TimeSignature
+          handleChange={handleSetTimeSignature}
+          beatsPerMeasure={metronome.timeSignature.beatsPerMeasure}
+          beatUnit={metronome.timeSignature.beatUnit}
+        />
 
-        <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-grow mr-2">
-          <div>
-            <span className="font-serif text-4xl pr-3">
-              {metronome.measureCount}
-            </span>
-            <span className="font-serif text-xl">
-              measure{metronome.measureCount === 1 ? '' : 's'}
-            </span>
-          </div>
-          <input
-            type="range"
-            min="1"
-            max="4"
-            step="1"
-            value={metronome.measureCount}
-            onChange={handleChangeMeasureCount}
-          />
-        </div>
+        <MeasureCount
+          handleChange={handleChangeMeasureCount}
+          measureCount={metronome.measureCount}
+        />
       </div>
 
       <div className="flex items-start content-center mb-2">
@@ -131,6 +101,17 @@ export const ControlPanel: React.FC<Props> = ({
             src={metronome.playing ? pause : play}
             alt={metronome.playing ? 'Pause' : 'Play'}
           />
+        </button>
+
+        <button
+          onClick={() => {
+            metronomeWriter.setMuted(!metronome.muted)
+          }}
+          className={`p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2 w-10 font-bold font-serif ${
+            metronome.muted ? 'bg-red-400' : ''
+          }`}
+        >
+          M
         </button>
       </div>
     </div>
