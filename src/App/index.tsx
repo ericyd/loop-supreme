@@ -1,8 +1,6 @@
 import React from 'react'
 import { AudioProvider } from '../AudioRouter'
-import { ControlPanel } from '../ControlPanel'
-import { MetronomeProvider } from '../Metronome'
-import { Scene } from '../Scene'
+import { Metronome } from '../Metronome'
 
 type Props = {
   stream: MediaStream
@@ -12,10 +10,7 @@ type Props = {
 function App(props: Props) {
   return (
     <AudioProvider stream={props.stream} audioContext={props.audioContext}>
-      <MetronomeProvider>
-        <ControlPanel />
-        <Scene />
-      </MetronomeProvider>
+      <Metronome />
     </AudioProvider>
   )
 }
