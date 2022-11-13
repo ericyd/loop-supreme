@@ -40,7 +40,7 @@ type RecordingMessage =
   | ShareRecordingBufferMessage
 
 export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
-  const audioRouter = useAudioRouter()
+  const { audioContext, stream } = useAudioRouter()
   const [title, setTitle] = useState(`Track ${id}`)
   const [armed, setArmed] = useState(false)
   const [recording, setRecording] = useState(false)
@@ -51,23 +51,17 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
 
   const recorderWorklet = useRef<AudioWorkletNode>()
   useEffect(() => {
-    const mediaSource = audioRouter.audioContext.createMediaStreamSource(
-      audioRouter.stream
-    )
+    const mediaSource = audioContext.createMediaStreamSource(stream)
     const recordingProperties: RecordingProperties = {
       numberOfChannels: mediaSource.channelCount,
-      sampleRate: audioRouter.audioContext.sampleRate,
-      maxFrameCount: audioRouter.audioContext.sampleRate * 10,
+      sampleRate: audioContext.sampleRate,
+      maxFrameCount: audioContext.sampleRate * 10,
     }
-    recorderWorklet.current = new AudioWorkletNode(
-      audioRouter.audioContext,
-      'recorder',
-      {
-        processorOptions: recordingProperties,
-      }
-    )
+    recorderWorklet.current = new AudioWorkletNode(audioContext, 'recorder', {
+      processorOptions: recordingProperties,
+    })
 
-    const monitorNode = audioRouter.audioContext.createGain()
+    const monitorNode = audioContext.createGain()
 
     // We can pass this port across the app
     // and let components handle their relevant messages
@@ -87,7 +81,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     mediaSource
       .connect(recorderWorklet.current)
       .connect(monitorNode)
-      .connect(audioRouter.audioContext.destination)
+      .connect(audioContext.destination)
   }, [])
 
   function handleRecording(recordingProperties: RecordingProperties) {
@@ -102,10 +96,10 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
         recordingLength = event.data.recordingLength
       }
       if (event.data.message === 'SHARE_RECORDING_BUFFER') {
-        const recordingBuffer = audioRouter.audioContext.createBuffer(
+        const recordingBuffer = audioContext.createBuffer(
           recordingProperties.numberOfChannels,
           recordingLength,
-          audioRouter.audioContext.sampleRate
+          audioContext.sampleRate
         )
 
         // TODO: trim to loop length?
@@ -115,20 +109,17 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
 
         console.log({ recordingBuffer })
 
-        const bufferSource = new AudioBufferSourceNode(
-          audioRouter.audioContext,
-          {
-            buffer: recordingBuffer,
-            loop: true,
-          }
-        )
+        const bufferSource = new AudioBufferSourceNode(audioContext, {
+          buffer: recordingBuffer,
+          loop: true,
+        })
 
         // Volume control for track playback
-        const gain = new GainNode(audioRouter.audioContext, {
+        const gain = new GainNode(audioContext, {
           // must be in range [0.0, 1.0]
           gain: 0.99,
         })
-        gain.connect(audioRouter.audioContext.destination)
+        gain.connect(audioContext.destination)
         bufferSource.connect(gain)
         bufferSource.start()
 

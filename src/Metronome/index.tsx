@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useAudioRouter } from '../AudioRouter'
 import { ControlPanel } from '../ControlPanel'
 import { Scene } from '../Scene'
@@ -52,8 +46,11 @@ export const Metronome: React.FC<Props> = () => {
   // no autoplay!
   const [playing, setPlaying] = useState(false)
 
-  // Thanks SO! https://stackoverflow.com/a/71134400/3991555
+  // TODO: likely will need to "eject" CRA so I can customize webpack resolve hook
+  // https://webpack.js.org/configuration/resolve/
+  // Currently getting this error in built app: "Error: Module resolve hook not set"
   const clock = useRef<Worker>(
+    // Thanks SO! https://stackoverflow.com/a/71134400/3991555
     new Worker(new URL('../worklets/clock', import.meta.url))
   )
   useEffect(() => {

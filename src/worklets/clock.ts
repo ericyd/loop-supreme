@@ -20,6 +20,38 @@
  *     This is a learning process for me and this may change in the future.
  */
 
+/* eslint-disable no-restricted-globals */
+
+// I wrote up JS typedefs before I knew if TS would work. Leaving them in case they are needed again
+// /**
+//  * @typedef ClockWorkerStartMessage
+//  * @type {object}
+//  * @property {"start"} message
+//  * @property {number} bpm
+//  * @property {number} beatsPerMeasure
+//  * @property {number} measureCount
+//  */
+//
+// /**
+//  * @typedef ClockWorkerUpdateMessage
+//  * @type {object}
+//  * @property {"update"} message
+//  * @property {number} bpm
+//  * @property {number} beatsPerMeasure
+//  * @property {number} measureCount
+//  */
+//
+// /**
+//  * @typedef ClockWorkerStopMessage
+//  * @type {object}
+//  * @property {"stop"} message
+//  */
+//
+// /**
+//  * @typedef ClockWorkerMessage
+//  * @type {ClockWorkerStartMessage | ClockWorkerStopMessage | ClockWorkerUpdateMessage}
+//  */
+
 import type { ClockWorkerMessage } from './ClockWorker'
 
 postMessage({ message: 'ready' })
@@ -27,7 +59,6 @@ postMessage({ message: 'ready' })
 let timeoutId: NodeJS.Timer | null = null
 let currentTick = -1
 
-// eslint-disable-next-line no-restricted-globals
 self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
   function start(bpm: number, beatsPerMeasure: number, measureCount: number) {
     // post one message immediately so the start doesn't appear delayed by one beat
