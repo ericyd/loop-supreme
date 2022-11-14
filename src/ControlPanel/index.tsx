@@ -1,13 +1,11 @@
 import React, { useState } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
 import { MetronomeReader, MetronomeWriter } from '../Metronome'
-import play from '../icons/iconmonstr-media-control-48.svg'
-import pause from '../icons/iconmonstr-media-control-49.svg'
-import ControlPanelItem from './ControlPanelItem'
 import MeasureCount from './MeasureCount'
 import TimeSignature from './TimeSignature'
 import Tempo from './Tempo'
 import BeatCounter from './BeatCounter'
+import MetronomeControls from './MetronomeControls'
 
 type Props = {
   metronome: MetronomeReader
@@ -92,28 +90,14 @@ export const ControlPanel: React.FC<Props> = ({
         />
       </div>
 
-      <div className="flex items-start content-center mb-2">
-        <button
-          onClick={metronomeWriter.togglePlaying}
-          className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-        >
-          <img
-            src={metronome.playing ? pause : play}
-            alt={metronome.playing ? 'Pause' : 'Play'}
-          />
-        </button>
-
-        <button
-          onClick={() => {
-            metronomeWriter.setMuted(!metronome.muted)
-          }}
-          className={`p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2 w-10 font-bold font-serif ${
-            metronome.muted ? 'bg-red-400' : ''
-          }`}
-        >
-          M
-        </button>
-      </div>
+      <MetronomeControls
+        playing={metronome.playing}
+        muted={metronome.muted}
+        togglePlaying={metronomeWriter.togglePlaying}
+        setMuted={metronomeWriter.setMuted}
+        setGain={metronomeWriter.setGain}
+        gain={metronome.gain}
+      />
     </div>
   )
 }
