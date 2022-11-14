@@ -5,7 +5,7 @@ import { Scene } from '../Scene'
 import { ClockConsumerMessage } from '../worklets/ClockWorker'
 import { decayingSine } from './waveforms'
 
-type TimeSignature = {
+export type TimeSignature = {
   beatsPerMeasure: number
   // 4 = quarter note
   // 8 = eighth note

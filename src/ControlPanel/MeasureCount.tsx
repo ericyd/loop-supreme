@@ -1,10 +1,18 @@
 import ControlPanelItem from './ControlPanelItem'
 
 type MeasureCountProps = {
-  handleChange: React.ChangeEventHandler<HTMLInputElement>
+  onChange(measureCount: number): void
   measureCount: number
 }
 export default function MeasureCount(props: MeasureCountProps) {
+  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    const measureCount = Number(event.target.value)
+    if (Number.isNaN(measureCount)) {
+      throw new Error(`measure count "${event.target.value}" is not a number`)
+    }
+    props.onChange(measureCount)
+  }
+
   return (
     <ControlPanelItem>
       <div>
@@ -19,7 +27,7 @@ export default function MeasureCount(props: MeasureCountProps) {
         max="4"
         step="1"
         value={props.measureCount}
-        onChange={props.handleChange}
+        onChange={handleChange}
       />
     </ControlPanelItem>
   )
