@@ -28,7 +28,7 @@ The `Metronome` is the heart of the app. The BPM, measure, current tick, and tim
 - [x] Metronome Component must use Reader to display properties https://github.com/ericyd/loop-supreme/pull/3
 - [x] Metronome must play an audible click on each tick https://github.com/ericyd/loop-supreme/pull/4
 - [x] Metronome must initialize as "stopped", and can be "started" by user input https://github.com/ericyd/loop-supreme/pull/4
-- [ ] Metronome can be muted, while still running
+- [x] Metronome can be muted, while still running https://github.com/ericyd/loop-supreme/pull/11
 
 ## Scene
 
@@ -54,6 +54,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [ ] Component shows waveform of recorded audio
 - [ ] Component can adjust volume of playback
 - [x] When Component is armed for recording, audio data is recorded starting at the beginning of the next loop, and automatically stops at the beginning of the following loop https://github.com/ericyd/loop-supreme/pull/9
+- [x] recording accounts for audio latency https://github.com/ericyd/loop-supreme/pull/12
 
 ## Saving audio
 
