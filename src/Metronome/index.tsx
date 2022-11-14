@@ -5,7 +5,7 @@ import { Scene } from '../Scene'
 import { ClockConsumerMessage } from '../worklets/ClockWorker'
 import { decayingSine } from './waveforms'
 
-type TimeSignature = {
+export type TimeSignature = {
   beatsPerMeasure: number
   // 4 = quarter note
   // 8 = eighth note
@@ -21,6 +21,8 @@ export type MetronomeReader = {
   currentMeasure: number
   playing: boolean
   clock: Worker
+  gain: number
+  muted: boolean
 }
 
 export type MetronomeWriter = {
@@ -28,6 +30,8 @@ export type MetronomeWriter = {
   setTimeSignature: (timeSignature: TimeSignature) => void
   setMeasureCount: (count: number) => void
   togglePlaying: () => Promise<void>
+  setGain: (gain: number) => void
+  setMuted: (muted: boolean) => void
 }
 
 type Props = {
@@ -43,8 +47,9 @@ export const Metronome: React.FC<Props> = () => {
     beatUnit: 4,
   })
   const [measureCount, setMeasureCount] = useState(2)
-  // no autoplay!
   const [playing, setPlaying] = useState(false)
+  const [gain, setGain] = useState(0.5)
+  const [muted, setMuted] = useState(false)
 
   // TODO: likely will need to "eject" CRA so I can customize webpack resolve hook
   // https://webpack.js.org/configuration/resolve/
@@ -69,28 +74,30 @@ export const Metronome: React.FC<Props> = () => {
     buffer380.copyToChannel(decayingSine(buffer380.sampleRate, 380), 0)
 
     // TODO: should this callback be moved somewhere else?
-    clock.current.addEventListener(
-      'message',
-      (event: MessageEvent<ClockConsumerMessage>) => {
-        if (event.data.message === 'tick') {
-          console.log(event.data)
-          const { currentTick } = event.data
-          setCurrentTick(currentTick)
+    const clockMessageHandler = (event: MessageEvent<ClockConsumerMessage>) => {
+      if (event.data.message === 'tick') {
+        console.log(event.data)
+        const { currentTick } = event.data
+        setCurrentTick(currentTick)
 
-          // emit a "beep" noise for the metronome
-          const source = new AudioBufferSourceNode(audioContext, {
-            buffer: event.data.downbeat ? buffer380 : buffer330,
-          })
-          const gain = new GainNode(audioContext, {
-            gain: 0.5,
-          })
-          source.connect(gain)
-          gain.connect(audioContext.destination)
-          source.start()
-        }
+        // emit a "beep" noise for the metronome
+        const source = new AudioBufferSourceNode(audioContext, {
+          buffer: event.data.downbeat ? buffer380 : buffer330,
+        })
+        const gainNode = new GainNode(audioContext, {
+          gain: muted ? 0.0 : gain,
+        })
+        source.connect(gainNode)
+        gainNode.connect(audioContext.destination)
+        source.start()
       }
-    )
-  }, [])
+    }
+    clock.current.addEventListener('message', clockMessageHandler)
+    const currentClock = clock.current
+    return () => {
+      currentClock.removeEventListener('message', clockMessageHandler)
+    }
+  }, [gain, muted])
 
   async function togglePlaying() {
     if (playing) {
@@ -140,12 +147,16 @@ export const Metronome: React.FC<Props> = () => {
     // However, since audioContext.state is just a mutable variable, updates to it don't get sent downstream.
     playing,
     clock: clock.current!,
+    gain,
+    muted,
   }
   const writer: MetronomeWriter = {
     setBpm,
     setTimeSignature,
     setMeasureCount,
     togglePlaying,
+    setGain,
+    setMuted,
   }
   return (
     <>
