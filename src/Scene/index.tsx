@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { Container } from '../Container'
 import { Plus } from '../icons/Plus'
 import { MetronomeReader } from '../Metronome'
 import { Track } from '../Track'
@@ -28,15 +27,7 @@ export const Scene: React.FC<Props> = ({ metronome }) => {
   }
 
   return (
-    <Container title="Scene">
-      <div className="mb-2">
-        <button
-          className="p-2 border border-zinc-400 border-solid rounded-sm"
-          onClick={handleAddTrack}
-        >
-          <Plus />
-        </button>
-      </div>
+    <>
       {tracks.map(({ id }) => (
         <Track
           key={id}
@@ -45,6 +36,14 @@ export const Scene: React.FC<Props> = ({ metronome }) => {
           metronome={metronome}
         />
       ))}
-    </Container>
+      <div className="mb-2">
+        <button
+          className="p-2 border border-zinc-400 border-solid rounded-sm"
+          onClick={handleAddTrack}
+        >
+          <Plus />
+        </button>
+      </div>
+    </>
   )
 }
