@@ -18,6 +18,7 @@ type RecordingProperties = {
   numberOfChannels: number
   sampleRate: number
   maxFrameCount: number
+  latencySamples: number
 }
 
 type MaxRecordingLengthReachedMessage = {
@@ -49,6 +50,62 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     recording ? red : black
   )
 
+  function getLatencySamples(sampleRate: number, stream: MediaStream): number {
+    const supportedConstraints =
+      navigator.mediaDevices.getSupportedConstraints()
+    // @ts-expect-error This is a documented property, and indeed it is `true` in Chrome https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSupportedConstraints/latency
+    if (!supportedConstraints.latency) {
+      // TODO: should we make a guess about recording latency?
+      // Even in browsers where this is not reported, it is clear that latency is non-zero.
+      // In very simple tests, it is often > 100ms
+      console.log({
+        message:
+          'Could not get track latency because this environment does not report latency on MediaStreamTracks',
+        supportedConstraints,
+      })
+      return 0
+    }
+    const recordingStreamLatency = stream
+      .getAudioTracks()
+      .reduce((maxChannelLatency, channel) => {
+        // In Chrome, this is the best (only?) way to get the track latency
+        // Strangely, it isn't even documented on MDN https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/getCapabilities
+        const capabilitiesLatency =
+          typeof channel.getCapabilities === 'function' &&
+          channel.getCapabilities?.()?.latency?.max
+        if (typeof capabilitiesLatency === 'number') {
+          return Math.max(maxChannelLatency, capabilitiesLatency)
+        }
+
+        // this should be an alternative, but doesn't appear to be populated in Firefox https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints/latency
+        const constraintLatency =
+          typeof channel.getConstraints === 'function' &&
+          channel.getConstraints?.()?.latency
+        if (typeof constraintLatency === 'number') {
+          return Math.max(maxChannelLatency, constraintLatency)
+        }
+
+        // this is yet another alternative according to MDN but not implemented in major browsers yet https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSettings/latency
+        // Just leaving as a fall back in case browsers implement in the future
+        const settingsLatency =
+          typeof channel.getSettings === 'function' &&
+          // @ts-expect-error lib.dom.d.ts doesn't believe this is a valid option (which I suppose is technically true)
+          channel.getSettings?.()?.latency
+        if (typeof settingsLatency === 'number') {
+          return Math.max(maxChannelLatency, settingsLatency)
+        }
+
+        return maxChannelLatency
+      }, 0)
+
+    const latencySeconds = Math.max(
+      audioContext.baseLatency,
+      audioContext.outputLatency,
+      recordingStreamLatency
+    )
+    return Math.ceil(latencySeconds * sampleRate)
+  }
+
   const recorderWorklet = useRef<AudioWorkletNode>()
   useEffect(() => {
     const mediaSource = audioContext.createMediaStreamSource(stream)
@@ -56,6 +113,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
       numberOfChannels: mediaSource.channelCount,
       sampleRate: audioContext.sampleRate,
       maxFrameCount: audioContext.sampleRate * 10,
+      latencySamples: getLatencySamples(audioContext.sampleRate, stream),
     }
     recorderWorklet.current = new AudioWorkletNode(audioContext, 'recorder', {
       processorOptions: recordingProperties,
@@ -65,32 +123,41 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
 
     // We can pass this port across the app
     // and let components handle their relevant messages
-    // TODO: this ^ is probably the way to handle the clock. Then I can add event listeners everywhere
     const recordingCallback = handleRecording(recordingProperties)
 
     // setupMonitor(monitorNode);
 
-    recorderWorklet.current.port.onmessage = async (event) => {
-      if (event.data.message === 'UPDATE_VISUALIZERS') {
-        // visualizerCallback(event);
-      } else {
-        await recordingCallback(event)
-      }
-    }
+    // Wanna have your mind blown?
+    // Adding an event listener to this port with `addEventListener` simply doesn't work!
+    // go ahead and try it:
+    // recorderWorklet.current.port.addEventListener('message', console.log.bind(console))
+    recorderWorklet.current.port.onmessage = recordingCallback
 
     mediaSource
       .connect(recorderWorklet.current)
       .connect(monitorNode)
       .connect(audioContext.destination)
+
+    return () => {
+      // TODO: how do I get the track to stop playing?
+      // I guess I need to stop the bufferSource... which means I need another piece of state or a ref
+      if (recorderWorklet.current) {
+        recorderWorklet.current.disconnect()
+        recorderWorklet.current.port.onmessage = () => {}
+        recorderWorklet.current = undefined
+      }
+      mediaSource.disconnect()
+    }
   }, [])
 
   function handleRecording(recordingProperties: RecordingProperties) {
     let recordingLength = 0
 
     // If the max length is reached, we can no longer record.
-    return async (event: MessageEvent<RecordingMessage>) => {
+    return (event: MessageEvent<RecordingMessage>) => {
       if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
         // isRecording = false;
+        console.log(event.data)
       }
       if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
         recordingLength = event.data.recordingLength
@@ -102,12 +169,27 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
           audioContext.sampleRate
         )
 
-        // TODO: trim to loop length?
         for (let i = 0; i < recordingProperties.numberOfChannels; i++) {
-          recordingBuffer.copyToChannel(event.data.buffer[i], i, 0)
+          // buffer is an Array of Float32Arrays;
+          // each element of Array is a channel,
+          // which contains the raw samples for the audio data of that channel
+          recordingBuffer.copyToChannel(
+            // copyToChannel accepts an optional 3rd argument, "startInChannel"[1] (or "bufferOffset" depending on your source).
+            // which is described as
+            //    > An optional offset to copy the data to
+            // The way this works is it actually inserts silence at the beginning of the **target channel** for `startInChannel` samples[2].
+            // I believe the intended use case is to synchronize audio playback with other media (e.g. video).
+            // However, in this case, we are trying to align recorded audio with the start of the loop.
+            // In this case we need to **subtract** audio from the buffer, in accordance with the latency of the recording device.
+            // See `worklets/recorder` for the buffer offset
+            // [1] https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer/copyToChannel
+            // [2] https://jsfiddle.net/y7qL9wr4/7
+            // TODO: should this be sliced to a maximum of buffer size? Maybe a non-issue?
+            event.data.buffer[i],
+            i,
+            0
+          )
         }
-
-        console.log({ recordingBuffer })
 
         const bufferSource = new AudioBufferSourceNode(audioContext, {
           buffer: recordingBuffer,

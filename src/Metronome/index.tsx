@@ -76,7 +76,7 @@ export const Metronome: React.FC<Props> = () => {
     // TODO: should this callback be moved somewhere else?
     const clockMessageHandler = (event: MessageEvent<ClockConsumerMessage>) => {
       if (event.data.message === 'tick') {
-        console.log(event.data)
+        // console.log(event.data) // this is really noisy
         const { currentTick } = event.data
         setCurrentTick(currentTick)
 
