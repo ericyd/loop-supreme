@@ -27,6 +27,12 @@ export const Start: React.FC = () => {
       setStream(
         await navigator.mediaDevices.getUserMedia({
           audio: true,
+          // audio: {
+          //   echoCancellation: true,
+          //   autoGainControl: false,
+          //   noiseSuppression: true,
+          //   latency: 0,
+          // },
           video: false,
         })
       )

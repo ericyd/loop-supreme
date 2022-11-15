@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// copied wholesale from https://github.com/GoogleChromeLabs/web-audio-samples/blob/eed2a8613af551f2b1d166a01c834e8431fdf3c6/src/audio-worklet/migration/worklet-recorder/recording-processor.js
+// (mostly) copied wholesale from https://github.com/GoogleChromeLabs/web-audio-samples/blob/eed2a8613af551f2b1d166a01c834e8431fdf3c6/src/audio-worklet/migration/worklet-recorder/recording-processor.js
 
 /**
  * Why JS?
@@ -15,18 +15,18 @@ class RecordingProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super()
 
-    this.hasPostedInputs = false
     this.sampleRate = 0
     this.maxRecordingFrames = 0
     this.numberOfChannels = 0
 
     if (options && options.processorOptions) {
-      const { numberOfChannels, sampleRate, maxFrameCount } =
+      const { numberOfChannels, sampleRate, maxFrameCount, latencySamples } =
         options.processorOptions
 
       this.sampleRate = sampleRate
       this.maxRecordingFrames = maxFrameCount
       this.numberOfChannels = numberOfChannels
+      this.latencySamples = latencySamples ?? 0
     }
 
     this._recordingBuffer = new Array(this.numberOfChannels).fill(
@@ -62,17 +62,6 @@ class RecordingProcessor extends AudioWorkletProcessor {
     if (inputs.length === 0 || inputs[0].length === 0) {
       return
     }
-    // this is totally unnecessary, just wanted it for some debugging
-    if (!this.hasPostedInputs) {
-      console.log({ inputs })
-      this.port.postMessage({
-        message: JSON.stringify(inputs),
-      })
-      this.hasPostedInputs = true
-    }
-    this.port.postMessage({
-      message: `${inputs.length} inputs; ${inputs[0]} channels`,
-    })
     for (let input = 0; input < inputs.length; input++) {
       for (let channel = 0; channel < inputs[input].length; channel++) {
         for (let sample = 0; sample < inputs[input][channel].length; sample++) {
@@ -80,12 +69,21 @@ class RecordingProcessor extends AudioWorkletProcessor {
 
           // Copy data to recording buffer.
           if (this.isRecording) {
-            this._recordingBuffer[channel][sample + this.recordedFrames] =
-              currentSample
+            this._recordingBuffer[channel][
+              // The input hardware will have some recording latency.
+              // To account for that latency, we shift the input data left by `latencySamples` samples.
+              // Alternatives:
+              //    1. This could be done when copying the buffer to the AudioBuffer channel.
+              //       However, to keep everything synchronized (including visuals eventually),
+              //       it made sense for the recording processor to automatically account for input latency.
+              // See Track.tsx for latency determination
+              Math.max(sample + this.recordedFrames - this.latencySamples, 0)
+            ] = currentSample
           }
 
           // Pass data directly to output, unchanged.
-          outputs[input][channel][sample] = currentSample
+          // TODO: allow montioring / unmonitoring with an option, which can be toggled via message
+          // outputs[input][channel][sample] = currentSample
 
           // Sum values for visualizer
           this.sampleSum += currentSample

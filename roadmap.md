@@ -53,6 +53,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [x] Component can record data from user device https://github.com/ericyd/loop-supreme/pull/8
 - [ ] Component shows waveform of recorded audio
 - [ ] Component can adjust volume of playback
+- [ ] Audio input can be monitored, or not
 - [x] When Component is armed for recording, audio data is recorded starting at the beginning of the next loop, and automatically stops at the beginning of the following loop https://github.com/ericyd/loop-supreme/pull/9
 - [x] recording accounts for audio latency https://github.com/ericyd/loop-supreme/pull/12
 
@@ -84,3 +85,5 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
   }
 ]
 ```
+
+- [ ] clean up TODOs
