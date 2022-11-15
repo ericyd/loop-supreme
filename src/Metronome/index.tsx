@@ -31,7 +31,7 @@ export type MetronomeWriter = {
   setMeasureCount: (count: number) => void
   togglePlaying: () => Promise<void>
   setGain: (gain: number) => void
-  setMuted: (muted: boolean) => void
+  setMuted: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 type Props = {
