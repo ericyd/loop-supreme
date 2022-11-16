@@ -4,7 +4,7 @@
  * The Float32Array can be copied to an AudioBuffer for playback.
  * Inspired by https://blog.paul.cx/post/metronome/
  */
-export function decayingSine(sampleRate: number, frequency = 300) {
+export function decayingSine(sampleRate: number, frequency: number) {
   const channel = new Float32Array(sampleRate)
   // create a quickly decaying sine wave
   const durationMs = 100
