@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAudioRouter } from '../AudioRouter'
 import { ControlPanel } from '../ControlPanel'
 import { Scene } from '../Scene'
@@ -51,50 +51,82 @@ export const Metronome: React.FC<Props> = () => {
   const [gain, setGain] = useState(0.5)
   const [muted, setMuted] = useState(false)
 
+  /**
+   * create 2 metronome beeps for different frequencies
+   * I wanted to use useMemo so the `copyToChannel` calls could be made on creation,
+   * but that requires a dependency array and really, these should never change
+   */
+  const sine330 = useRef(
+    audioContext.createBuffer(
+      1,
+      // this should be the maximum length needed for the audio;
+      // since this buffer is just holding a short sine wave, 1 second will be plenty
+      audioContext.sampleRate,
+      audioContext.sampleRate
+    )
+  )
+  const sine380 = useRef(
+    audioContext.createBuffer(
+      1,
+      audioContext.sampleRate,
+      audioContext.sampleRate
+    )
+  )
+  useEffect(() => {
+    sine330.current.copyToChannel(
+      decayingSine(sine330.current.sampleRate, 330),
+      0
+    )
+    sine380.current.copyToChannel(
+      decayingSine(sine380.current.sampleRate, 380),
+      0
+    )
+  }, [])
+
   const clock = useRef<Worker>(
     // Thanks SO! https://stackoverflow.com/a/71134400/3991555
     new Worker(new URL('../worklets/clock', import.meta.url))
   )
-  useEffect(() => {
-    // create 2 metronome beeps for different frequencies
-    const buffer330 = audioContext.createBuffer(
-      1,
-      audioContext.sampleRate * (60 / bpm),
-      audioContext.sampleRate
-    )
-    buffer330.copyToChannel(decayingSine(buffer330.sampleRate), 0)
-    const buffer380 = audioContext.createBuffer(
-      1,
-      audioContext.sampleRate * (60 / bpm),
-      audioContext.sampleRate
-    )
-    buffer380.copyToChannel(decayingSine(buffer380.sampleRate, 380), 0)
 
-    // TODO: should this callback be moved somewhere else?
-    const clockMessageHandler = (event: MessageEvent<ClockConsumerMessage>) => {
+  /**
+   * Set up metronome gain node.
+   * See Track/index.tsx for description of the useRef/useEffect pattern
+   */
+  const gainNode = useRef(
+    new GainNode(audioContext, { gain: muted ? 0.0 : gain })
+  )
+  useEffect(() => {
+    gainNode.current.gain.value = muted ? 0.0 : gain
+  }, [gain, muted])
+
+  const clockMessageHandler = useCallback(
+    (event: MessageEvent<ClockConsumerMessage>) => {
+      // console.log(event.data) // this is really noisy
       if (event.data.message === 'tick') {
-        // console.log(event.data) // this is really noisy
         const { currentTick } = event.data
         setCurrentTick(currentTick)
 
         // emit a "beep" noise for the metronome
         const source = new AudioBufferSourceNode(audioContext, {
-          buffer: event.data.downbeat ? buffer380 : buffer330,
+          buffer: event.data.downbeat ? sine380.current : sine330.current,
         })
-        const gainNode = new GainNode(audioContext, {
-          gain: muted ? 0.0 : gain,
-        })
-        source.connect(gainNode)
-        gainNode.connect(audioContext.destination)
+
+        gainNode.current.connect(audioContext.destination)
+        source.connect(gainNode.current)
         source.start()
       }
-    }
+    },
+    [audioContext]
+  )
+
+  useEffect(() => {
     clock.current.addEventListener('message', clockMessageHandler)
+    // this is necessary to ensure the cleanup function has the correct reference
     const currentClock = clock.current
     return () => {
       currentClock.removeEventListener('message', clockMessageHandler)
     }
-  }, [gain, muted])
+  }, [clockMessageHandler])
 
   async function togglePlaying() {
     if (playing) {
