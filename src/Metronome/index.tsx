@@ -129,9 +129,6 @@ export const Metronome: React.FC<Props> = () => {
     })
   }, [bpm, timeSignature.beatsPerMeasure, measureCount])
 
-  // TODO: this is logging twice, which probably means it's mounting twice and not getting cleared when the first one unmounts
-  // it probably is not an issue this early in development but should be handled eventually
-  // console.debug({ currentTick })
   const reader: MetronomeReader = {
     bpm,
     // we start at -1 to make the first beat work easily,
