@@ -19,7 +19,6 @@ class RecordingProcessor extends AudioWorkletProcessor {
     this.maxRecordingFrames = options.processorOptions?.maxRecordingFrames ?? 0
     this.numberOfChannels = options.processorOptions?.numberOfChannels ?? 0
     this.latencySamples = options.processorOptions?.latencySamples ?? 0
-    this.monitorInput = options.processorOptions?.monitorInput ?? false
 
     this._recordingBuffer = new Array(this.numberOfChannels).fill(
       new Float32Array(this.maxRecordingFrames)
@@ -45,10 +44,6 @@ class RecordingProcessor extends AudioWorkletProcessor {
             buffer: this._recordingBuffer,
           })
         }
-      }
-
-      if (event.data.message === 'UPDATE_MONITORING_STATE') {
-        this.monitorInput = event.data.monitorInput
       }
     }
   }
@@ -77,10 +72,9 @@ class RecordingProcessor extends AudioWorkletProcessor {
             ] = currentSample
           }
 
-          // Pass data directly to output, unchanged.
-          if (this.monitorInput) {
-            outputs[input][channel][sample] = currentSample
-          }
+          // Monitor in the input by passing data directly to output, unchanged.
+          // The output of the monitor is controlled in the Track via the monitorNode
+          outputs[input][channel][sample] = currentSample
 
           // Sum values for visualizer
           this.sampleSum += currentSample
