@@ -1,5 +1,6 @@
 import React, { ChangeEventHandler, useEffect, useRef, useState } from 'react'
 import { useAudioRouter } from '../AudioRouter'
+import { Monitor } from '../icons/Monitor'
 import { Record } from '../icons/Record'
 import { X } from '../icons/X'
 import { MetronomeReader } from '../Metronome'
@@ -20,8 +21,12 @@ const black = '#000000'
 type RecordingProperties = {
   numberOfChannels: number
   sampleRate: number
-  maxFrameCount: number
+  maxRecordingFrames: number
   latencySamples: number
+  /**
+   * default: false
+   */
+  monitorInput?: boolean
 }
 
 type MaxRecordingLengthReachedMessage = {
@@ -54,7 +59,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   )
   const [gain, setGain] = useState(1)
   const [muted, setMuted] = useState(false)
-  const toggleMuted = () => setMuted((muted) => !muted)
+  const toggleMuted = () => setMuted((value) => !value)
   // Refs vs State ... still learning.
   // I believe this is correct because if the GainNode were a piece of State,
   // then the GainNode would be re-instantiated every time the gain changed.
@@ -66,6 +71,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   }, [gain, muted])
 
   const [monitorInput, setMonitorInput] = useState(false)
+  const toggleMonitoring = () => setMonitorInput((value) => !value)
 
   const recorderWorklet = useRef<AudioWorkletNode>()
 
@@ -89,7 +95,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     const recordingProperties: RecordingProperties = {
       numberOfChannels: mediaSource.channelCount,
       sampleRate: audioContext.sampleRate,
-      maxFrameCount: audioContext.sampleRate * 10,
+      maxRecordingFrames: audioContext.sampleRate * 10,
       latencySamples: getLatencySamples(
         audioContext.sampleRate,
         stream,
@@ -205,7 +211,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
       setRecording(false)
       recorderWorklet.current?.port?.postMessage({
         message: 'UPDATE_RECORDING_STATE',
-        setRecording: false,
+        recording: false,
       })
     }
     if (armed) {
@@ -271,6 +277,12 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
         gain={gain}
         onChange={setGain}
       />
+      <button
+        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
+        onClick={toggleMonitoring}
+      >
+        <Monitor monitorInput={monitorInput} />
+      </button>
     </div>
   )
 }
