@@ -14,6 +14,7 @@ export const Monitor: React.FC<Props> = (props) => {
       viewBox="0 0 24 24"
       className={props.monitorInput ? 'fill-orange-400' : ''}
     >
+      <title>Toggle input monitoring</title>
       <path
         d={`M6 23v-11c-4.036 0-6 2.715-6 5.5 0 2.807 1.995 5.5 6 5.5z
             m18-5.5c0-2.785-1.964-5.5-6-5.5v11c4.005 0 6-2.693 6-5.5z
