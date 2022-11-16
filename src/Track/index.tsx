@@ -3,6 +3,8 @@ import { useAudioRouter } from '../AudioRouter'
 import { Record } from '../icons/Record'
 import { X } from '../icons/X'
 import { MetronomeReader } from '../Metronome'
+import { logger } from '../util/logger'
+import { VolumeControl } from '../VolumeControl'
 import { ClockConsumerMessage } from '../worklets/ClockWorker'
 
 type Props = {
@@ -49,6 +51,18 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   const [recordButtonColor, setRecordButtonColor] = useState(
     recording ? red : black
   )
+  const [gain, setGain] = useState(1)
+  const [muted, setMuted] = useState(false)
+  const toggleMuted = () => setMuted((muted) => !muted)
+  // Refs vs State ... still learning.
+  // I believe this is correct because if the GainNode were a piece of State,
+  // then the GainNode would be re-instantiated every time the gain changed.
+  // That would destroy the audio graph that gets connected when the track is playing back.
+  // The audio graph should stay intact, so mutating the gain value directly is (I believe) the correct way to achieve this.
+  const gainNode = useRef(new GainNode(audioContext, { gain }))
+  useEffect(() => {
+    gainNode.current.gain.value = muted ? 0.0 : gain
+  }, [gain, muted])
 
   function getLatencySamples(sampleRate: number, stream: MediaStream): number {
     const supportedConstraints =
@@ -58,7 +72,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
       // TODO: should we make a guess about recording latency?
       // Even in browsers where this is not reported, it is clear that latency is non-zero.
       // In very simple tests, it is often > 100ms
-      console.log({
+      logger.log({
         message:
           'Could not get track latency because this environment does not report latency on MediaStreamTracks',
         supportedConstraints,
@@ -67,7 +81,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     }
     const recordingStreamLatency = stream
       .getAudioTracks()
-      .reduce((maxChannelLatency, channel) => {
+      .reduce((maxChannelLatency, channel, i) => {
         // In Chrome, this is the best (only?) way to get the track latency
         // Strangely, it isn't even documented on MDN https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/getCapabilities
         const capabilitiesLatency =
@@ -76,6 +90,12 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
         if (typeof capabilitiesLatency === 'number') {
           return Math.max(maxChannelLatency, capabilitiesLatency)
         }
+        logger.debug({
+          message: 'Could not get capabilities, or latency was not a number',
+          channel: i,
+          typeofGetCapabilities: typeof channel.getCapabilities,
+          capabilitiesLatency,
+        })
 
         // this should be an alternative, but doesn't appear to be populated in Firefox https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints/latency
         const constraintLatency =
@@ -84,6 +104,12 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
         if (typeof constraintLatency === 'number') {
           return Math.max(maxChannelLatency, constraintLatency)
         }
+        logger.debug({
+          message: 'Could not get constraints, or latency was not a number',
+          channel: i,
+          typeofGetConstraints: typeof channel.getConstraints,
+          constraintLatency,
+        })
 
         // this is yet another alternative according to MDN but not implemented in major browsers yet https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSettings/latency
         // Just leaving as a fall back in case browsers implement in the future
@@ -94,6 +120,12 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
         if (typeof settingsLatency === 'number') {
           return Math.max(maxChannelLatency, settingsLatency)
         }
+        logger.debug({
+          message: 'Could not get settings, or latency was not a number',
+          channel: i,
+          typeofGetSettings: typeof channel.getSettings,
+          settingsLatency,
+        })
 
         return maxChannelLatency
       }, 0)
@@ -103,6 +135,12 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
       audioContext.outputLatency,
       recordingStreamLatency
     )
+    logger.debug({
+      'audioContext.baseLatency': audioContext.baseLatency,
+      'audioContext.outputLatency': audioContext.outputLatency,
+      recordingStreamLatency,
+      latencySeconds,
+    })
     return Math.ceil(latencySeconds * sampleRate)
   }
 
@@ -157,7 +195,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     return (event: MessageEvent<RecordingMessage>) => {
       if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
         // isRecording = false;
-        console.log(event.data)
+        logger.log(event.data)
       }
       if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
         recordingLength = event.data.recordingLength
@@ -196,13 +234,8 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
           loop: true,
         })
 
-        // Volume control for track playback
-        const gain = new GainNode(audioContext, {
-          // must be in range [0.0, 1.0]
-          gain: 0.99,
-        })
-        gain.connect(audioContext.destination)
-        bufferSource.connect(gain)
+        gainNode.current.connect(audioContext.destination)
+        bufferSource.connect(gainNode.current)
         bufferSource.start()
 
         return recordingBuffer
@@ -289,6 +322,12 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
         {/* TODO: two pieces of state for a ... button color????? 🤮🤮🤮 */}
         <Record fill={recording ? red : recordButtonColor} />
       </button>
+      <VolumeControl
+        muted={muted}
+        toggleMuted={toggleMuted}
+        gain={gain}
+        onChange={setGain}
+      />
     </div>
   )
 }
