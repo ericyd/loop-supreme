@@ -52,6 +52,8 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   const { audioContext, stream } = useAudioRouter()
   const [title, setTitle] = useState(`Track ${id}`)
   const [armed, setArmed] = useState(false)
+  // TODO: need some sort of global lock to prevent recording to multiple tracks at once
+  const toggleArmRecording = () => setArmed((value) => !value)
   const [recording, setRecording] = useState(false)
   // TODO: should I be using a tailwind class for this?
   const [recordButtonColor, setRecordButtonColor] = useState(
@@ -241,15 +243,6 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     }
   })
 
-  // TODO: need some sort of global lock to prevent recording to multiple tracks at once
-  async function handleArmRecording() {
-    if (armed) {
-      setArmed(false)
-      return
-    }
-    setArmed(true)
-  }
-
   return (
     <div className="flex items-start content-center mb-2">
       <input
@@ -266,7 +259,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
       </button>
       <button
         className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-        onClick={handleArmRecording}
+        onClick={toggleArmRecording}
       >
         {/* TODO: two pieces of state for a ... button color????? 🤮🤮🤮 */}
         <Record fill={recording ? red : recordButtonColor} />
