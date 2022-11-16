@@ -51,9 +51,6 @@ export const Metronome: React.FC<Props> = () => {
   const [gain, setGain] = useState(0.5)
   const [muted, setMuted] = useState(false)
 
-  // TODO: likely will need to "eject" CRA so I can customize webpack resolve hook
-  // https://webpack.js.org/configuration/resolve/
-  // Currently getting this error in built app: "Error: Module resolve hook not set"
   const clock = useRef<Worker>(
     // Thanks SO! https://stackoverflow.com/a/71134400/3991555
     new Worker(new URL('../worklets/clock', import.meta.url))
@@ -140,8 +137,6 @@ export const Metronome: React.FC<Props> = () => {
       Math.floor(currentTick / timeSignature.beatsPerMeasure),
       0
     ),
-    // TODO: if `audioContext.state` were a piece of React state, we could simply do `playing: audioContext.state === 'running'`
-    // However, since audioContext.state is just a mutable variable, updates to it don't get sent downstream.
     playing,
     clock: clock.current!,
     gain,
