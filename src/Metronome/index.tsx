@@ -52,37 +52,34 @@ export const Metronome: React.FC<Props> = () => {
   const [muted, setMuted] = useState(false)
 
   /**
-   * create 2 metronome beeps for different frequencies
-   * I wanted to use useMemo so the `copyToChannel` calls could be made on creation,
-   * but that requires a dependency array and really, these should never change
+   * create 2 AudioBuffers with different frequencies,
+   * to be used for the metronome beep.
    */
-  const sine330 = useRef(
-    audioContext.createBuffer(
+  const sine330 = useMemo(() => {
+    const buffer = audioContext.createBuffer(
       1,
       // this should be the maximum length needed for the audio;
       // since this buffer is just holding a short sine wave, 1 second will be plenty
       audioContext.sampleRate,
       audioContext.sampleRate
     )
-  )
-  const sine380 = useRef(
-    audioContext.createBuffer(
+    buffer.copyToChannel(decayingSine(buffer.sampleRate, 330), 0)
+    return buffer
+  }, [audioContext])
+  const sine380 = useMemo(() => {
+    const buffer = audioContext.createBuffer(
       1,
       audioContext.sampleRate,
       audioContext.sampleRate
     )
-  )
-  useEffect(() => {
-    sine330.current.copyToChannel(
-      decayingSine(sine330.current.sampleRate, 330),
-      0
-    )
-    sine380.current.copyToChannel(
-      decayingSine(sine380.current.sampleRate, 380),
-      0
-    )
-  }, [])
+    buffer.copyToChannel(decayingSine(buffer.sampleRate, 380), 0)
+    return buffer
+  }, [audioContext])
 
+  /**
+   * Instantiate the clock worker.
+   * This is truly the heartbeat of the entire app 🥹
+   */
   const clock = useRef<Worker>(
     // Thanks SO! https://stackoverflow.com/a/71134400/3991555
     new Worker(new URL('../worklets/clock', import.meta.url))
@@ -99,6 +96,11 @@ export const Metronome: React.FC<Props> = () => {
     gainNode.current.gain.value = muted ? 0.0 : gain
   }, [gain, muted])
 
+  /**
+   * On each tick, set the "currentTick" value and emit a beep.
+   * The AudioBufferSourceNode must be created fresh each time,
+   * because it can only be played once.
+   */
   const clockMessageHandler = useCallback(
     (event: MessageEvent<ClockConsumerMessage>) => {
       // console.log(event.data) // this is really noisy
@@ -106,9 +108,8 @@ export const Metronome: React.FC<Props> = () => {
         const { currentTick } = event.data
         setCurrentTick(currentTick)
 
-        // emit a "beep" noise for the metronome
         const source = new AudioBufferSourceNode(audioContext, {
-          buffer: event.data.downbeat ? sine380.current : sine330.current,
+          buffer: event.data.downbeat ? sine380 : sine330,
         })
 
         gainNode.current.connect(audioContext.destination)
@@ -116,7 +117,7 @@ export const Metronome: React.FC<Props> = () => {
         source.start()
       }
     },
-    [audioContext]
+    [audioContext, sine330, sine380]
   )
 
   useEffect(() => {
@@ -137,14 +138,12 @@ export const Metronome: React.FC<Props> = () => {
       setPlaying(false)
     } else {
       await audioContext.resume()
-
       clock.current.postMessage({
         bpm,
         beatsPerMeasure: timeSignature.beatsPerMeasure,
         measureCount,
         message: 'start',
       })
-
       setPlaying(true)
     }
   }
