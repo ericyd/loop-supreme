@@ -17,6 +17,7 @@
  */
 import { useState } from 'react'
 import App from '../App'
+import { logger } from '../util/logger'
 
 export const Start: React.FC = () => {
   const [stream, setStream] = useState<MediaStream>()
@@ -45,7 +46,7 @@ export const Start: React.FC = () => {
       setAudioContext(audioContext)
     } catch (e) {
       // TODO: better error handling
-      console.error(e)
+      logger.error(e)
     }
   }
 

@@ -36,9 +36,10 @@ A `Scene` is a collection of one or more Tracks. All Tracks in a Scene are synch
 
 - [x] Component has one or more Tracks https://github.com/ericyd/loop-supreme/pull/5
 - [x] Component can add Tracks https://github.com/ericyd/loop-supreme/pull/5
-- [ ] ~Component can remove Tracks~ moving functionality to `Track`
+- [x] ~Component can remove Tracks~ moving functionality to `Track` https://github.com/ericyd/loop-supreme/pull/5
 - [ ] Component has x-axis that visually corresponds to the time signature and measure count
 - [ ] Component has a vertical line that tracks the current tick/current measure
+- [ ] global lock prevents recording multiple tracks at once
 
 ## Track
 
@@ -48,14 +49,18 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
   - shape: rectangle. Spans width of `Scene`
 - [x] Component can remove itself from scene https://github.com/ericyd/loop-supreme/pull/5
 - [x] Component has arm toggle button https://github.com/ericyd/loop-supreme/pull/8
-- [ ] Component has mute toggle button
-- [ ] audio data can be cleared from component
+- [ ] audio data can be cleared from component without deleting it (to preserve track name)
+- [x] deleting a track stops playback https://github.com/ericyd/loop-supreme/pull/13
 - [x] Component can record data from user device https://github.com/ericyd/loop-supreme/pull/8
 - [ ] Component shows waveform of recorded audio
-- [ ] Component can adjust volume of playback
-- [ ] Audio input can be monitored, or not
+- [x] Component can adjust volume of playback https://github.com/ericyd/loop-supreme/pull/13
+- [x] Component has mute toggle button https://github.com/ericyd/loop-supreme/pull/13
+- [x] Audio input can be monitored, or not https://github.com/ericyd/loop-supreme/pull/13
 - [x] When Component is armed for recording, audio data is recorded starting at the beginning of the next loop, and automatically stops at the beginning of the following loop https://github.com/ericyd/loop-supreme/pull/9
 - [x] recording accounts for audio latency https://github.com/ericyd/loop-supreme/pull/12
+- [ ] Component gets confirmation before deleting track
+- [ ] Fix Recording button styling/class (use Tailwind)
+- [ ] Ensure the audio buffer is always exactly as long as it needs to be to fill the loop
 
 ## Saving audio
 
@@ -70,6 +75,20 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
   - once a track is selected, `r` toggles "armed for recording", `m` toggles mute
   - `t` is "tap tempo"
   - `space` is play/pause
+
+## HTML
+
+- [ ] flesh out header (add links to blog, etc)
+- [ ] track page views
+- [ ] OG tags, SEO
+
+## Deploy
+
+- [ ] building (GH Actions)
+  - probably will need to "eject" CRA so I can customize webpack resolve hook.
+  - https://webpack.js.org/configuration/resolve/.
+  - Currently getting this error in built app: "Error: Module resolve hook not set"
+- [ ] hosting (GH pages???)
 
 ## Misc
 
@@ -87,3 +106,5 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 ```
 
 - [ ] clean up TODOs
+- [ ] show alert to user if latency cannot be detected, either due to their environment or their chosen input. This will result in a terrible experience.
+      (Consider adding a "custom latency" input option???)

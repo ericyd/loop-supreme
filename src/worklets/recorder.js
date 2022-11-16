@@ -15,26 +15,17 @@ class RecordingProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super()
 
-    this.sampleRate = 0
-    this.maxRecordingFrames = 0
-    this.numberOfChannels = 0
-
-    if (options && options.processorOptions) {
-      const { numberOfChannels, sampleRate, maxFrameCount, latencySamples } =
-        options.processorOptions
-
-      this.sampleRate = sampleRate
-      this.maxRecordingFrames = maxFrameCount
-      this.numberOfChannels = numberOfChannels
-      this.latencySamples = latencySamples ?? 0
-    }
+    this.sampleRate = options.processorOptions?.sampleRate ?? 0
+    this.maxRecordingFrames = options.processorOptions?.maxRecordingFrames ?? 0
+    this.numberOfChannels = options.processorOptions?.numberOfChannels ?? 0
+    this.latencySamples = options.processorOptions?.latencySamples ?? 0
 
     this._recordingBuffer = new Array(this.numberOfChannels).fill(
       new Float32Array(this.maxRecordingFrames)
     )
 
     this.recordedFrames = 0
-    this.isRecording = false
+    this.recording = false
 
     // We will use a timer to gate our messages; this one will publish at 60hz
     this.framesSinceLastPublish = 0
@@ -45,9 +36,9 @@ class RecordingProcessor extends AudioWorkletProcessor {
 
     this.port.onmessage = (event) => {
       if (event.data.message === 'UPDATE_RECORDING_STATE') {
-        this.isRecording = event.data.setRecording
+        this.recording = event.data.recording
 
-        if (this.isRecording === false) {
+        if (this.recording === false) {
           this.port.postMessage({
             message: 'SHARE_RECORDING_BUFFER',
             buffer: this._recordingBuffer,
@@ -68,7 +59,7 @@ class RecordingProcessor extends AudioWorkletProcessor {
           const currentSample = inputs[input][channel][sample]
 
           // Copy data to recording buffer.
-          if (this.isRecording) {
+          if (this.recording) {
             this._recordingBuffer[channel][
               // The input hardware will have some recording latency.
               // To account for that latency, we shift the input data left by `latencySamples` samples.
@@ -81,9 +72,9 @@ class RecordingProcessor extends AudioWorkletProcessor {
             ] = currentSample
           }
 
-          // Pass data directly to output, unchanged.
-          // TODO: allow montioring / unmonitoring with an option, which can be toggled via message
-          // outputs[input][channel][sample] = currentSample
+          // Monitor in the input by passing data directly to output, unchanged.
+          // The output of the monitor is controlled in the Track via the monitorNode
+          outputs[input][channel][sample] = currentSample
 
           // Sum values for visualizer
           this.sampleSum += currentSample
@@ -94,7 +85,7 @@ class RecordingProcessor extends AudioWorkletProcessor {
     const shouldPublish = this.framesSinceLastPublish >= this.publishInterval
 
     // Validate that recording hasn't reached its limit.
-    if (this.isRecording) {
+    if (this.recording) {
       if (this.recordedFrames + 128 < this.maxRecordingFrames) {
         this.recordedFrames += 128
 
@@ -107,7 +98,7 @@ class RecordingProcessor extends AudioWorkletProcessor {
         }
       } else {
         // Let the rest of the app know the limit was reached.
-        this.isRecording = false
+        this.recording = false
         this.port.postMessage({
           message: 'MAX_RECORDING_LENGTH_REACHED',
         })
