@@ -7,12 +7,11 @@ import React, {
 } from 'react'
 import { useAudioRouter } from '../AudioRouter'
 import { Monitor } from '../icons/Monitor'
-import { Record } from '../icons/Record'
-import { X } from '../icons/X'
 import { MetronomeReader } from '../Metronome'
 import { logger } from '../util/logger'
 import { VolumeControl } from '../VolumeControl'
 import { ClockConsumerMessage } from '../worklets/ClockWorker'
+import ArmTrackRecording from './ArmTrackRecording'
 import { getLatencySamples } from './get-latency-samples'
 import RemoveTrack from './RemoveTrack'
 
@@ -21,9 +20,6 @@ type Props = {
   onRemove(): void
   metronome: MetronomeReader
 }
-
-const red = '#ef4444'
-const black = '#000000'
 
 type RecordingProperties = {
   numberOfChannels: number
@@ -61,9 +57,6 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   const [armed, setArmed] = useState(false)
   const toggleArmRecording = () => setArmed((value) => !value)
   const [recording, setRecording] = useState(false)
-  const [recordButtonColor, setRecordButtonColor] = useState(
-    recording ? red : black
-  )
 
   /**
    * Set up track gain.
@@ -216,16 +209,6 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     setTitle(event.target.value)
   }
 
-  // if track is armed, toggle the color between red and black every half-beat
-  function handleBeat() {
-    if (armed) {
-      setRecordButtonColor(red)
-      setTimeout(() => {
-        setRecordButtonColor(black)
-      }, (60 / metronome.bpm / 2) * 1000)
-    }
-  }
-
   function handleLoopstart() {
     if (recording) {
       setRecording(false)
@@ -237,7 +220,6 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     if (armed) {
       setRecording(true)
       setArmed(false)
-      setRecordButtonColor(red)
       recorderWorklet.current?.port?.postMessage({
         message: 'UPDATE_RECORDING_STATE',
         recording: true,
@@ -246,9 +228,6 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   }
 
   function delegateClockMessage(event: MessageEvent<ClockConsumerMessage>) {
-    if (event.data.message === 'tick') {
-      handleBeat()
-    }
     if (event.data.loopStart) {
       handleLoopstart()
     }
@@ -274,12 +253,11 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
 
         {/* Record, Monitor */}
         <div className="flex items-start content-center mb-2">
-          <button
-            className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-            onClick={toggleArmRecording}
-          >
-            <Record fill={recording ? red : recordButtonColor} />
-          </button>
+          <ArmTrackRecording
+            toggleArmRecording={toggleArmRecording}
+            armed={armed}
+            recording={recording}
+          />
           <button
             className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
             onClick={toggleMonitoring}

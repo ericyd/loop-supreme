@@ -18,7 +18,17 @@ module.exports = {
       // tbh, not sure if this is how this should be used with Tailwind
       serif: ['GTAmericaMono-Light', 'Consolas', 'Inconsolata', 'monospace'],
     },
-    extend: {},
+    extend: {
+      animation: {
+        'pulse-custom': 'pulse-custom 1s ease-in-out infinite',
+      },
+      keyframes: {
+        'pulse-custom': {
+          '0%, 100%': { opacity: 0 },
+          '50%': { opacity: 1 },
+        },
+      },
+    },
   },
   plugins: [],
 }
