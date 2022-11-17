@@ -14,6 +14,7 @@ import { logger } from '../util/logger'
 import { VolumeControl } from '../VolumeControl'
 import { ClockConsumerMessage } from '../worklets/ClockWorker'
 import { getLatencySamples } from './get-latency-samples'
+import RemoveTrack from './RemoveTrack'
 
 type Props = {
   id: number
@@ -261,36 +262,52 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   })
 
   return (
-    <div className="flex items-start content-center mb-2">
-      <input
-        value={title}
-        onChange={handleChangeTitle}
-        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-      />
-      <button
-        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-        onClick={onRemove}
-      >
-        <X />
-      </button>
-      <button
-        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-        onClick={toggleArmRecording}
-      >
-        <Record fill={recording ? red : recordButtonColor} />
-      </button>
-      <VolumeControl
-        muted={muted}
-        toggleMuted={toggleMuted}
-        gain={gain}
-        onChange={setGain}
-      />
-      <button
-        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-        onClick={toggleMonitoring}
-      >
-        <Monitor monitorInput={monitorInput} />
-      </button>
+    <div className="flex items-start content-center mb-2 pb-2 border-b border-solid border-zinc-400">
+      {/* Controls */}
+      <div className="flex flex-col">
+        {/* Title */}
+        <input
+          value={title}
+          onChange={handleChangeTitle}
+          className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2 mb-2"
+        />
+
+        {/* Record, Monitor */}
+        <div className="flex items-start content-center mb-2">
+          <button
+            className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
+            onClick={toggleArmRecording}
+          >
+            <Record fill={recording ? red : recordButtonColor} />
+          </button>
+          <button
+            className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
+            onClick={toggleMonitoring}
+          >
+            <Monitor monitorInput={monitorInput} />
+          </button>
+        </div>
+
+        {/* Volume */}
+        <div className="mb-2">
+          <VolumeControl
+            muted={muted}
+            toggleMuted={toggleMuted}
+            gain={gain}
+            onChange={setGain}
+          />
+        </div>
+
+        {/* Remove */}
+        <div>
+          <RemoveTrack onRemove={onRemove} />
+        </div>
+      </div>
+
+      {/* Waveform */}
+      <div className="p-2 border border-zinc-400 border-solid rounded-sm">
+        This is where the waveform will go
+      </div>
     </div>
   )
 }
