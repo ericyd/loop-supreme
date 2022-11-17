@@ -12,12 +12,10 @@ export function getLatencySamples(
   stream: MediaStream,
   audioContext: AudioContext
 ): number {
+  // This check is duplicated in Start/index.tsx but it is fine to re-check here
   const supportedConstraints = navigator.mediaDevices.getSupportedConstraints()
   // @ts-expect-error This is a documented property, and indeed it is `true` in Chrome https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSupportedConstraints/latency
   if (!supportedConstraints.latency) {
-    // TODO: should we make a guess about recording latency?
-    // Even in browsers where this is not reported, it is clear that latency is non-zero.
-    // In very simple tests, it is often > 100ms
     logger.log({
       message:
         'Could not get track latency because this environment does not report latency on MediaStreamTracks',

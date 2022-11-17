@@ -62,6 +62,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [ ] Component gets confirmation before deleting track
 - [ ] Fix Recording button styling/class (use Tailwind)
 - [ ] Ensure the audio buffer is always exactly as long as it needs to be to fill the loop
+- [ ] clean up functionality from recorder worklet that isn't being used (might want to hold off until I know how visualization will work)
 
 ## Saving audio
 
@@ -79,9 +80,9 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 
 ## HTML
 
-- [ ] flesh out header (add links to blog, etc)
-- [ ] track page views
-- [ ] OG tags, SEO
+- [x] flesh out header (add links to blog, etc)
+- [x] track page views (done automatically through Cloudflare)
+- [x] OG tags, SEO
 
 ## Deploy
 
@@ -89,10 +90,11 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
   - probably will need to "eject" CRA so I can customize webpack resolve hook.
   - https://webpack.js.org/configuration/resolve/.
   - Currently getting this error in built app: "Error: Module resolve hook not set"
-- [ ] hosting (GH pages???)
+- [ ] hosting (Cloudflare)
 
 ## Misc
 
+- [x] clean up "start" button/view
 - [ ] Allow user to change inputs https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/enumerateDevices. This method returns `Array<MediaDeviceInfo>` which looks like this:
 
 ```json
@@ -107,5 +109,6 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 ```
 
 - [ ] clean up TODOs
-- [ ] show alert to user if latency cannot be detected, either due to their environment or their chosen input. This will result in a terrible experience.
-      (Consider adding a "custom latency" input option???)
+- [x] show alert to user if latency cannot be detected due to their environment
+- [ ] show alert if track latency cannot be detected, or if it seems wildly out of the norm (~100ms +/ 20ms ???). Consider adding a "custom latency" input option???
+- [x] remove useInterval hook (not used)
