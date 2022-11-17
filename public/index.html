@@ -5,10 +5,21 @@
     <link rel="icon" href="%PUBLIC_URL%/icons/iconmonstr-refresh-2-240.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
+    <meta property="og:title" content="Loop Supreme" />
+    <meta
+      property="og:description"
+      content="Browser-based live looper for audio performance and fun"
+    />
     <meta
       name="description"
-      content="Web site created using create-react-app"
+      content="Browser-based live looper for audio performance and fun"
     />
+    <meta property="og:url" content="https://loop-supreme.com" />
+    <meta
+      property="og:image"
+      content="https://res.cloudinary.com/ericyd/image/upload/v1668719454/loop-supreme/loop-supreme-og_d0xyhw.png"
+    />
+    <meta property="og:type" content="website" />
     <link
       rel="apple-touch-icon"
       href="%PUBLIC_URL%/icons/loop-supreme-logo.png"
@@ -39,12 +50,29 @@
             class="flex-initial p-2 w-40"
           />
         </h1>
-        <a
-          href="https://github.com/ericyd/loop-supreme"
-          target="_blank"
-          class="p-2 underline text-cyan-600"
-          >GitHub</a
-        >
+        <div className="flex flex-col">
+          <span>Browser-based live looper for audio performance and fun</span>
+          <div className="flex flex-row">
+            <a
+              href="https://github.com/ericyd/loop-supreme"
+              target="_blank"
+              class="mr-2 underline text-cyan-600"
+              >GitHub</a
+            >
+            <a
+              href="https://ericyd.hashnode.dev/loop-supreme-part-7-latency-and-adding-track-functionality"
+              target="_blank"
+              class="m-2 underline text-cyan-600"
+              >Blog</a
+            >
+            <a
+              href="https://github.com/ericyd/loop-supreme/issues"
+              target="_blank"
+              class="m-2 underline text-cyan-600"
+              >Known issues</a
+            >
+          </div>
+        </div>
       </div>
       <noscript>You need to enable JavaScript to run this app.</noscript>
       <div id="root"></div>
