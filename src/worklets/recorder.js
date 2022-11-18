@@ -6,7 +6,7 @@
 
 /**
  * Why JS?
- *    This is hopefully temporary, but I'm not sure all the right TS declarations I need to make for this to compile as TS
+ *    It makes our lives vastly easier
  * The code in this file was heavily inspired by this Google example, and Monica Dinculescu's fantastic metronome test/example code:
  *    https://github.com/GoogleChromeLabs/web-audio-samples/blob/eed2a8613af551f2b1d166a01c834e8431fdf3c6/src/audio-worklet/migration/worklet-recorder/recording-processor.js
  *    https://glitch.com/edit/#!/metronomes?path=worker.js%3A1%3A0
