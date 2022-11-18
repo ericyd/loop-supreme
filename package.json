@@ -26,6 +26,7 @@
     "css:watch": "npx tailwindcss -i src/index.css -o ./public/output.css --watch",
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "postbuild": "./scripts/postbuild.sh",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "fmt": "npx prettier --write \"./src/**/*.{ts,tsx}\""

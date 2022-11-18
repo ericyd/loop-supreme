@@ -22,36 +22,6 @@
 
 /* eslint-disable no-restricted-globals */
 
-// I wrote up JS typedefs before I knew if TS would work. Leaving them in case they are needed again
-// /**
-//  * @typedef ClockWorkerStartMessage
-//  * @type {object}
-//  * @property {"start"} message
-//  * @property {number} bpm
-//  * @property {number} beatsPerMeasure
-//  * @property {number} measureCount
-//  */
-//
-// /**
-//  * @typedef ClockWorkerUpdateMessage
-//  * @type {object}
-//  * @property {"update"} message
-//  * @property {number} bpm
-//  * @property {number} beatsPerMeasure
-//  * @property {number} measureCount
-//  */
-//
-// /**
-//  * @typedef ClockWorkerStopMessage
-//  * @type {object}
-//  * @property {"stop"} message
-//  */
-//
-// /**
-//  * @typedef ClockWorkerMessage
-//  * @type {ClockWorkerStartMessage | ClockWorkerStopMessage | ClockWorkerUpdateMessage}
-//  */
-
 import type { ClockWorkerMessage } from './ClockWorker'
 
 postMessage({ message: 'ready' })
