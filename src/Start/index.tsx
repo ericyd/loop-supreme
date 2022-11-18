@@ -65,27 +65,7 @@ export const Start: React.FC = () => {
   ) : (
     <>
       <div className="flex flex-col items-center justify-center mx-auto">
-        {!latencySupported && (
-          <div className="mb-5 font-bold bg-red-200 p-2 rounded-md">
-            <p>Heads up!</p>
-            <p>Your browser does not appear to report recording latency 😢.</p>
-            <p>
-              You are free to continue, but your loops will most likely fall
-              behind the beat.
-            </p>
-            <p>For best results, try Chrome (we know, we tried, we're sorry)</p>
-            <p>
-              <a
-                href="https://ericyd.hashnode.dev/loop-supreme-part-7-latency-and-adding-track-functionality"
-                target="_blank"
-                rel="noreferrer"
-                className="underline text-cyan-600"
-              >
-                (why tho?)
-              </a>
-            </p>
-          </div>
-        )}
+        {!latencySupported && <LatencyNotSupportedAlert />}
         <button
           onClick={handleClick}
           className="px-10 py-5 border-4 border-solid border-black rounded-sm text-xl font-serif font-bold bg-blue-200"
@@ -94,5 +74,29 @@ export const Start: React.FC = () => {
         </button>
       </div>
     </>
+  )
+}
+
+function LatencyNotSupportedAlert() {
+  return (
+    <div className="mb-5 font-bold bg-red-200 p-2 rounded-md">
+      <p>Heads up!</p>
+      <p>Your browser does not appear to report recording latency 😢.</p>
+      <p>
+        You are free to continue, but your loops will most likely fall behind
+        the beat.
+      </p>
+      <p>For best results, try Chrome (we know, we tried, we're sorry)</p>
+      <p>
+        <a
+          href="https://ericyd.hashnode.dev/loop-supreme-part-7-latency-and-adding-track-functionality"
+          target="_blank"
+          rel="noreferrer"
+          className="underline text-cyan-600"
+        >
+          (why tho?)
+        </a>
+      </p>
+    </div>
   )
 }
