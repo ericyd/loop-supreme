@@ -7,27 +7,27 @@ type Props = {
 
 export default function RemoveTrack(props: Props) {
   const removeButtonRef = useRef<HTMLButtonElement>(null)
-  const [attemptingRemoval, setAttemptingRemoval] = useState(false)
+  const [confirmRemoval, setConfirmRemoval] = useState(false)
   function handleRemove() {
-    if (attemptingRemoval) {
+    if (confirmRemoval) {
       props.onRemove()
     }
 
-    setAttemptingRemoval(true)
+    setConfirmRemoval(true)
     removeButtonRef.current?.addEventListener('blur', () => {
-      setAttemptingRemoval(false)
+      setConfirmRemoval(false)
     })
   }
 
   return (
     <button
       className={`p-2 border border-zinc-400 border-solid rounded-sm flex-shrink mr-2 ${
-        attemptingRemoval && 'bg-red-400'
+        confirmRemoval && 'bg-red-400'
       }`}
       onClick={handleRemove}
       ref={removeButtonRef}
     >
-      {attemptingRemoval ? 'Delete track?' : <X />}
+      {confirmRemoval ? 'Delete track?' : <X />}
     </button>
   )
 }
