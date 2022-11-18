@@ -6,13 +6,13 @@ import React, {
   useState,
 } from 'react'
 import { useAudioRouter } from '../AudioRouter'
-import { Monitor } from '../icons/Monitor'
 import { MetronomeReader } from '../Metronome'
 import { logger } from '../util/logger'
 import { VolumeControl } from '../VolumeControl'
 import { ClockConsumerMessage } from '../worklets/ClockWorker'
 import ArmTrackRecording from './ArmTrackRecording'
 import { getLatencySamples } from './get-latency-samples'
+import MonitorInput from './MonitorInput'
 import RemoveTrack from './RemoveTrack'
 
 type Props = {
@@ -77,18 +77,18 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   /**
    * Set up track monitoring
    */
-  const [monitorInput, setMonitorInput] = useState(false)
-  const toggleMonitoring = () => setMonitorInput((value) => !value)
+  const [monitoring, setMonitoring] = useState(false)
+  const toggleMonitoring = () => setMonitoring((value) => !value)
   const monitorNode = useRef(
-    new GainNode(audioContext, { gain: monitorInput ? 1.0 : 0.0 })
+    new GainNode(audioContext, { gain: monitoring ? 1.0 : 0.0 })
   )
   useEffect(() => {
     monitorNode.current.gain.setTargetAtTime(
-      monitorInput ? 1.0 : 0.0,
+      monitoring ? 1.0 : 0.0,
       audioContext.currentTime,
       0.1
     )
-  }, [monitorInput, audioContext])
+  }, [monitoring, audioContext])
 
   /**
    * Both of these are instantiated on mount
@@ -258,12 +258,10 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
             armed={armed}
             recording={recording}
           />
-          <button
-            className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-            onClick={toggleMonitoring}
-          >
-            <Monitor monitorInput={monitorInput} />
-          </button>
+          <MonitorInput
+            toggleMonitoring={toggleMonitoring}
+            monitoring={monitoring}
+          />
         </div>
 
         {/* Volume */}
