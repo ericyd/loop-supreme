@@ -1,0 +1,48 @@
+name: Deploy
+
+on:
+  release:
+    types:
+      - released
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      # https://github.com/actions/cache/blob/f4278025ab0f432ce369118909e46deec636f50c/examples.md#node---npm
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        run: |
+          echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
+
+      - name: Load npm cache
+        uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: |
+            ${{ steps.npm-cache-dir.outputs.dir }}
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci --cache ${{ steps.npm-cache-dir.outputs.dir }}
+
+      - name: Compile
+        run: npm run build
+
+      # - name: Publish
+      #   uses: cloudflare/wrangler-action@2.0.0
+      #   with:
+      #     apiToken: ${{ secrets.CF_API_TOKEN }}
+      #     workingDirectory: 'build'
+      #     command: pages publish --project-name=loopsupreme.com
