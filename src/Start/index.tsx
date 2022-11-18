@@ -47,16 +47,25 @@ export const Start: React.FC = () => {
           video: false,
         })
       )
+    } catch (e) {
+      // TODO: better error handling
+      logger.error(e, 'Error getting user media')
+    }
+
+    const workletUrl = new URL('../worklets/recorder', import.meta.url)
+    try {
       const audioContext = new AudioContext()
 
       // adding modules is async; since it needs to happen "on mount", this is probably the best place for it
-      await audioContext.audioWorklet.addModule(
-        new URL('../worklets/recorder.js', import.meta.url)
-      )
+      await audioContext.audioWorklet.addModule(workletUrl)
       setAudioContext(audioContext)
     } catch (e) {
-      // TODO: better error handling
-      logger.error(e)
+      logger.error({
+        e,
+        message: 'Error loading recorder worklet',
+        url: workletUrl,
+        urlToString: workletUrl.toString(),
+      })
     }
   }
 
