@@ -40,9 +40,9 @@ jobs:
       - name: Compile
         run: npm run build
 
-      # - name: Publish
-      #   uses: cloudflare/wrangler-action@2.0.0
-      #   with:
-      #     apiToken: ${{ secrets.CF_API_TOKEN }}
-      #     workingDirectory: 'build'
-      #     command: pages publish --project-name=loopsupreme.com
+      - name: Publish
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          workingDirectory: 'build'
+          command: pages publish --project-name=loopsupreme.com
