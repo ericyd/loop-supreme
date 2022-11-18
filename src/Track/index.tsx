@@ -6,23 +6,20 @@ import React, {
   useState,
 } from 'react'
 import { useAudioRouter } from '../AudioRouter'
-import { Monitor } from '../icons/Monitor'
-import { Record } from '../icons/Record'
-import { X } from '../icons/X'
 import { MetronomeReader } from '../Metronome'
 import { logger } from '../util/logger'
 import { VolumeControl } from '../VolumeControl'
 import { ClockConsumerMessage } from '../worklets/ClockWorker'
+import ArmTrackRecording from './ArmTrackRecording'
 import { getLatencySamples } from './get-latency-samples'
+import MonitorInput from './MonitorInput'
+import RemoveTrack from './RemoveTrack'
 
 type Props = {
   id: number
   onRemove(): void
   metronome: MetronomeReader
 }
-
-const red = '#ef4444'
-const black = '#000000'
 
 type RecordingProperties = {
   numberOfChannels: number
@@ -60,9 +57,6 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   const [armed, setArmed] = useState(false)
   const toggleArmRecording = () => setArmed((value) => !value)
   const [recording, setRecording] = useState(false)
-  const [recordButtonColor, setRecordButtonColor] = useState(
-    recording ? red : black
-  )
 
   /**
    * Set up track gain.
@@ -83,18 +77,18 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   /**
    * Set up track monitoring
    */
-  const [monitorInput, setMonitorInput] = useState(false)
-  const toggleMonitoring = () => setMonitorInput((value) => !value)
+  const [monitoring, setMonitoring] = useState(false)
+  const toggleMonitoring = () => setMonitoring((value) => !value)
   const monitorNode = useRef(
-    new GainNode(audioContext, { gain: monitorInput ? 1.0 : 0.0 })
+    new GainNode(audioContext, { gain: monitoring ? 1.0 : 0.0 })
   )
   useEffect(() => {
     monitorNode.current.gain.setTargetAtTime(
-      monitorInput ? 1.0 : 0.0,
+      monitoring ? 1.0 : 0.0,
       audioContext.currentTime,
       0.1
     )
-  }, [monitorInput, audioContext])
+  }, [monitoring, audioContext])
 
   /**
    * Both of these are instantiated on mount
@@ -215,16 +209,6 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     setTitle(event.target.value)
   }
 
-  // if track is armed, toggle the color between red and black every half-beat
-  function handleBeat() {
-    if (armed) {
-      setRecordButtonColor(red)
-      setTimeout(() => {
-        setRecordButtonColor(black)
-      }, (60 / metronome.bpm / 2) * 1000)
-    }
-  }
-
   function handleLoopstart() {
     if (recording) {
       setRecording(false)
@@ -236,7 +220,6 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     if (armed) {
       setRecording(true)
       setArmed(false)
-      setRecordButtonColor(red)
       recorderWorklet.current?.port?.postMessage({
         message: 'UPDATE_RECORDING_STATE',
         recording: true,
@@ -245,9 +228,6 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   }
 
   function delegateClockMessage(event: MessageEvent<ClockConsumerMessage>) {
-    if (event.data.message === 'tick') {
-      handleBeat()
-    }
     if (event.data.loopStart) {
       handleLoopstart()
     }
@@ -261,36 +241,49 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   })
 
   return (
-    <div className="flex items-start content-center mb-2">
-      <input
-        value={title}
-        onChange={handleChangeTitle}
-        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-      />
-      <button
-        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-        onClick={onRemove}
-      >
-        <X />
-      </button>
-      <button
-        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-        onClick={toggleArmRecording}
-      >
-        <Record fill={recording ? red : recordButtonColor} />
-      </button>
-      <VolumeControl
-        muted={muted}
-        toggleMuted={toggleMuted}
-        gain={gain}
-        onChange={setGain}
-      />
-      <button
-        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-        onClick={toggleMonitoring}
-      >
-        <Monitor monitorInput={monitorInput} />
-      </button>
+    <div className="flex items-start content-center mb-2 pb-2 border-b border-solid border-zinc-400">
+      {/* Controls */}
+      <div className="flex flex-col">
+        {/* Title */}
+        <input
+          value={title}
+          onChange={handleChangeTitle}
+          className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2 mb-2"
+        />
+
+        {/* Record, Monitor */}
+        <div className="flex items-start content-center mb-2">
+          <ArmTrackRecording
+            toggleArmRecording={toggleArmRecording}
+            armed={armed}
+            recording={recording}
+          />
+          <MonitorInput
+            toggleMonitoring={toggleMonitoring}
+            monitoring={monitoring}
+          />
+        </div>
+
+        {/* Volume */}
+        <div className="mb-2">
+          <VolumeControl
+            muted={muted}
+            toggleMuted={toggleMuted}
+            gain={gain}
+            onChange={setGain}
+          />
+        </div>
+
+        {/* Remove */}
+        <div>
+          <RemoveTrack onRemove={onRemove} />
+        </div>
+      </div>
+
+      {/* Waveform */}
+      <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-auto self-stretch height-100">
+        This is where the waveform will go
+      </div>
     </div>
   )
 }

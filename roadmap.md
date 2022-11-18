@@ -59,8 +59,8 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [x] Audio input can be monitored, or not https://github.com/ericyd/loop-supreme/pull/13
 - [x] When Component is armed for recording, audio data is recorded starting at the beginning of the next loop, and automatically stops at the beginning of the following loop https://github.com/ericyd/loop-supreme/pull/9
 - [x] recording accounts for audio latency https://github.com/ericyd/loop-supreme/pull/12
-- [ ] Component gets confirmation before deleting track
-- [ ] Fix Recording button styling/class (use Tailwind)
+- [x] Component gets confirmation before deleting track
+- [x] Fix Recording button styling/class (use Tailwind)
 - [ ] Ensure the audio buffer is always exactly as long as it needs to be to fill the loop
 
 ## Saving audio
