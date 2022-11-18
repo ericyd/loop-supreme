@@ -281,7 +281,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
       </div>
 
       {/* Waveform */}
-      <div className="p-2 border border-zinc-400 border-solid rounded-sm">
+      <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-auto self-stretch height-100">
         This is where the waveform will go
       </div>
     </div>
