@@ -25,7 +25,7 @@
     "css": "npx tailwindcss -i src/index.css -o ./public/output.css",
     "css:watch": "npx tailwindcss -i src/index.css -o ./public/output.css --watch",
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "react-scripts build && cp src/worklets/recorder.js \"build/static/media/$(ls build/static/media | grep recorder)\"",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "fmt": "npx prettier --write \"./src/**/*.{ts,tsx}\""
