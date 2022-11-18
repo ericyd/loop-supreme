@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useDebouncedCallback } from 'use-debounce'
 import { MetronomeReader, MetronomeWriter } from '../Metronome'
 import MeasureCount from './MeasureCount'
