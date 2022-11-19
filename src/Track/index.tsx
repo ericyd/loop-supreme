@@ -14,6 +14,7 @@ import ArmTrackRecording from './ArmTrackRecording'
 import { getLatencySamples } from './get-latency-samples'
 import MonitorInput from './MonitorInput'
 import RemoveTrack from './RemoveTrack'
+import Waveform from './Waveform'
 
 type Props = {
   id: number
@@ -36,20 +37,21 @@ type MaxRecordingLengthReachedMessage = {
   message: 'MAX_RECORDING_LENGTH_REACHED'
 }
 
-type UpdateRecordingLengthMessage = {
-  message: 'UPDATE_RECORDING_LENGTH'
+type ShareRecordingBufferMessage = {
+  message: 'SHARE_RECORDING_BUFFER'
+  channelsData: Array<Float32Array>
   recordingLength: number
 }
 
-type ShareRecordingBufferMessage = {
-  message: 'SHARE_RECORDING_BUFFER'
-  buffer: Array<Float32Array>
+type UpdateWaveformMessage = {
+  message: 'UPDATE_WAVEFORM'
+  gain: number
 }
 
 type RecordingMessage =
   | MaxRecordingLengthReachedMessage
-  | UpdateRecordingLengthMessage
   | ShareRecordingBufferMessage
+  | UpdateWaveformMessage
 
 export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   const { audioContext, stream } = useAudioRouter()
@@ -57,6 +59,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   const [armed, setArmed] = useState(false)
   const toggleArmRecording = () => setArmed((value) => !value)
   const [recording, setRecording] = useState(false)
+  const [waveformGainValues, setWaveformGainValues] = useState<number[]>([])
 
   /**
    * Set up track gain.
@@ -103,18 +106,21 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
    */
   const buildRecorderMessageHandler = useCallback(
     (recordingProperties: RecordingProperties) => {
-      let recordingLength = 0
-
-      // If the max length is reached, we can no longer record.
       return (event: MessageEvent<RecordingMessage>) => {
+        logger.debug({ recordingProcessorEventData: event.data })
+        // If the max length is reached, we can no longer record.
         if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
-          // isRecording = false;
-          logger.log(event.data)
+          // TODO: stop recording, or show alert or something
+          logger.error(event.data)
         }
-        if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
-          recordingLength = event.data.recordingLength
+
+        if (event.data.message === 'UPDATE_WAVEFORM') {
+          const gain = event.data.gain
+          setWaveformGainValues((values) => [...values, gain])
         }
+
         if (event.data.message === 'SHARE_RECORDING_BUFFER') {
+          const recordingLength = event.data.recordingLength
           const recordingBuffer = audioContext.createBuffer(
             recordingProperties.numberOfChannels,
             // TODO: I'm also not sure if constructing the audioBuffer from the "recordingLength" indicated from the worklet is the best way.
@@ -125,7 +131,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
           )
 
           for (let i = 0; i < recordingProperties.numberOfChannels; i++) {
-            // buffer is an Array of Float32Arrays;
+            // channelsData is an Array of Float32Arrays;
             // each element of Array is a channel,
             // which contains the raw samples for the audio data of that channel
             recordingBuffer.copyToChannel(
@@ -140,7 +146,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
               // [1] https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer/copyToChannel
               // [2] https://jsfiddle.net/y7qL9wr4/7
               // TODO: should this be sliced to a maximum of buffer size? Maybe a non-issue?
-              event.data.buffer[i],
+              event.data.channelsData[i],
               i,
               0
             )
@@ -178,6 +184,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
         audioContext
       ),
     }
+    logger.debug({ recordingProperties })
     recorderWorklet.current = new AudioWorkletNode(audioContext, 'recorder', {
       processorOptions: recordingProperties,
     })
@@ -282,7 +289,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
 
       {/* Waveform */}
       <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-auto self-stretch height-100">
-        This is where the waveform will go
+        <Waveform gainValues={waveformGainValues} />
       </div>
     </div>
   )
