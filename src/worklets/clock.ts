@@ -22,9 +22,40 @@
 
 /* eslint-disable no-restricted-globals */
 
-import type { ClockWorkerMessage } from './ClockWorker'
+// TODO: agree on capitalization between this an recorder processor
+type ClockWorkerStartMessage = {
+  message: 'start'
+  bpm: number
+  beatsPerMeasure: number
+  measureCount: number
+}
 
-postMessage({ message: 'ready' })
+type ClockWorkerUpdateMessage = {
+  message: 'update'
+  bpm: number
+  beatsPerMeasure: number
+  measureCount: number
+}
+
+type ClockWorkerStopMessage = {
+  message: 'stop'
+}
+
+type ClockWorkerMessage =
+  | ClockWorkerStartMessage
+  | ClockWorkerUpdateMessage
+  | ClockWorkerStopMessage
+
+export type ClockConsumerMessage = {
+  currentTick: number
+  // true on the first beat of each measure
+  downbeat: boolean
+  // true on the first beat of each loop
+  loopStart: boolean
+  message: 'tick'
+}
+
+postMessage({ message: 'clock ready' })
 
 let timeoutId: NodeJS.Timer | null = null
 let currentTick = -1

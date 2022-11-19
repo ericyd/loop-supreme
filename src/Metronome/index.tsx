@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAudioRouter } from '../AudioRouter'
 import { ControlPanel } from '../ControlPanel'
 import { Scene } from '../Scene'
-import { ClockConsumerMessage } from '../worklets/ClockWorker'
+import type { ClockConsumerMessage } from '../worklets/clock'
 import { decayingSine } from './waveforms'
 
 export type TimeSignature = {
