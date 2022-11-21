@@ -285,7 +285,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
         <input
           value={title}
           onChange={handleChangeTitle}
-          className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2 mb-2"
+          className="p-2 flex-initial mr-2 mb-2"
         />
 
         {/* Record, Monitor */}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import ButtonBase from '../ButtonBase'
 import { Plus } from '../icons/Plus'
 import { MetronomeReader } from '../Metronome'
 import { Track } from '../Track'
@@ -37,12 +38,9 @@ export const Scene: React.FC<Props> = ({ metronome }) => {
         />
       ))}
       <div className="mb-2">
-        <button
-          className="p-2 border border-zinc-400 border-solid rounded-sm"
-          onClick={handleAddTrack}
-        >
+        <ButtonBase onClick={handleAddTrack}>
           <Plus />
-        </button>
+        </ButtonBase>
       </div>
     </>
   )

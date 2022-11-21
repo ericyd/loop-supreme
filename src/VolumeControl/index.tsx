@@ -1,3 +1,4 @@
+import ButtonBase from '../ButtonBase'
 import { Volume } from '../icons/Volume'
 
 type Props = {
@@ -20,12 +21,9 @@ export const VolumeControl: React.FC<Props> = (props) => {
 
   return (
     <div className="flex flex-row items-center mr-2">
-      <button
-        onClick={props.toggleMuted}
-        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-      >
+      <ButtonBase onClick={props.toggleMuted}>
         <Volume muted={props.muted} />
-      </button>
+      </ButtonBase>
       <input
         type="range"
         min="0"

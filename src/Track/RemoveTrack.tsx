@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import ButtonBase from '../ButtonBase'
 import { X } from '../icons/X'
 
 type Props = {
@@ -20,14 +21,12 @@ export default function RemoveTrack(props: Props) {
   }
 
   return (
-    <button
-      className={`p-2 border border-zinc-400 border-solid rounded-sm flex-shrink mr-2 ${
-        confirmRemoval && 'bg-red-400'
-      }`}
+    <ButtonBase
+      className={confirmRemoval ? 'bg-red-400' : ''}
       onClick={handleRemove}
       ref={removeButtonRef}
     >
       {confirmRemoval ? 'Delete track?' : <X />}
-    </button>
+    </ButtonBase>
   )
 }
