@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDebouncedCallback } from 'use-debounce'
 import { MetronomeReader, MetronomeWriter } from '../Metronome'
-import MeasureCount from './MeasureCount'
+import MeasuresPerLoop from './MeasuresPerLoop'
 import TimeSignature from './TimeSignature'
 import Tempo from './Tempo'
 import BeatCounter from './BeatCounter'
@@ -37,9 +37,9 @@ export const ControlPanel: React.FC<Props> = ({
           beatUnit={metronome.timeSignature.beatUnit}
         />
 
-        <MeasureCount
-          onChange={metronomeWriter.setMeasureCount}
-          measureCount={metronome.measureCount}
+        <MeasuresPerLoop
+          onChange={metronomeWriter.setMeasuresPerLoop}
+          measuresPerLoop={metronome.measuresPerLoop}
         />
       </div>
 

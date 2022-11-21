@@ -23,7 +23,7 @@ The `Metronome` is the heart of the app. The BPM, measure, current tick, and tim
   - BPM
   - time signature
   - measure count
-- [ ] when Writer updates Metronome, current tick and measure reset to 0
+- [x] ~when Writer updates Metronome, current tick and measure reset to 0~ decided this is not important
 - [x] Metronome Component must use Writer to set properties https://github.com/ericyd/loop-supreme/pull/3
 - [x] Metronome Component must use Reader to display properties https://github.com/ericyd/loop-supreme/pull/3
 - [x] Metronome must play an audible click on each tick https://github.com/ericyd/loop-supreme/pull/4
@@ -53,16 +53,16 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [ ] audio data can be cleared from component without deleting it (to preserve track name)
 - [x] deleting a track stops playback https://github.com/ericyd/loop-supreme/pull/13
 - [x] Component can record data from user device https://github.com/ericyd/loop-supreme/pull/8
-- [ ] Component shows waveform of recorded audio
+- [x] Component shows waveform of recorded audio https://github.com/ericyd/loop-supreme/pull/20
 - [x] Component can adjust volume of playback https://github.com/ericyd/loop-supreme/pull/13
 - [x] Component has mute toggle button https://github.com/ericyd/loop-supreme/pull/13
 - [x] Audio input can be monitored, or not https://github.com/ericyd/loop-supreme/pull/13
 - [x] When Component is armed for recording, audio data is recorded starting at the beginning of the next loop, and automatically stops at the beginning of the following loop https://github.com/ericyd/loop-supreme/pull/9
 - [x] recording accounts for audio latency https://github.com/ericyd/loop-supreme/pull/12
-- [x] Component gets confirmation before deleting track
-- [x] Fix Recording button styling/class (use Tailwind)
+- [x] Component gets confirmation before deleting track https://github.com/ericyd/loop-supreme/pull/15
+- [x] Fix Recording button styling/class (use Tailwind) https://github.com/ericyd/loop-supreme/pull/15
 - [ ] Ensure the audio buffer is always exactly as long as it needs to be to fill the loop
-- [ ] clean up functionality from recorder worklet that isn't being used (might want to hold off until I know how visualization will work)
+- [x] clean up functionality from recorder worklet that isn't being used (might want to hold off until I know how visualization will work) https://github.com/ericyd/loop-supreme/pull/20
 
 ## Saving audio
 
@@ -80,17 +80,14 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 
 ## HTML
 
-- [x] flesh out header (add links to blog, etc)
+- [x] flesh out header (add links to blog, etc) https://github.com/ericyd/loop-supreme/pull/16
 - [x] track page views (done automatically through Cloudflare)
-- [x] OG tags, SEO
+- [x] OG tags, SEO https://github.com/ericyd/loop-supreme/pull/16
 
 ## Deploy
 
-- [ ] building (GH Actions)
-  - probably will need to "eject" CRA so I can customize webpack resolve hook.
-  - https://webpack.js.org/configuration/resolve/.
-  - Currently getting this error in built app: "Error: Module resolve hook not set"
-- [ ] hosting (Cloudflare)
+- [x] building (GH Actions) https://github.com/ericyd/loop-supreme/pull/17 and https://github.com/ericyd/loop-supreme/pull/19
+- [x] hosting (Cloudflare)
 
 ## Misc
 
@@ -112,3 +109,4 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [x] show alert to user if latency cannot be detected due to their environment
 - [ ] show alert if track latency cannot be detected, or if it seems wildly out of the norm (~100ms +/ 20ms ???). Consider adding a "custom latency" input option???
 - [x] remove useInterval hook (not used)
+- [ ] investigate network calls to workers. Is this expected? It looks like the actual worker is being re-downloaded too frequently. Should these be in useMemo instead of useRef?

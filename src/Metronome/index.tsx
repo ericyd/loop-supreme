@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAudioRouter } from '../AudioRouter'
 import { ControlPanel } from '../ControlPanel'
 import { Scene } from '../Scene'
-import { ClockConsumerMessage } from '../worklets/ClockWorker'
+import type { ClockControllerMessage } from '../worklets/clock'
 import { decayingSine } from './waveforms'
 
 export type TimeSignature = {
@@ -17,7 +17,7 @@ export type MetronomeReader = {
   bpm: number
   currentTick: number
   timeSignature: TimeSignature
-  measureCount: number
+  measuresPerLoop: number
   currentMeasure: number
   playing: boolean
   clock: Worker
@@ -28,7 +28,7 @@ export type MetronomeReader = {
 export type MetronomeWriter = {
   setBpm: (bpm: number) => void
   setTimeSignature: (timeSignature: TimeSignature) => void
-  setMeasureCount: (count: number) => void
+  setMeasuresPerLoop: (count: number) => void
   togglePlaying: () => Promise<void>
   setGain: (gain: number) => void
   setMuted: React.Dispatch<React.SetStateAction<boolean>>
@@ -46,7 +46,7 @@ export const Metronome: React.FC<Props> = () => {
     beatsPerMeasure: 4,
     beatUnit: 4,
   })
-  const [measureCount, setMeasureCount] = useState(2)
+  const [measuresPerLoop, setMeasuresPerLoop] = useState(2)
   const [playing, setPlaying] = useState(false)
   const [gain, setGain] = useState(0.5)
   const [muted, setMuted] = useState(false)
@@ -102,9 +102,9 @@ export const Metronome: React.FC<Props> = () => {
    * because it can only be played once.
    */
   const clockMessageHandler = useCallback(
-    (event: MessageEvent<ClockConsumerMessage>) => {
+    (event: MessageEvent<ClockControllerMessage>) => {
       // console.log(event.data) // this is really noisy
-      if (event.data.message === 'tick') {
+      if (event.data.message === 'TICK') {
         const { currentTick } = event.data
         setCurrentTick(currentTick)
 
@@ -133,7 +133,7 @@ export const Metronome: React.FC<Props> = () => {
     if (playing) {
       await audioContext.suspend()
       clock.current.postMessage({
-        message: 'stop',
+        message: 'STOP',
       })
       setPlaying(false)
     } else {
@@ -141,8 +141,8 @@ export const Metronome: React.FC<Props> = () => {
       clock.current.postMessage({
         bpm,
         beatsPerMeasure: timeSignature.beatsPerMeasure,
-        measureCount,
-        message: 'start',
+        measuresPerLoop,
+        message: 'START',
       })
       setPlaying(true)
     }
@@ -152,10 +152,10 @@ export const Metronome: React.FC<Props> = () => {
     clock.current.postMessage({
       bpm,
       beatsPerMeasure: timeSignature.beatsPerMeasure,
-      measureCount,
-      message: 'update',
+      measuresPerLoop,
+      message: 'UPDATE',
     })
-  }, [bpm, timeSignature.beatsPerMeasure, measureCount])
+  }, [bpm, timeSignature.beatsPerMeasure, measuresPerLoop])
 
   const reader: MetronomeReader = {
     bpm,
@@ -163,7 +163,7 @@ export const Metronome: React.FC<Props> = () => {
     // but we don't want to *show* -1 to the user
     currentTick: Math.max(currentTick % timeSignature.beatsPerMeasure, 0),
     timeSignature,
-    measureCount,
+    measuresPerLoop,
     currentMeasure: Math.max(
       Math.floor(currentTick / timeSignature.beatsPerMeasure),
       0
@@ -176,7 +176,7 @@ export const Metronome: React.FC<Props> = () => {
   const writer: MetronomeWriter = {
     setBpm,
     setTimeSignature,
-    setMeasureCount,
+    setMeasuresPerLoop,
     togglePlaying,
     setGain,
     setMuted,

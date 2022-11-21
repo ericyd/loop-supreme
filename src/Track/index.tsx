@@ -9,11 +9,16 @@ import { useAudioRouter } from '../AudioRouter'
 import { MetronomeReader } from '../Metronome'
 import { logger } from '../util/logger'
 import { VolumeControl } from '../VolumeControl'
-import { ClockConsumerMessage } from '../worklets/ClockWorker'
+import type { ClockControllerMessage } from '../worklets/clock'
+import type {
+  WaveformWorkerFrameMessage,
+  WaveformWorkerMetronomeMessage,
+} from '../worklets/waveform'
 import ArmTrackRecording from './ArmTrackRecording'
 import { getLatencySamples } from './get-latency-samples'
 import MonitorInput from './MonitorInput'
 import RemoveTrack from './RemoveTrack'
+import Waveform from './Waveform'
 
 type Props = {
   id: number
@@ -24,7 +29,7 @@ type Props = {
 type RecordingProperties = {
   numberOfChannels: number
   sampleRate: number
-  maxRecordingFrames: number
+  maxRecordingSamples: number
   latencySamples: number
   /**
    * default: false
@@ -36,20 +41,22 @@ type MaxRecordingLengthReachedMessage = {
   message: 'MAX_RECORDING_LENGTH_REACHED'
 }
 
-type UpdateRecordingLengthMessage = {
-  message: 'UPDATE_RECORDING_LENGTH'
+type ShareRecordingBufferMessage = {
+  message: 'SHARE_RECORDING_BUFFER'
+  channelsData: Array<Float32Array>
   recordingLength: number
 }
 
-type ShareRecordingBufferMessage = {
-  message: 'SHARE_RECORDING_BUFFER'
-  buffer: Array<Float32Array>
+type UpdateWaveformMessage = {
+  message: 'UPDATE_WAVEFORM'
+  gain: number
+  samplesPerFrame: number
 }
 
 type RecordingMessage =
   | MaxRecordingLengthReachedMessage
-  | UpdateRecordingLengthMessage
   | ShareRecordingBufferMessage
+  | UpdateWaveformMessage
 
 export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   const { audioContext, stream } = useAudioRouter()
@@ -57,6 +64,9 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   const [armed, setArmed] = useState(false)
   const toggleArmRecording = () => setArmed((value) => !value)
   const [recording, setRecording] = useState(false)
+  const waveformWorker = useRef<Worker>(
+    new Worker(new URL('../worklets/waveform', import.meta.url))
+  )
 
   /**
    * Set up track gain.
@@ -103,18 +113,24 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
    */
   const buildRecorderMessageHandler = useCallback(
     (recordingProperties: RecordingProperties) => {
-      let recordingLength = 0
-
-      // If the max length is reached, we can no longer record.
       return (event: MessageEvent<RecordingMessage>) => {
+        logger.debug({ recordingProcessorEventData: event.data })
+        // If the max length is reached, we can no longer record.
         if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
-          // isRecording = false;
-          logger.log(event.data)
+          // TODO: stop recording, or show alert or something
+          logger.error(event.data)
         }
-        if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
-          recordingLength = event.data.recordingLength
+
+        if (event.data.message === 'UPDATE_WAVEFORM') {
+          waveformWorker.current.postMessage({
+            message: 'FRAME',
+            gain: event.data.gain,
+            samplesPerFrame: event.data.samplesPerFrame,
+          } as WaveformWorkerFrameMessage)
         }
+
         if (event.data.message === 'SHARE_RECORDING_BUFFER') {
+          const recordingLength = event.data.recordingLength
           const recordingBuffer = audioContext.createBuffer(
             recordingProperties.numberOfChannels,
             // TODO: I'm also not sure if constructing the audioBuffer from the "recordingLength" indicated from the worklet is the best way.
@@ -125,7 +141,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
           )
 
           for (let i = 0; i < recordingProperties.numberOfChannels; i++) {
-            // buffer is an Array of Float32Arrays;
+            // channelsData is an Array of Float32Arrays;
             // each element of Array is a channel,
             // which contains the raw samples for the audio data of that channel
             recordingBuffer.copyToChannel(
@@ -140,7 +156,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
               // [1] https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer/copyToChannel
               // [2] https://jsfiddle.net/y7qL9wr4/7
               // TODO: should this be sliced to a maximum of buffer size? Maybe a non-issue?
-              event.data.buffer[i],
+              event.data.channelsData[i],
               i,
               0
             )
@@ -171,13 +187,14 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     const recordingProperties: RecordingProperties = {
       numberOfChannels: mediaSource.channelCount,
       sampleRate: audioContext.sampleRate,
-      maxRecordingFrames: audioContext.sampleRate * 10,
+      maxRecordingSamples: audioContext.sampleRate * 10,
       latencySamples: getLatencySamples(
         audioContext.sampleRate,
         stream,
         audioContext
       ),
     }
+    logger.debug({ recordingProperties })
     recorderWorklet.current = new AudioWorkletNode(audioContext, 'recorder', {
       processorOptions: recordingProperties,
     })
@@ -205,6 +222,19 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     }
   }, [audioContext, buildRecorderMessageHandler, stream])
 
+  /**
+   * Update waveform worker when metronome parameters change,
+   * so waveforms can be scaled properly
+   */
+  useEffect(() => {
+    waveformWorker.current.postMessage({
+      message: 'UPDATE_METRONOME',
+      beatsPerSecond: metronome.bpm / 60,
+      measuresPerLoop: metronome.measuresPerLoop,
+      beatsPerMeasure: metronome.timeSignature.beatsPerMeasure,
+    } as WaveformWorkerMetronomeMessage)
+  })
+
   const handleChangeTitle: ChangeEventHandler<HTMLInputElement> = (event) => {
     setTitle(event.target.value)
   }
@@ -227,7 +257,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     }
   }
 
-  function delegateClockMessage(event: MessageEvent<ClockConsumerMessage>) {
+  function delegateClockMessage(event: MessageEvent<ClockControllerMessage>) {
     if (event.data.loopStart) {
       handleLoopstart()
     }
@@ -241,7 +271,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   })
 
   return (
-    <div className="flex items-start content-center mb-2 pb-2 border-b border-solid border-zinc-400">
+    <div className="flex items-stretch content-center mb-2 pb-2 border-b border-solid border-zinc-400">
       {/* Controls */}
       <div className="flex flex-col">
         {/* Title */}
@@ -281,8 +311,11 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
       </div>
 
       {/* Waveform */}
-      <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-auto self-stretch height-100">
-        This is where the waveform will go
+      <div className="p-2 border border-zinc-400 border-solid rounded-sm grow self-stretch">
+        <Waveform
+          worker={waveformWorker.current}
+          sampleRate={audioContext.sampleRate}
+        />
       </div>
     </div>
   )

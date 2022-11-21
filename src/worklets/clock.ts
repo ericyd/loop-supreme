@@ -22,27 +22,61 @@
 
 /* eslint-disable no-restricted-globals */
 
-import type { ClockWorkerMessage } from './ClockWorker'
+type ClockWorkerStartMessage = {
+  message: 'START'
+  bpm: number
+  beatsPerMeasure: number
+  measuresPerLoop: number
+}
 
-postMessage({ message: 'ready' })
+type ClockWorkerUpdateMessage = {
+  message: 'UPDATE'
+  bpm: number
+  beatsPerMeasure: number
+  measuresPerLoop: number
+}
+
+type ClockWorkerStopMessage = {
+  message: 'STOP'
+}
+
+type ClockWorkerMessage =
+  | ClockWorkerStartMessage
+  | ClockWorkerUpdateMessage
+  | ClockWorkerStopMessage
+
+export type ClockControllerMessage = {
+  message: 'TICK'
+  currentTick: number
+  // true on the first beat of each measure
+  downbeat: boolean
+  // true on the first beat of each loop
+  loopStart: boolean
+}
+
+postMessage({ message: 'clock ready' })
 
 let timeoutId: NodeJS.Timer | null = null
 let currentTick = -1
 
 self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
-  function start(bpm: number, beatsPerMeasure: number, measureCount: number) {
+  function start(
+    bpm: number,
+    beatsPerMeasure: number,
+    measuresPerLoop: number
+  ) {
     // post one message immediately so the start doesn't appear delayed by one beat
-    currentTick = (currentTick + 1) % (beatsPerMeasure * measureCount)
+    currentTick = (currentTick + 1) % (beatsPerMeasure * measuresPerLoop)
     postMessage({
-      message: 'tick',
+      message: 'TICK',
       currentTick,
       downbeat: currentTick % beatsPerMeasure === 0,
       loopStart: currentTick === 0,
     })
     timeoutId = setInterval(() => {
-      currentTick = (currentTick + 1) % (beatsPerMeasure * measureCount)
+      currentTick = (currentTick + 1) % (beatsPerMeasure * measuresPerLoop)
       postMessage({
-        message: 'tick',
+        message: 'TICK',
         currentTick,
         downbeat: currentTick % beatsPerMeasure === 0,
         loopStart: currentTick === 0,
@@ -50,16 +84,16 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
     }, (60 / bpm) * 1000)
   }
 
-  if (e.data.message === 'start') {
-    start(e.data.bpm, e.data.beatsPerMeasure, e.data.measureCount)
-  } else if (e.data.message === 'stop') {
+  if (e.data.message === 'START') {
+    start(e.data.bpm, e.data.beatsPerMeasure, e.data.measuresPerLoop)
+  } else if (e.data.message === 'STOP') {
     clearInterval(timeoutId!)
     timeoutId = null
-  } else if (e.data.message === 'update') {
+  } else if (e.data.message === 'UPDATE') {
     // only start if it was already running
     if (timeoutId) {
       clearInterval(timeoutId)
-      start(e.data.bpm, e.data.beatsPerMeasure, e.data.measureCount)
+      start(e.data.bpm, e.data.beatsPerMeasure, e.data.measuresPerLoop)
     }
   }
 }
