@@ -64,9 +64,9 @@ class RecordingProcessor extends AudioWorkletProcessor {
 
     // Sending "update" messages every time the processor receives a block would be too frequent.
     // We can gate the messages by number of blocks processed to reduce processing demand on the app listeners.
-    this.framesSinceLastPublish = 0
+    this.samplesSinceLastPublish = 0
     const publishingCadenceHz = 60
-    this.publishInterval = this.sampleRate / publishingCadenceHz
+    this.targetSamplesPerFrame = this.sampleRate / publishingCadenceHz
 
     // The sample sum is the sum of the gain of each sample, for a given message.
     // This gets averaged over the number of samples in the message when published back to the app.
@@ -109,7 +109,8 @@ class RecordingProcessor extends AudioWorkletProcessor {
     }
 
     const blockSize = this.handleInput(inputs, outputs)
-    const shouldPublish = this.framesSinceLastPublish >= this.publishInterval
+    const shouldPublish =
+      this.samplesSinceLastPublish >= this.targetSamplesPerFrame
 
     // Returned in a chain because `process` must return a boolean.
     // If any method returns false, the downstream methods should not be called.
@@ -228,14 +229,19 @@ class RecordingProcessor extends AudioWorkletProcessor {
     if (shouldPublish) {
       this.port.postMessage({
         message: 'UPDATE_WAVEFORM',
-        gain: this.sampleSum / this.framesSinceLastPublish,
+        gain: this.sampleSum / this.samplesSinceLastPublish,
+        // if samplesPerFrame is not evenly divisible by blockSize, then
+        // the actual samplesPerFrame will be higher than the calculated value in this.targetSamplesPerFrame
+        samplesPerFrame:
+          Math.ceil(this.targetSamplesPerFrame / blockSize) * blockSize,
       })
 
-      this.framesSinceLastPublish = 0
+      this.samplesSinceLastPublish = 0
       this.sampleSum = 0
-    } else {
-      this.framesSinceLastPublish += blockSize
     }
+    // A block was still processed; this should be incremented regardless
+    // I think this source is incorrect: https://github.com/GoogleChromeLabs/web-audio-samples/blob/eed2a8613af551f2b1d166a01c834e8431fdf3c6/src/audio-worklet/migration/worklet-recorder/recording-processor.js#L108-L110
+    this.samplesSinceLastPublish += blockSize
     return true
   }
 }

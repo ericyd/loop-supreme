@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAudioRouter } from '../AudioRouter'
 import { ControlPanel } from '../ControlPanel'
 import { Scene } from '../Scene'
-import type { ClockConsumerMessage } from '../worklets/clock'
+import type { ClockControllerMessage } from '../worklets/clock'
 import { decayingSine } from './waveforms'
 
 export type TimeSignature = {
@@ -102,7 +102,7 @@ export const Metronome: React.FC<Props> = () => {
    * because it can only be played once.
    */
   const clockMessageHandler = useCallback(
-    (event: MessageEvent<ClockConsumerMessage>) => {
+    (event: MessageEvent<ClockControllerMessage>) => {
       // console.log(event.data) // this is really noisy
       if (event.data.message === 'tick') {
         const { currentTick } = event.data

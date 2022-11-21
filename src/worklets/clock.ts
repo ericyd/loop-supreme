@@ -46,7 +46,7 @@ type ClockWorkerMessage =
   | ClockWorkerUpdateMessage
   | ClockWorkerStopMessage
 
-export type ClockConsumerMessage = {
+export type ClockControllerMessage = {
   currentTick: number
   // true on the first beat of each measure
   downbeat: boolean
