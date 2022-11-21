@@ -1,6 +1,12 @@
-# loop-supreme
+<p align="center">
+  <img src="./public/icons/loop-supreme-logo.svg" height="600px" alt="Loop Supreme">
+</p>
 
-A project that I'm building in public!
+<p align="center">
+  <strong><em>Browser-based live looper for music performance and audio fun!</em></strong>
+</p>
+
+## Motivation
 
 I wanted to do some live looping on my keyboard but wasn't super satisfied with any of the options out there. I wanted something quick-and-dirty but made it (somewhat) easy to do a loop performance.
 
@@ -27,16 +33,16 @@ You can [check out my blog here!](https://ericyd.hashnode.dev/)
 - https://www.1001freefonts.com/chicle.font (used in the logo)
 - synchronization and timing
   - https://web.dev/audio-output-latency/
-    - https://github.com/chcunningham/wc-talk
   - https://blog.paul.cx/post/audio-video-synchronization-with-the-web-audio-api/
     - https://blog.paul.cx/post/metronome/
     - https://meowni.ca/posts/metronomes/
-    - https://dassur.ma/things/when-workers/
     - https://web.dev/audio-scheduling/
   - Audio Worklet
-    - https://www.youtube.com/watch?v=g1L4O1smMC0&t=93s
     - https://developer.chrome.com/blog/audio-worklet/
     - https://googlechromelabs.github.io/web-audio-samples/audio-worklet/
     - https://developer.chrome.com/blog/audio-worklet-design-pattern/
-    <!-- This seems highly relevant -- an audio recorder using an audio worklet! -->
     - https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/src/audio-worklet/migration/worklet-recorder
+
+Icon attribution
+
+- Metronome by ChangHoon Baek from <a href="https://thenounproject.com/icon/metronome-118052/" target="_blank" title="Metronome Icons">Noun Project</a>
