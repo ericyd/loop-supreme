@@ -1,5 +1,5 @@
 import PlayPause from '../icons/PlayPause'
-import { VolumeControl } from '../VolumeControl'
+import { VolumeControl } from './VolumeControl'
 
 type MetronomeControlProps = {
   playing: boolean
