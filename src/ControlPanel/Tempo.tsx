@@ -22,8 +22,8 @@ export default function Tempo(props: TempoProps) {
   return (
     <ControlPanelItem>
       <div>
-        <span className="font-serif text-4xl pr-3">{visualBpm}</span>
-        <span className="font-serif text-xl">BPM</span>
+        <span className="font-mono text-4xl pr-3">{visualBpm}</span>
+        <span className="font-mono text-xl">BPM</span>
       </div>
       <input
         type="range"

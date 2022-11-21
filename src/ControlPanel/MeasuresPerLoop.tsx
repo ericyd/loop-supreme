@@ -16,10 +16,8 @@ export default function MeasuresPerLoop(props: MeasuresPerLoopProps) {
   return (
     <ControlPanelItem>
       <div>
-        <span className="font-serif text-4xl pr-3">
-          {props.measuresPerLoop}
-        </span>
-        <span className="font-serif text-xl">
+        <span className="font-mono text-4xl pr-3">{props.measuresPerLoop}</span>
+        <span className="font-mono text-xl">
           measure{props.measuresPerLoop === 1 ? '' : 's'}
         </span>
       </div>

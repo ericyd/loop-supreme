@@ -77,7 +77,7 @@ export const Start: React.FC = () => {
         {!latencySupported && <LatencyNotSupportedAlert />}
         <button
           onClick={handleClick}
-          className="px-10 py-5 border-4 border-solid border-black rounded-sm text-xl font-serif font-bold bg-blue-200"
+          className="px-10 py-5 border-4 border-solid border-black rounded-sm text-xl font-mono font-bold bg-blue-200"
         >
           Start
         </button>
