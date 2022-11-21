@@ -9,7 +9,11 @@ import { useAudioRouter } from '../AudioRouter'
 import { MetronomeReader } from '../Metronome'
 import { logger } from '../util/logger'
 import { VolumeControl } from '../VolumeControl'
-import { ClockConsumerMessage } from '../worklets/ClockWorker'
+import type { ClockControllerMessage } from '../worklets/clock'
+import type {
+  WaveformWorkerFrameMessage,
+  WaveformWorkerMetronomeMessage,
+} from '../worklets/waveform'
 import ArmTrackRecording from './ArmTrackRecording'
 import { getLatencySamples } from './get-latency-samples'
 import MonitorInput from './MonitorInput'
@@ -46,6 +50,7 @@ type ShareRecordingBufferMessage = {
 type UpdateWaveformMessage = {
   message: 'UPDATE_WAVEFORM'
   gain: number
+  samplesPerFrame: number
 }
 
 type RecordingMessage =
@@ -59,7 +64,9 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   const [armed, setArmed] = useState(false)
   const toggleArmRecording = () => setArmed((value) => !value)
   const [recording, setRecording] = useState(false)
-  const [waveformGainValues, setWaveformGainValues] = useState<number[]>([])
+  const waveformWorker = useRef<Worker>(
+    new Worker(new URL('../worklets/waveform', import.meta.url))
+  )
 
   /**
    * Set up track gain.
@@ -115,8 +122,11 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
         }
 
         if (event.data.message === 'UPDATE_WAVEFORM') {
-          const gain = event.data.gain
-          setWaveformGainValues((values) => [...values, gain])
+          waveformWorker.current.postMessage({
+            message: 'FRAME',
+            gain: event.data.gain,
+            samplesPerFrame: event.data.samplesPerFrame,
+          } as WaveformWorkerFrameMessage)
         }
 
         if (event.data.message === 'SHARE_RECORDING_BUFFER') {
@@ -212,6 +222,19 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     }
   }, [audioContext, buildRecorderMessageHandler, stream])
 
+  /**
+   * Update waveform worker when metronome parameters change,
+   * so waveforms can be scaled properly
+   */
+  useEffect(() => {
+    waveformWorker.current.postMessage({
+      message: 'UPDATE_METRONOME',
+      beatsPerSecond: metronome.bpm / 60,
+      measuresPerLoop: metronome.measureCount,
+      beatsPerMeasure: metronome.timeSignature.beatsPerMeasure,
+    } as WaveformWorkerMetronomeMessage)
+  })
+
   const handleChangeTitle: ChangeEventHandler<HTMLInputElement> = (event) => {
     setTitle(event.target.value)
   }
@@ -234,7 +257,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     }
   }
 
-  function delegateClockMessage(event: MessageEvent<ClockConsumerMessage>) {
+  function delegateClockMessage(event: MessageEvent<ClockControllerMessage>) {
     if (event.data.loopStart) {
       handleLoopstart()
     }
@@ -248,7 +271,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   })
 
   return (
-    <div className="flex items-start content-center mb-2 pb-2 border-b border-solid border-zinc-400">
+    <div className="flex items-stretch content-center mb-2 pb-2 border-b border-solid border-zinc-400">
       {/* Controls */}
       <div className="flex flex-col">
         {/* Title */}
@@ -288,8 +311,11 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
       </div>
 
       {/* Waveform */}
-      <div className="p-2 border border-zinc-400 border-solid rounded-sm flex-auto self-stretch height-100">
-        <Waveform gainValues={waveformGainValues} />
+      <div className="p-2 border border-zinc-400 border-solid rounded-sm grow self-stretch">
+        <Waveform
+          worker={waveformWorker.current}
+          sampleRate={audioContext.sampleRate}
+        />
       </div>
     </div>
   )
