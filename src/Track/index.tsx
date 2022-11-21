@@ -230,7 +230,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     waveformWorker.current.postMessage({
       message: 'UPDATE_METRONOME',
       beatsPerSecond: metronome.bpm / 60,
-      measuresPerLoop: metronome.measureCount,
+      measuresPerLoop: metronome.measuresPerLoop,
       beatsPerMeasure: metronome.timeSignature.beatsPerMeasure,
     } as WaveformWorkerMetronomeMessage)
   })

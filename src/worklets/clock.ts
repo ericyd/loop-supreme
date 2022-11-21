@@ -27,14 +27,14 @@ type ClockWorkerStartMessage = {
   message: 'start'
   bpm: number
   beatsPerMeasure: number
-  measureCount: number
+  measuresPerLoop: number
 }
 
 type ClockWorkerUpdateMessage = {
   message: 'update'
   bpm: number
   beatsPerMeasure: number
-  measureCount: number
+  measuresPerLoop: number
 }
 
 type ClockWorkerStopMessage = {
@@ -61,9 +61,13 @@ let timeoutId: NodeJS.Timer | null = null
 let currentTick = -1
 
 self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
-  function start(bpm: number, beatsPerMeasure: number, measureCount: number) {
+  function start(
+    bpm: number,
+    beatsPerMeasure: number,
+    measuresPerLoop: number
+  ) {
     // post one message immediately so the start doesn't appear delayed by one beat
-    currentTick = (currentTick + 1) % (beatsPerMeasure * measureCount)
+    currentTick = (currentTick + 1) % (beatsPerMeasure * measuresPerLoop)
     postMessage({
       message: 'tick',
       currentTick,
@@ -71,7 +75,7 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
       loopStart: currentTick === 0,
     })
     timeoutId = setInterval(() => {
-      currentTick = (currentTick + 1) % (beatsPerMeasure * measureCount)
+      currentTick = (currentTick + 1) % (beatsPerMeasure * measuresPerLoop)
       postMessage({
         message: 'tick',
         currentTick,
@@ -82,7 +86,7 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
   }
 
   if (e.data.message === 'start') {
-    start(e.data.bpm, e.data.beatsPerMeasure, e.data.measureCount)
+    start(e.data.bpm, e.data.beatsPerMeasure, e.data.measuresPerLoop)
   } else if (e.data.message === 'stop') {
     clearInterval(timeoutId!)
     timeoutId = null
@@ -90,7 +94,7 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
     // only start if it was already running
     if (timeoutId) {
       clearInterval(timeoutId)
-      start(e.data.bpm, e.data.beatsPerMeasure, e.data.measureCount)
+      start(e.data.bpm, e.data.beatsPerMeasure, e.data.measuresPerLoop)
     }
   }
 }

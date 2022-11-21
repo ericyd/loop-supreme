@@ -17,7 +17,7 @@ export type MetronomeReader = {
   bpm: number
   currentTick: number
   timeSignature: TimeSignature
-  measureCount: number
+  measuresPerLoop: number
   currentMeasure: number
   playing: boolean
   clock: Worker
@@ -28,7 +28,7 @@ export type MetronomeReader = {
 export type MetronomeWriter = {
   setBpm: (bpm: number) => void
   setTimeSignature: (timeSignature: TimeSignature) => void
-  setMeasureCount: (count: number) => void
+  setMeasuresPerLoop: (count: number) => void
   togglePlaying: () => Promise<void>
   setGain: (gain: number) => void
   setMuted: React.Dispatch<React.SetStateAction<boolean>>
@@ -46,7 +46,7 @@ export const Metronome: React.FC<Props> = () => {
     beatsPerMeasure: 4,
     beatUnit: 4,
   })
-  const [measureCount, setMeasureCount] = useState(2)
+  const [measuresPerLoop, setMeasuresPerLoop] = useState(2)
   const [playing, setPlaying] = useState(false)
   const [gain, setGain] = useState(0.5)
   const [muted, setMuted] = useState(false)
@@ -141,7 +141,7 @@ export const Metronome: React.FC<Props> = () => {
       clock.current.postMessage({
         bpm,
         beatsPerMeasure: timeSignature.beatsPerMeasure,
-        measureCount,
+        measuresPerLoop,
         message: 'start',
       })
       setPlaying(true)
@@ -152,10 +152,10 @@ export const Metronome: React.FC<Props> = () => {
     clock.current.postMessage({
       bpm,
       beatsPerMeasure: timeSignature.beatsPerMeasure,
-      measureCount,
+      measuresPerLoop,
       message: 'update',
     })
-  }, [bpm, timeSignature.beatsPerMeasure, measureCount])
+  }, [bpm, timeSignature.beatsPerMeasure, measuresPerLoop])
 
   const reader: MetronomeReader = {
     bpm,
@@ -163,7 +163,7 @@ export const Metronome: React.FC<Props> = () => {
     // but we don't want to *show* -1 to the user
     currentTick: Math.max(currentTick % timeSignature.beatsPerMeasure, 0),
     timeSignature,
-    measureCount,
+    measuresPerLoop,
     currentMeasure: Math.max(
       Math.floor(currentTick / timeSignature.beatsPerMeasure),
       0
@@ -176,7 +176,7 @@ export const Metronome: React.FC<Props> = () => {
   const writer: MetronomeWriter = {
     setBpm,
     setTimeSignature,
-    setMeasureCount,
+    setMeasuresPerLoop,
     togglePlaying,
     setGain,
     setMuted,
