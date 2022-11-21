@@ -15,7 +15,7 @@ function ButtonBase(
     <button
       onClick={props.onClick}
       className={`border border-zinc-400 border-solid rounded-full flex-initial mr-2 ${
-        props.large ? 'w-16 h-16 p-3' : 'p-2'
+        props.large ? 'w-16 h-16 p-3' : 'w-6 h-6 p-1'
       } ${props.className ?? ''}`}
       ref={forwardRef}
     >
