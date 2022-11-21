@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./public/icons/loop-supreme-logo.svg" height="600px" alt="Loop Supreme">
+  <img src="./public/icons/loop-supreme-logo.svg" height="200px" alt="Loop Supreme">
 </p>
 
 <p align="center">
