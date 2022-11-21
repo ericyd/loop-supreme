@@ -22,23 +22,22 @@
 
 /* eslint-disable no-restricted-globals */
 
-// TODO: agree on capitalization between this an recorder processor
 type ClockWorkerStartMessage = {
-  message: 'start'
+  message: 'START'
   bpm: number
   beatsPerMeasure: number
   measuresPerLoop: number
 }
 
 type ClockWorkerUpdateMessage = {
-  message: 'update'
+  message: 'UPDATE'
   bpm: number
   beatsPerMeasure: number
   measuresPerLoop: number
 }
 
 type ClockWorkerStopMessage = {
-  message: 'stop'
+  message: 'STOP'
 }
 
 type ClockWorkerMessage =
@@ -47,12 +46,12 @@ type ClockWorkerMessage =
   | ClockWorkerStopMessage
 
 export type ClockControllerMessage = {
+  message: 'TICK'
   currentTick: number
   // true on the first beat of each measure
   downbeat: boolean
   // true on the first beat of each loop
   loopStart: boolean
-  message: 'tick'
 }
 
 postMessage({ message: 'clock ready' })
@@ -69,7 +68,7 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
     // post one message immediately so the start doesn't appear delayed by one beat
     currentTick = (currentTick + 1) % (beatsPerMeasure * measuresPerLoop)
     postMessage({
-      message: 'tick',
+      message: 'TICK',
       currentTick,
       downbeat: currentTick % beatsPerMeasure === 0,
       loopStart: currentTick === 0,
@@ -77,7 +76,7 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
     timeoutId = setInterval(() => {
       currentTick = (currentTick + 1) % (beatsPerMeasure * measuresPerLoop)
       postMessage({
-        message: 'tick',
+        message: 'TICK',
         currentTick,
         downbeat: currentTick % beatsPerMeasure === 0,
         loopStart: currentTick === 0,
@@ -85,12 +84,12 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
     }, (60 / bpm) * 1000)
   }
 
-  if (e.data.message === 'start') {
+  if (e.data.message === 'START') {
     start(e.data.bpm, e.data.beatsPerMeasure, e.data.measuresPerLoop)
-  } else if (e.data.message === 'stop') {
+  } else if (e.data.message === 'STOP') {
     clearInterval(timeoutId!)
     timeoutId = null
-  } else if (e.data.message === 'update') {
+  } else if (e.data.message === 'UPDATE') {
     // only start if it was already running
     if (timeoutId) {
       clearInterval(timeoutId)

@@ -104,7 +104,7 @@ export const Metronome: React.FC<Props> = () => {
   const clockMessageHandler = useCallback(
     (event: MessageEvent<ClockControllerMessage>) => {
       // console.log(event.data) // this is really noisy
-      if (event.data.message === 'tick') {
+      if (event.data.message === 'TICK') {
         const { currentTick } = event.data
         setCurrentTick(currentTick)
 
@@ -133,7 +133,7 @@ export const Metronome: React.FC<Props> = () => {
     if (playing) {
       await audioContext.suspend()
       clock.current.postMessage({
-        message: 'stop',
+        message: 'STOP',
       })
       setPlaying(false)
     } else {
@@ -142,7 +142,7 @@ export const Metronome: React.FC<Props> = () => {
         bpm,
         beatsPerMeasure: timeSignature.beatsPerMeasure,
         measuresPerLoop,
-        message: 'start',
+        message: 'START',
       })
       setPlaying(true)
     }
@@ -153,7 +153,7 @@ export const Metronome: React.FC<Props> = () => {
       bpm,
       beatsPerMeasure: timeSignature.beatsPerMeasure,
       measuresPerLoop,
-      message: 'update',
+      message: 'UPDATE',
     })
   }, [bpm, timeSignature.beatsPerMeasure, measuresPerLoop])
 

@@ -36,6 +36,13 @@
  * @property {any} processorOptions
  */
 
+/**
+ * Worklet to record data to a buffer.
+ * Terms
+ *  - sample: a datum of audio
+ *  - block: a group of samples
+ *  - frame: a group of blocks
+ */
 class RecordingProcessor extends AudioWorkletProcessor {
   /**
    * @param {AudioWorkletNodeOptions} options
@@ -44,18 +51,19 @@ class RecordingProcessor extends AudioWorkletProcessor {
     super()
 
     this.sampleRate = options.processorOptions?.sampleRate ?? 0
-    this.maxRecordingFrames = options.processorOptions?.maxRecordingFrames ?? 0
+    this.maxRecordingSamples =
+      options.processorOptions?.maxRecordingSamples ?? 0
     this.numberOfChannels = options.processorOptions?.numberOfChannels ?? 0
     this.latencySamples = options.processorOptions?.latencySamples ?? 0
 
     this.channelsData = new Array(this.numberOfChannels).fill(
-      new Float32Array(this.maxRecordingFrames)
+      new Float32Array(this.maxRecordingSamples)
     )
 
-    // recordedFrames is incremented by the blockSize when input blocks are processed.
+    // recordedSamples is incremented by the blockSize when input blocks are processed.
     // Since Float32Arrays must be initialized with a known length,
     // this mutable property keeps track of how much we've processed, so we don't try to overflow the buffer
-    this.recordedFrames = 0
+    this.recordedSamples = 0
 
     // Simple boolean to indicate whether or not we are currently recording.
     // Even when this is false, we still process the input -> output in case
@@ -72,7 +80,7 @@ class RecordingProcessor extends AudioWorkletProcessor {
     // This gets averaged over the number of samples in the message when published back to the app.
     // This provides a reasonable approximation of "gain" for a single message,
     // which can be used to update the waveform visualizer.
-    this.sampleSum = 0
+    this.gainSum = 0
 
     // Consider defining a typedef for MessagePort, to constrain the types of messages it will send/receive
     // From https://github.com/microsoft/TypeScript-DOM-lib-generator/blob/b929eb7863a3bf73f4a887fb97063276b10b92bc/baselines/audioworklet.generated.d.ts#L463-L482
@@ -85,7 +93,7 @@ class RecordingProcessor extends AudioWorkletProcessor {
           this.port.postMessage({
             message: 'SHARE_RECORDING_BUFFER',
             channelsData: this.channelsData,
-            recordingLength: this.recordedFrames,
+            recordingLength: this.recordedSamples,
           })
         }
       }
@@ -116,7 +124,7 @@ class RecordingProcessor extends AudioWorkletProcessor {
     // If any method returns false, the downstream methods should not be called.
     return (
       this.handleMaxRecordingLength(blockSize) &&
-      this.incrementRecordedFrames(blockSize) &&
+      this.incrementRecordedSamples(blockSize) &&
       this.updateWaveform(shouldPublish, blockSize)
     )
   }
@@ -160,11 +168,11 @@ class RecordingProcessor extends AudioWorkletProcessor {
               //       However, to keep everything synchronized (including visuals eventually),
               //       it made sense for the recording processor to automatically account for input latency.
               // See Track.tsx for latency determination
-              Math.max(sample + this.recordedFrames - this.latencySamples, 0)
+              Math.max(sample + this.recordedSamples - this.latencySamples, 0)
             ] = currentSample
 
             // Sum values for visualizer
-            this.sampleSum += currentSample
+            this.gainSum += currentSample
           }
 
           // Monitor in the input by passing data directly to output, unchanged.
@@ -186,7 +194,7 @@ class RecordingProcessor extends AudioWorkletProcessor {
   handleMaxRecordingLength(blockSize) {
     if (
       this.recording &&
-      this.recordedFrames + blockSize >= this.maxRecordingFrames
+      this.recordedSamples + blockSize >= this.maxRecordingSamples
     ) {
       this.recording = false
       this.port.postMessage({
@@ -204,12 +212,12 @@ class RecordingProcessor extends AudioWorkletProcessor {
    * @param {number} blockSize
    * @returns boolean
    */
-  incrementRecordedFrames(blockSize) {
+  incrementRecordedSamples(blockSize) {
     if (
       this.recording &&
-      this.recordedFrames + blockSize < this.maxRecordingFrames
+      this.recordedSamples + blockSize < this.maxRecordingSamples
     ) {
-      this.recordedFrames += blockSize
+      this.recordedSamples += blockSize
     }
     return true
   }
@@ -229,7 +237,7 @@ class RecordingProcessor extends AudioWorkletProcessor {
     if (shouldPublish) {
       this.port.postMessage({
         message: 'UPDATE_WAVEFORM',
-        gain: this.sampleSum / this.samplesSinceLastPublish,
+        gain: this.gainSum / this.samplesSinceLastPublish,
         // if samplesPerFrame is not evenly divisible by blockSize, then
         // the actual samplesPerFrame will be higher than the calculated value in this.targetSamplesPerFrame
         samplesPerFrame:
@@ -237,7 +245,7 @@ class RecordingProcessor extends AudioWorkletProcessor {
       })
 
       this.samplesSinceLastPublish = 0
-      this.sampleSum = 0
+      this.gainSum = 0
     }
     // A block was still processed; this should be incremented regardless
     // I think this source is incorrect: https://github.com/GoogleChromeLabs/web-audio-samples/blob/eed2a8613af551f2b1d166a01c834e8431fdf3c6/src/audio-worklet/migration/worklet-recorder/recording-processor.js#L108-L110

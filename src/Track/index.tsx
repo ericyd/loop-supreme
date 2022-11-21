@@ -29,7 +29,7 @@ type Props = {
 type RecordingProperties = {
   numberOfChannels: number
   sampleRate: number
-  maxRecordingFrames: number
+  maxRecordingSamples: number
   latencySamples: number
   /**
    * default: false
@@ -187,7 +187,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     const recordingProperties: RecordingProperties = {
       numberOfChannels: mediaSource.channelCount,
       sampleRate: audioContext.sampleRate,
-      maxRecordingFrames: audioContext.sampleRate * 10,
+      maxRecordingSamples: audioContext.sampleRate * 10,
       latencySamples: getLatencySamples(
         audioContext.sampleRate,
         stream,
