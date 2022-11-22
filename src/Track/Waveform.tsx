@@ -40,7 +40,7 @@ export default function Waveform(props: Props) {
       strokeLinejoin="round"
       strokeMiterlimit="2"
       viewBox={`0 ${-yMax / 2} ${xMax} ${yMax}`}
-      preserveAspectRatio="none"
+      preserveAspectRatio="xMaxYMax"
       xmlns="http://www.w3.org/2000/svg"
       className="h-full w-full"
     >
