@@ -32,10 +32,10 @@ export type WaveformControllerMessage = {
   maxGain: number
 }
 
-postMessage({ message: 'waveform processor ready' })
+// postMessage({ message: 'waveform processor ready' })
 
 // an array of each "gain" value for ever frame in the loop
-const samples: number[] = []
+const frames: number[] = []
 
 // values corresponding to the waveform scaling
 const yMin = 0
@@ -50,14 +50,22 @@ self.onmessage = (e: MessageEvent<WaveformWorkerMessage>) => {
   if (e.data.message === 'FRAME') {
     // Absolute value gives us the "top" of the waveform; the "bottom" is calculated below in pathNegative
     const frameGain = Math.abs(e.data.gain)
-    samples.push(frameGain)
+    frames.push(frameGain)
     minGain = Math.min(minGain, frameGain)
     maxGain = Math.max(maxGain, frameGain)
     const framesPerLoop = Math.ceil(samplesPerLoop / e.data.samplesPerFrame)
 
     postMessage({
       message: 'WAVEFORM_PATH',
-      path: constructPath(samples, framesPerLoop),
+      path: constructPath({
+        frames,
+        framesPerLoop,
+        xMax,
+        yMin,
+        yMax,
+        minGain,
+        maxGain,
+      }),
       minGain,
       maxGain,
     } as WaveformControllerMessage)
@@ -79,32 +87,56 @@ self.onmessage = (e: MessageEvent<WaveformWorkerMessage>) => {
   }
 }
 
-function constructPath(samples: number[], framesPerLoop: number) {
+type PathConstructionParams = {
+  frames: number[]
+  framesPerLoop: number
+  xMax: number
+  minGain: number
+  maxGain: number
+  yMin: number
+  yMax: number
+}
+
+/**
+ * @returns string a fully formed path string
+ */
+export function constructPath({
+  frames,
+  framesPerLoop,
+  xMax,
+  minGain,
+  maxGain,
+  yMin,
+  yMax,
+}: PathConstructionParams) {
   // on the first pass, we create [x, y] pairs for each point.
   // x is a simple fraction of the total x-axis length.
   // y is normalized to the scale of the waveform.
   // This represents the "top" of the closed waveform shape; the bottom is created below
-  const pathPositive = samples.map((gain, i) => [
+  const positivePoints = frames.map((gain, i) => [
     (i / framesPerLoop) * xMax,
-    map(minGain, maxGain, yMin, yMax, gain),
+    round2(map(minGain, maxGain, yMin, yMax, gain)),
   ])
 
-  // pathNegative is reversed because the end of the waveform top (pathPositive)
+  // pathNegative is reversed because the end of the waveform top (positivePoints)
   // should connect to the end of the waveform bottom (pathNegative)
-  const pathNegative = pathPositive.map(([x, y]) => [x, y * -1]).reverse()
+  const negativePoints = positivePoints
+    .map(([x, y]) => [x, round2(y * -1)])
+    .reverse()
 
   // construct the SVG path command
+  const firstPoint = `M ${positivePoints[0][0]} ${positivePoints[0][1]}`
+  const positivePath = smoothCubicBezierPoints(
+    positivePoints.slice(1),
+    xMax / framesPerLoop / 2
+  )
   // Since the positive and negative paths are drawn in reverse order,
   // the "xControlPointOffset" must be "* -1", so the control point is on the correct side of the end point.
-  return [
-    `M ${pathPositive[0][0]} ${pathPositive[0][1]}`,
-    smoothCubicBezierPoints(
-      pathPositive.slice(1),
-      xMax / pathPositive.length / 4
-    ),
-    smoothCubicBezierPoints(pathNegative, -xMax / pathNegative.length / 4),
-    `Z`,
-  ].join(' ')
+  const negativePath = smoothCubicBezierPoints(
+    negativePoints,
+    -xMax / framesPerLoop / 2
+  )
+  return [firstPoint, positivePath, negativePath, `Z`].join(' ')
 }
 
 // algorithm taken from p5js https://github.com/processing/p5.js/blob/689359331166d085430146d4b6776a12d6a9c588/src/math/calculation.js#L448-L459
@@ -144,3 +176,10 @@ function smoothCubicBezierPoints(
     .map(([x, y]) => `S ${x - xControlPointOffset},${y} ${x},${y}`)
     .join(' ')
 }
+
+function roundN(decimalCount: number): (decimal: number) => number {
+  return (decimal: number) =>
+    Math.round(decimal * Math.pow(10, decimalCount)) /
+    Math.pow(10, decimalCount)
+}
+const round2 = roundN(2)
