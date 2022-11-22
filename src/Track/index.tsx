@@ -283,7 +283,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
       {/* Controls */}
       <div className="flex flex-col">
         {/* Title, Record, Monitor */}
-        <div className="flex items-start content-center">
+        <div className="flex items-stretch content-center">
           <input
             value={title}
             onChange={handleChangeTitle}
