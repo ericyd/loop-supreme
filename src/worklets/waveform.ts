@@ -115,17 +115,16 @@ export function constructPath({
   // This represents the "top" of the closed waveform shape; the bottom is created below
   const positivePoints = frames.map((gain, i) => [
     (i / framesPerLoop) * xMax,
-    round2(map(minGain, maxGain, yMin, yMax, gain)),
+    map(minGain, maxGain, yMin, yMax, gain),
   ])
 
   // pathNegative is reversed because the end of the waveform top (positivePoints)
   // should connect to the end of the waveform bottom (pathNegative)
-  const negativePoints = positivePoints
-    .map(([x, y]) => [x, round2(y * -1)])
-    .reverse()
+  const negativePoints = positivePoints.map(([x, y]) => [x, y * -1]).reverse()
 
   // construct the SVG path command
-  const firstPoint = `M ${positivePoints[0][0]} ${positivePoints[0][1]}`
+  const first = positivePoints[0]
+  const firstPoint = `M ${round2(first[0])} ${round2(first[1])}`
   const positivePath = smoothCubicBezierPoints(
     positivePoints.slice(1),
     xMax / framesPerLoop / 2
@@ -173,7 +172,13 @@ function smoothCubicBezierPoints(
   xControlPointOffset: number
 ): string {
   return points
-    .map(([x, y]) => `S ${x - xControlPointOffset},${y} ${x},${y}`)
+    .map(([x, y]) =>
+      [
+        'S',
+        `${round2(x - xControlPointOffset)},${round2(y)}`,
+        `${round2(x)},${round2(y)}`,
+      ].join(' ')
+    )
     .join(' ')
 }
 
