@@ -15,7 +15,7 @@ export default function MetronomeControl(props: MetronomeControlProps) {
   }
 
   return (
-    <div className="flex items-start content-center mb-2">
+    <div className="flex items-start content-center mb-2 mr-2">
       <PlayPause onClick={props.togglePlaying} playing={props.playing} />
 
       <VolumeControl

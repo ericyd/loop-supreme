@@ -24,10 +24,11 @@ export default function MeasuresPerLoop(props: MeasuresPerLoopProps) {
       <input
         type="range"
         min="1"
-        max="4"
+        max="8"
         step="1"
         value={props.measuresPerLoop}
         onChange={handleChange}
+        className="w-32"
       />
     </ControlPanelItem>
   )
