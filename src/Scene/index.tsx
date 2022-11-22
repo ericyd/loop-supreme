@@ -37,8 +37,8 @@ export const Scene: React.FC<Props> = ({ metronome }) => {
           metronome={metronome}
         />
       ))}
-      <div className="mb-2">
-        <ButtonBase onClick={handleAddTrack}>
+      <div className="my-8">
+        <ButtonBase onClick={handleAddTrack} large>
           <Plus />
         </ButtonBase>
       </div>
