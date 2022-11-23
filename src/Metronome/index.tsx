@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useAudioRouter } from '../AudioRouter'
+import { useAudioContext } from '../AudioProvider'
 import { ControlPanel } from '../ControlPanel'
 import { Scene } from '../Scene'
 import type { ClockControllerMessage } from '../worklets/clock'
@@ -39,7 +39,7 @@ type Props = {
 }
 
 export const Metronome: React.FC<Props> = () => {
-  const { audioContext } = useAudioRouter()
+  const { audioContext } = useAudioContext()
   const [currentTick, setCurrentTick] = useState(-1)
   const [bpm, setBpm] = useState(120)
   const [timeSignature, setTimeSignature] = useState<TimeSignature>({

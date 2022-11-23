@@ -1,5 +1,5 @@
 import React from 'react'
-import { AudioProvider } from '../AudioRouter'
+import { AudioProvider } from '../AudioProvider'
 import { Metronome } from '../Metronome'
 
 type Props = {

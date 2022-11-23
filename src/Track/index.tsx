@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { useAudioRouter } from '../AudioRouter'
+import { useAudioContext } from '../AudioProvider'
 import { MetronomeReader } from '../Metronome'
 import { logger } from '../util/logger'
 import { VolumeControl } from './VolumeControl'
@@ -61,7 +61,7 @@ type RecordingMessage =
   | UpdateWaveformMessage
 
 export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
-  const { audioContext, stream } = useAudioRouter()
+  const { audioContext, stream } = useAudioContext()
   const [title, setTitle] = useState(`Track ${id}`)
   const [armed, setArmed] = useState(false)
   const toggleArmRecording = () => setArmed((value) => !value)
