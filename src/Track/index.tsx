@@ -9,7 +9,7 @@ import React, {
 import { useAudioRouter } from '../AudioRouter'
 import { MetronomeReader } from '../Metronome'
 import { logger } from '../util/logger'
-import { VolumeControl } from '../VolumeControl'
+import { VolumeControl } from './VolumeControl'
 import type { ClockControllerMessage } from '../worklets/clock'
 import type {
   WaveformWorkerFrameMessage,
@@ -18,6 +18,7 @@ import type {
 import ArmTrackRecording from './ArmTrackRecording'
 import { getLatencySamples } from './get-latency-samples'
 import MonitorInput from './MonitorInput'
+import Mute from './Mute'
 import RemoveTrack from './RemoveTrack'
 import Waveform from './Waveform'
 
@@ -281,15 +282,13 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
     <div className="flex items-stretch content-center mb-2 pb-2 border-b border-solid border-zinc-400">
       {/* Controls */}
       <div className="flex flex-col">
-        {/* Title */}
-        <input
-          value={title}
-          onChange={handleChangeTitle}
-          className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2 mb-2"
-        />
-
-        {/* Record, Monitor */}
-        <div className="flex items-start content-center mb-2">
+        {/* Title, Record, Monitor */}
+        <div className="flex items-stretch content-center">
+          <input
+            value={title}
+            onChange={handleChangeTitle}
+            className="pl-2 -pr-2 flex-initial mr-2 rounded-full"
+          />
           <ArmTrackRecording
             toggleArmRecording={toggleArmRecording}
             armed={armed}
@@ -299,16 +298,12 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
             toggleMonitoring={toggleMonitoring}
             monitoring={monitoring}
           />
+          <Mute onClick={toggleMuted} muted={muted} />
         </div>
 
         {/* Volume */}
-        <div className="mb-2">
-          <VolumeControl
-            muted={muted}
-            toggleMuted={toggleMuted}
-            gain={gain}
-            onChange={setGain}
-          />
+        <div className="w-full">
+          <VolumeControl gain={gain} onChange={setGain} />
         </div>
 
         {/* Remove */}
@@ -318,7 +313,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
       </div>
 
       {/* Waveform */}
-      <div className="p-2 border border-zinc-400 border-solid rounded-sm grow self-stretch">
+      <div className="grow self-stretch">
         <Waveform
           worker={waveformWorker}
           sampleRate={audioContext.sampleRate}

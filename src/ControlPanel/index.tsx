@@ -22,27 +22,7 @@ export const ControlPanel: React.FC<Props> = ({
   })
 
   return (
-    <div className="flex flex-col">
-      <div className="flex items-stretch justify-between content-center mb-2">
-        <BeatCounter
-          currentTick={metronome.currentTick}
-          currentMeasure={metronome.currentMeasure}
-        />
-
-        <Tempo onChange={setUpstreamBpm} defaultValue={metronome.bpm} />
-
-        <TimeSignature
-          onChange={metronomeWriter.setTimeSignature}
-          beatsPerMeasure={metronome.timeSignature.beatsPerMeasure}
-          beatUnit={metronome.timeSignature.beatUnit}
-        />
-
-        <MeasuresPerLoop
-          onChange={metronomeWriter.setMeasuresPerLoop}
-          measuresPerLoop={metronome.measuresPerLoop}
-        />
-      </div>
-
+    <div className="flex mb-12 items-end justify-between">
       <MetronomeControls
         playing={metronome.playing}
         muted={metronome.muted}
@@ -51,6 +31,28 @@ export const ControlPanel: React.FC<Props> = ({
         setGain={metronomeWriter.setGain}
         gain={metronome.gain}
       />
+
+      <div className="flex">
+        <div className="flex flex-col items-center">
+          <BeatCounter
+            currentTick={metronome.currentTick}
+            currentMeasure={metronome.currentMeasure}
+          />
+
+          <TimeSignature
+            onChange={metronomeWriter.setTimeSignature}
+            beatsPerMeasure={metronome.timeSignature.beatsPerMeasure}
+            beatUnit={metronome.timeSignature.beatUnit}
+          />
+        </div>
+
+        <Tempo onChange={setUpstreamBpm} defaultValue={metronome.bpm} />
+
+        <MeasuresPerLoop
+          onChange={metronomeWriter.setMeasuresPerLoop}
+          measuresPerLoop={metronome.measuresPerLoop}
+        />
+      </div>
     </div>
   )
 }

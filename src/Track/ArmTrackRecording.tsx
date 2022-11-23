@@ -1,3 +1,5 @@
+import ButtonBase from '../ButtonBase'
+
 type Props = {
   toggleArmRecording(): void
   armed: boolean
@@ -6,10 +8,7 @@ type Props = {
 
 export default function ArmTrackRecording(props: Props) {
   return (
-    <button
-      className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-      onClick={props.toggleArmRecording}
-    >
+    <ButtonBase onClick={props.toggleArmRecording}>
       <svg
         clipRule="evenodd"
         fillRule="evenodd"
@@ -17,7 +16,6 @@ export default function ArmTrackRecording(props: Props) {
         strokeMiterlimit="2"
         viewBox="0 0 24 24"
         xmlns="http://www.w3.org/2000/svg"
-        className={`w-6`}
       >
         <title>Arm for recording</title>
         <circle cx="12" cy="12" fillRule="nonzero" r="10" />
@@ -35,6 +33,6 @@ export default function ArmTrackRecording(props: Props) {
           }`}
         />
       </svg>
-    </button>
+    </ButtonBase>
   )
 }

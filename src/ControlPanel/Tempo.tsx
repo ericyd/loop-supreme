@@ -6,7 +6,7 @@ type TempoProps = {
   defaultValue: number
 }
 export default function Tempo(props: TempoProps) {
-  const [visualBpm, setVisualBpm] = useState(120)
+  const [visualBpm, setVisualBpm] = useState('120.0')
   // TODO: something about this isn't working right
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const bpm = Number(event.target.value)
@@ -16,14 +16,14 @@ export default function Tempo(props: TempoProps) {
       )
     }
     props.onChange(bpm)
-    setVisualBpm(bpm)
+    setVisualBpm(bpm.toFixed(1))
   }
 
   return (
     <ControlPanelItem>
       <div>
-        <span className="font-serif text-4xl pr-3">{visualBpm}</span>
-        <span className="font-serif text-xl">BPM</span>
+        <span className="font-mono text-4xl pr-3">{visualBpm}</span>
+        <span className="font-mono text-xl">BPM</span>
       </div>
       <input
         type="range"
@@ -32,6 +32,7 @@ export default function Tempo(props: TempoProps) {
         max={300}
         step={0.1}
         defaultValue={props.defaultValue}
+        className="w-32"
       />
     </ControlPanelItem>
   )

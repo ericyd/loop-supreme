@@ -1,4 +1,5 @@
-import { Volume } from '../icons/Volume'
+import ButtonBase from '../ButtonBase'
+import MetronomeIcon from '../icons/MetronomeIcon'
 
 type Props = {
   muted: boolean
@@ -19,13 +20,14 @@ export const VolumeControl: React.FC<Props> = (props) => {
   }
 
   return (
-    <div className="flex flex-row items-center mr-2">
-      <button
+    <div className="flex flex-col items-center mr-2">
+      <ButtonBase
         onClick={props.toggleMuted}
-        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
+        large
+        className={props.muted ? 'bg-red-400' : ''}
       >
-        <Volume muted={props.muted} />
-      </button>
+        <MetronomeIcon />
+      </ButtonBase>
       <input
         type="range"
         min="0"

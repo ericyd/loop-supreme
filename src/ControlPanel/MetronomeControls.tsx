@@ -1,6 +1,5 @@
-import play from '../icons/iconmonstr-media-control-48.svg'
-import pause from '../icons/iconmonstr-media-control-49.svg'
-import { VolumeControl } from '../VolumeControl'
+import PlayPause from '../icons/PlayPause'
+import { VolumeControl } from './VolumeControl'
 
 type MetronomeControlProps = {
   playing: boolean
@@ -16,16 +15,8 @@ export default function MetronomeControl(props: MetronomeControlProps) {
   }
 
   return (
-    <div className="flex items-start content-center mb-2">
-      <button
-        onClick={props.togglePlaying}
-        className="p-2 border border-zinc-400 border-solid rounded-sm flex-initial mr-2"
-      >
-        <img
-          src={props.playing ? pause : play}
-          alt={props.playing ? 'Pause' : 'Play'}
-        />
-      </button>
+    <div className="flex items-start content-center mb-2 mr-2">
+      <PlayPause onClick={props.togglePlaying} playing={props.playing} />
 
       <VolumeControl
         muted={props.muted}
