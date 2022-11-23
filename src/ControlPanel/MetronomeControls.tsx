@@ -1,4 +1,5 @@
 import PlayPause from '../icons/PlayPause'
+import { useKeyboard } from '../KeyboardProvider'
 import { VolumeControl } from './VolumeControl'
 
 type MetronomeControlProps = {
@@ -10,9 +11,13 @@ type MetronomeControlProps = {
   gain: number
 }
 export default function MetronomeControl(props: MetronomeControlProps) {
+  const keyboard = useKeyboard()
   const toggleMuted = () => {
     props.setMuted((muted) => !muted)
   }
+  keyboard.on('m', toggleMuted)
+  // kinda wish I could write "space" but I guess this is the way this works.
+  keyboard.on(' ', props.togglePlaying)
 
   return (
     <div className="flex items-start content-center mb-2 mr-2">
