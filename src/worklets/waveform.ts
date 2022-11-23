@@ -20,10 +20,15 @@ export type WaveformWorkerMetronomeMessage = {
   beatsPerMeasure: number
 }
 
+export type WaveformWorkerResetMessage = {
+  message: 'RESET_FRAMES'
+}
+
 export type WaveformWorkerMessage =
   | WaveformWorkerFrameMessage
   | WaveformWorkerInitializeMessage
   | WaveformWorkerMetronomeMessage
+  | WaveformWorkerResetMessage
 
 export type WaveformControllerMessage = {
   message: 'WAVEFORM_PATH'
@@ -35,7 +40,7 @@ export type WaveformControllerMessage = {
 // postMessage({ message: 'waveform processor ready' })
 
 // an array of each "gain" value for ever frame in the loop
-const frames: number[] = []
+let frames: number[] = []
 
 // values corresponding to the waveform scaling
 const yMin = 0
@@ -84,6 +89,12 @@ self.onmessage = (e: MessageEvent<WaveformWorkerMessage>) => {
     // To correctly position the point along the x axis, we need to know how many frames to expect for the whole loop.
     const beatsPerLoop = e.data.beatsPerMeasure * e.data.measuresPerLoop
     samplesPerLoop = (samplesPerSecond * beatsPerLoop) / e.data.beatsPerSecond
+  }
+
+  if (e.data.message === 'RESET_FRAMES') {
+    frames = []
+    minGain = 0
+    maxGain = 0
   }
 }
 
@@ -172,13 +183,12 @@ function smoothCubicBezierPoints(
   xControlPointOffset: number
 ): string {
   return points
-    .map(([x, y]) =>
-      [
-        'S',
-        `${round2(x - xControlPointOffset)},${round2(y)}`,
-        `${round2(x)},${round2(y)}`,
-      ].join(' ')
-    )
+    .map((pt) => {
+      const y = round2(pt[1])
+      const x = round2(pt[0])
+      const xOffset = round2(pt[0] - xControlPointOffset)
+      return `S ${xOffset},${y} ${x},${y}`
+    })
     .join(' ')
 }
 
