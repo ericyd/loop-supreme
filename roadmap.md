@@ -109,4 +109,4 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [x] show alert to user if latency cannot be detected due to their environment
 - [ ] show alert if track latency cannot be detected, or if it seems wildly out of the norm (~100ms +/ 20ms ???). Consider adding a "custom latency" input option???
 - [x] remove useInterval hook (not used)
-- [ ] investigate network calls to workers. Is this expected? It looks like the actual worker is being re-downloaded too frequently. Should these be in useMemo instead of useRef?
+- [x] investigate network calls to workers. https://github.com/ericyd/loop-supreme/pull/21

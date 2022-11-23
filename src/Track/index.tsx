@@ -2,6 +2,7 @@ import React, {
   ChangeEventHandler,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react'
@@ -64,8 +65,9 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   const [armed, setArmed] = useState(false)
   const toggleArmRecording = () => setArmed((value) => !value)
   const [recording, setRecording] = useState(false)
-  const waveformWorker = useRef<Worker>(
-    new Worker(new URL('../worklets/waveform', import.meta.url))
+  const waveformWorker = useMemo(
+    () => new Worker(new URL('../worklets/waveform', import.meta.url)),
+    []
   )
 
   /**
@@ -122,7 +124,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
         }
 
         if (event.data.message === 'UPDATE_WAVEFORM') {
-          waveformWorker.current.postMessage({
+          waveformWorker.postMessage({
             message: 'FRAME',
             gain: event.data.gain,
             samplesPerFrame: event.data.samplesPerFrame,
@@ -175,7 +177,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
         }
       }
     },
-    [audioContext]
+    [audioContext, waveformWorker]
   )
 
   /**
@@ -227,13 +229,18 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
    * so waveforms can be scaled properly
    */
   useEffect(() => {
-    waveformWorker.current.postMessage({
+    waveformWorker.postMessage({
       message: 'UPDATE_METRONOME',
       beatsPerSecond: metronome.bpm / 60,
       measuresPerLoop: metronome.measuresPerLoop,
       beatsPerMeasure: metronome.timeSignature.beatsPerMeasure,
     } as WaveformWorkerMetronomeMessage)
-  })
+  }, [
+    metronome.bpm,
+    metronome.measuresPerLoop,
+    metronome.timeSignature.beatsPerMeasure,
+    waveformWorker,
+  ])
 
   const handleChangeTitle: ChangeEventHandler<HTMLInputElement> = (event) => {
     setTitle(event.target.value)
@@ -313,7 +320,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
       {/* Waveform */}
       <div className="p-2 border border-zinc-400 border-solid rounded-sm grow self-stretch">
         <Waveform
-          worker={waveformWorker.current}
+          worker={waveformWorker}
           sampleRate={audioContext.sampleRate}
         />
       </div>
