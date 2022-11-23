@@ -1,5 +1,6 @@
 import React from 'react'
 import { AudioProvider } from '../AudioProvider'
+import { KeyboardProvider } from '../KeyboardProvider'
 import { Metronome } from '../Metronome'
 
 type Props = {
@@ -9,9 +10,11 @@ type Props = {
 
 function App(props: Props) {
   return (
-    <AudioProvider stream={props.stream} audioContext={props.audioContext}>
-      <Metronome />
-    </AudioProvider>
+    <KeyboardProvider>
+      <AudioProvider stream={props.stream} audioContext={props.audioContext}>
+        <Metronome />
+      </AudioProvider>
+    </KeyboardProvider>
   )
 }
 
