@@ -79,10 +79,14 @@ export const Metronome: React.FC<Props> = () => {
   /**
    * Instantiate the clock worker.
    * This is truly the heartbeat of the entire app 🥹
+   * Workers should be loaded exactly once for a Component.
+   * The `import.meta.url` is thanks to this SO answer https://stackoverflow.com/a/71134400/3991555,
+   * which is just a digestible version of the webpack docs https://webpack.js.org/guides/web-workers/
+   * I tried refactoring this into a custom hook but ran into all sorts of weird issues. This is easy enough so leaving as is
    */
-  const clock = useRef<Worker>(
-    // Thanks SO! https://stackoverflow.com/a/71134400/3991555
-    new Worker(new URL('../worklets/clock', import.meta.url))
+  const clock = useMemo(
+    () => new Worker(new URL('../worklets/clock', import.meta.url)),
+    []
   )
 
   /**
@@ -121,24 +125,22 @@ export const Metronome: React.FC<Props> = () => {
   )
 
   useEffect(() => {
-    clock.current.addEventListener('message', clockMessageHandler)
-    // this is necessary to ensure the cleanup function has the correct reference
-    const currentClock = clock.current
+    clock.addEventListener('message', clockMessageHandler)
     return () => {
-      currentClock.removeEventListener('message', clockMessageHandler)
+      clock.removeEventListener('message', clockMessageHandler)
     }
-  }, [clockMessageHandler])
+  }, [clockMessageHandler, clock])
 
   async function togglePlaying() {
     if (playing) {
       await audioContext.suspend()
-      clock.current.postMessage({
+      clock.postMessage({
         message: 'STOP',
       })
       setPlaying(false)
     } else {
       await audioContext.resume()
-      clock.current.postMessage({
+      clock.postMessage({
         bpm,
         beatsPerMeasure: timeSignature.beatsPerMeasure,
         measuresPerLoop,
@@ -149,13 +151,13 @@ export const Metronome: React.FC<Props> = () => {
   }
 
   useEffect(() => {
-    clock.current.postMessage({
+    clock.postMessage({
       bpm,
       beatsPerMeasure: timeSignature.beatsPerMeasure,
       measuresPerLoop,
       message: 'UPDATE',
     })
-  }, [bpm, timeSignature.beatsPerMeasure, measuresPerLoop])
+  }, [bpm, timeSignature.beatsPerMeasure, measuresPerLoop, clock])
 
   const reader: MetronomeReader = {
     bpm,
@@ -169,7 +171,7 @@ export const Metronome: React.FC<Props> = () => {
       0
     ),
     playing,
-    clock: clock.current!,
+    clock,
     gain,
     muted,
   }
