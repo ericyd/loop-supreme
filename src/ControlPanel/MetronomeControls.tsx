@@ -1,4 +1,6 @@
+import { useCallback, useEffect } from 'react'
 import PlayPause from '../icons/PlayPause'
+import { useKeyboard } from '../KeyboardProvider'
 import { VolumeControl } from './VolumeControl'
 
 type MetronomeControlProps = {
@@ -10,9 +12,24 @@ type MetronomeControlProps = {
   gain: number
 }
 export default function MetronomeControl(props: MetronomeControlProps) {
-  const toggleMuted = () => {
+  const keyboard = useKeyboard()
+  const toggleMuted = useCallback(() => {
     props.setMuted((muted) => !muted)
-  }
+  }, [props])
+
+  useEffect(() => {
+    keyboard.on('c', 'Metronome', toggleMuted)
+    // kinda wish I could write "space" but I guess this is the way this works.
+    keyboard.on(' ', 'Metronome', (e) => {
+      // Only toggle playing if another control element is not currently focused
+      if (
+        !['SELECT', 'BUTTON'].includes(document.activeElement?.tagName ?? '')
+      ) {
+        props.togglePlaying()
+        e.preventDefault()
+      }
+    })
+  }, [keyboard, props, toggleMuted])
 
   return (
     <div className="flex items-start content-center mb-2 mr-2">

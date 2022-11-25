@@ -72,11 +72,11 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 
 ## Keyboard
 
-- [ ] Keyboard shortcuts are added for most common actions
-  - `1`, `2`, `3`, etc select a track
-  - once a track is selected, `r` toggles "armed for recording", `m` toggles mute
-  - `t` is "tap tempo"
-  - `space` is play/pause
+- [x] Keyboard shortcuts are added for most common actions https://github.com/ericyd/loop-supreme/pull/24
+  - [x] `1`, `2`, `3`, etc select a track
+  - [x] once a track is selected, `r` toggles "armed for recording", `m` toggles mute
+  - [x] `space` is play/pause
+- [ ] add "tap tempo" functionlity and bind to `t` key
 
 ## HTML
 

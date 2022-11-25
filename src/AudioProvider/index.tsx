@@ -1,9 +1,7 @@
 /**
- * AudioContext is already a global that is used extensively in this app.
- * Although this is a "React Context", it seemed more important to avoid naming collisions,
- * hence "AudioRouter"
- *
- * TODO: should this context be removed and values just be passed around as props?
+ * Exposes AudioContext (the web audio kind, not a React context)
+ * and a MediaStream globally.
+ * This could probably just be passed as props, but this is marginally more convenient.
  */
 import React, { createContext, useContext } from 'react'
 
@@ -24,11 +22,11 @@ export const AudioProvider: React.FC<Props> = ({ children, ...adapter }) => {
   return <AudioRouter.Provider value={adapter}>{children}</AudioRouter.Provider>
 }
 
-export function useAudioRouter() {
+export function useAudioContext() {
   const audioRouter = useContext(AudioRouter)
 
   if (audioRouter === null) {
-    throw new Error('useAudioRouter cannot be used outside of AudioProvider')
+    throw new Error('useAudioContext cannot be used outside of AudioProvider')
   }
 
   return audioRouter
