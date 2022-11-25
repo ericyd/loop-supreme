@@ -16,13 +16,42 @@ export default function KeyboardBindings() {
           </tr>
 
           <tr>
-            <td className="w-32">m</td>
-            <td>Mute metronome</td>
+            <td className="w-32">c</td>
+            <td>
+              Mute <strong>c</strong>lick track
+            </td>
           </tr>
 
           <tr>
             <td className="w-32">0-9</td>
             <td>Select track</td>
+          </tr>
+
+          <tr>
+            <td colSpan={2}>
+              <em>After selecting track</em>
+            </td>
+          </tr>
+
+          <tr>
+            <td className="w-32">r</td>
+            <td>
+              Arm <strong>r</strong>ecording
+            </td>
+          </tr>
+
+          <tr>
+            <td className="w-32">i</td>
+            <td>
+              Monitor <strong>i</strong>nput
+            </td>
+          </tr>
+
+          <tr>
+            <td className="w-32">m</td>
+            <td>
+              <strong>M</strong>ute track
+            </td>
           </tr>
         </tbody>
       </table>

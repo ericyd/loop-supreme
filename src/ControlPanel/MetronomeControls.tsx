@@ -15,7 +15,7 @@ export default function MetronomeControl(props: MetronomeControlProps) {
   const toggleMuted = () => {
     props.setMuted((muted) => !muted)
   }
-  keyboard.on('m', toggleMuted)
+  keyboard.on('c', toggleMuted)
   // kinda wish I could write "space" but I guess this is the way this works.
   keyboard.on(' ', () => {
     // Only toggle playing if another control element is not currently focused
