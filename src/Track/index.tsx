@@ -14,6 +14,7 @@ import type { ClockControllerMessage } from '../worklets/clock'
 import type {
   WaveformWorkerFrameMessage,
   WaveformWorkerMetronomeMessage,
+  WaveformWorkerResetMessage,
 } from '../worklets/waveform'
 import ArmTrackRecording from './ArmTrackRecording'
 import { getLatencySamples } from './get-latency-samples'
@@ -133,20 +134,42 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
         }
 
         if (event.data.message === 'SHARE_RECORDING_BUFFER') {
-          const recordingLength = event.data.recordingLength
+          const fullRecordingLength = event.data.recordingLength
+          // When in doubt... use dimensional analysis! 🙃
+          //
+          //  60 seconds    beats       60 seconds    minute
+          // ———————————— ➗ —————   🟰  ——————————— 𝒙  ———————      =>
+          //   minute      minute        minute       beats
+          //
+          //   seconds    minutes   measures    beats     samples     samples
+          //  ————————— 𝒙 ———————— 𝒙 ———————— 𝒙 ———————— 𝒙 ————————— 🟰 ——————————
+          //   minute     beat      loop       measure    second       loop
+          const targetRecordingLength =
+            (60 / metronome.bpm) *
+            metronome.measuresPerLoop *
+            metronome.timeSignature.beatsPerMeasure *
+            audioContext.sampleRate
+          logger.debug({
+            fullRecordingLength,
+            targetRecordingLength,
+            differenceInSamples: fullRecordingLength - targetRecordingLength,
+            differenceInSeconds:
+              (fullRecordingLength - targetRecordingLength) /
+              audioContext.sampleRate,
+          })
+
+          // create recording buffer with targetRecordingLength,
+          // to ensure it matches the loop length precisely.
           const recordingBuffer = audioContext.createBuffer(
             recordingProperties.numberOfChannels,
-            // TODO: I'm also not sure if constructing the audioBuffer from the "recordingLength" indicated from the worklet is the best way.
-            // Shouldn't we set it equal to the expected length of the recording based on the BPM and measure count?
-            // And if the recording is longer, we trim it; if it is shorter, we pad right with silence (which might be default behavior anyway)
-            recordingLength,
+            targetRecordingLength,
             audioContext.sampleRate
           )
 
           for (let i = 0; i < recordingProperties.numberOfChannels; i++) {
             // channelsData is an Array of Float32Arrays;
-            // each element of Array is a channel,
-            // which contains the raw samples for the audio data of that channel
+            // each element of Array is a channel, which contain
+            // the raw samples for the audio data of that channel
             recordingBuffer.copyToChannel(
               // copyToChannel accepts an optional 3rd argument, "startInChannel"[1] (or "bufferOffset" depending on your source).
               // which is described as
@@ -158,8 +181,7 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
               // See `worklets/recorder` for the buffer offset
               // [1] https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer/copyToChannel
               // [2] https://jsfiddle.net/y7qL9wr4/7
-              // TODO: should this be sliced to a maximum of buffer size? Maybe a non-issue?
-              event.data.channelsData[i],
+              event.data.channelsData[i].slice(0, targetRecordingLength),
               i,
               0
             )
@@ -178,7 +200,13 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
         }
       }
     },
-    [audioContext, waveformWorker]
+    [
+      audioContext,
+      waveformWorker,
+      metronome.bpm,
+      metronome.measuresPerLoop,
+      metronome.timeSignature.beatsPerMeasure,
+    ]
   )
 
   /**
@@ -262,6 +290,9 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
         message: 'UPDATE_RECORDING_STATE',
         recording: true,
       })
+      waveformWorker.postMessage({
+        message: 'RESET_FRAMES',
+      } as WaveformWorkerResetMessage)
     }
   }
 

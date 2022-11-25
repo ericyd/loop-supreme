@@ -1,6 +1,4 @@
 // Metronome by ChangHoon Baek from <a href="https://thenounproject.com/icon/metronome-118052/" target="_blank" title="Metronome Icons">Noun Project</a>
-
-// TODO: need to clean this up
 export default function MetronomeIcon() {
   return (
     <svg version="1.1" viewBox="0 0 700 700" xmlns="http://www.w3.org/2000/svg">

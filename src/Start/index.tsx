@@ -48,7 +48,9 @@ export const Start: React.FC = () => {
         })
       )
     } catch (e) {
-      // TODO: better error handling
+      alert(
+        'big, terrible error occurred and there is no coming back from that 😿'
+      )
       logger.error(e, 'Error getting user media')
     }
 
