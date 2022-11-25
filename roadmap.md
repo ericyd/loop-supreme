@@ -50,7 +50,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
   - shape: rectangle. Spans width of `Scene`
 - [x] Component can remove itself from scene https://github.com/ericyd/loop-supreme/pull/5
 - [x] Component has arm toggle button https://github.com/ericyd/loop-supreme/pull/8
-- [ ] audio data can be cleared from component without deleting it (to preserve track name)
+- [x] ~audio data can be cleared from component without deleting it (to preserve track name)~ just mute, and then re-record if desired
 - [x] deleting a track stops playback https://github.com/ericyd/loop-supreme/pull/13
 - [x] Component can record data from user device https://github.com/ericyd/loop-supreme/pull/8
 - [x] Component shows waveform of recorded audio https://github.com/ericyd/loop-supreme/pull/20
@@ -61,7 +61,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [x] recording accounts for audio latency https://github.com/ericyd/loop-supreme/pull/12
 - [x] Component gets confirmation before deleting track https://github.com/ericyd/loop-supreme/pull/15
 - [x] Fix Recording button styling/class (use Tailwind) https://github.com/ericyd/loop-supreme/pull/15
-- [ ] Ensure the audio buffer is always exactly as long as it needs to be to fill the loop
+- [x] Ensure the audio buffer is always exactly as long as it needs to be to fill the loop https://github.com/ericyd/loop-supreme/pull/23
 - [x] clean up functionality from recorder worklet that isn't being used (might want to hold off until I know how visualization will work) https://github.com/ericyd/loop-supreme/pull/20
 
 ## Saving audio
@@ -110,3 +110,12 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [ ] show alert if track latency cannot be detected, or if it seems wildly out of the norm (~100ms +/ 20ms ???). Consider adding a "custom latency" input option???
 - [x] remove useInterval hook (not used)
 - [x] investigate network calls to workers. https://github.com/ericyd/loop-supreme/pull/21
+
+## Design
+
+- [ ] Use brand colors for range inputs
+- [ ] Use brand colors for all colors!
+- [ ] Add dark mode capabilities
+- [ ] Add dark mode toggle button
+- [ ] allow Track to wrap (controls top, waveform bottom)
+- [ ] make Track controls slightly less wide
