@@ -4,6 +4,8 @@ on:
   release:
     types:
       - released
+  push:
+    - main
 
 jobs:
   deploy:
@@ -44,4 +46,4 @@ jobs:
       #    Error: EACCES: permission denied, scandir '/home/runner/work/loop-supreme/loop-supreme/.wrangler'
       # Since wrangler is already a dependency, we can skip the custom action and just run the command directly
       - name: Publish
-        run: CLOUDFLARE_API_TOKEN=${{ secrets.CF_API_TOKEN }} CLOUDFLARE_ACCOUNT_ID=${{ secrets.CF_ACCOUNT_ID }} npm run wrangler pages publish build -- --project-name=loopsupreme
+        run: CLOUDFLARE_API_TOKEN=${{ secrets.CF_API_TOKEN }} CLOUDFLARE_ACCOUNT_ID=${{ secrets.CF_ACCOUNT_ID }} npm run wrangler pages publish build -- --project-name=loopsupreme --branch production
