@@ -138,12 +138,12 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
           // When in doubt... use dimensional analysis! 🙃
           //
           //  60 seconds    beats       60 seconds    minute
-          // --------  /  ----   ==  -------- x  ----      =>
+          // ———————————— ➗ —————   🟰  ——————————— 𝒙  ———————      =>
           //   minute      minute        minute       beats
           //
-          //   seconds    minutes  measures    beats     samples     samples
-          //  ------- x ----- x ------- x ------ x ------ == -------
-          //   minute     beat      loop      measure    second       loop
+          //   seconds    minutes   measures    beats     samples     samples
+          //  ————————— 𝒙 ———————— 𝒙 ———————— 𝒙 ———————— 𝒙 ————————— 🟰 ——————————
+          //   minute     beat      loop       measure    second       loop
           const targetRecordingLength =
             (60 / metronome.bpm) *
             metronome.measuresPerLoop *
