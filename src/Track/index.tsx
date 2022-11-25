@@ -29,6 +29,7 @@ import MonitorInput from './MonitorInput'
 import Mute from './Mute'
 import RemoveTrack from './RemoveTrack'
 import Waveform from './Waveform'
+import { useKeyboard } from '../KeyboardProvider'
 
 type Props = {
   id: number
@@ -76,6 +77,7 @@ export const Track: React.FC<Props> = ({
   selected,
 }) => {
   const { audioContext, stream } = useAudioContext()
+  const keyboard = useKeyboard()
   const [title, setTitle] = useState(`Track ${id}`)
   const [armed, setArmed] = useState(false)
   const toggleArmRecording = () => setArmed((value) => !value)
@@ -290,13 +292,33 @@ export const Track: React.FC<Props> = ({
     return () => {
       metronome.clock.removeEventListener('message', delegateClockMessage)
     }
+    // TODO: include dependency array so these event listeners aren't added/removed on every render
   })
+
+  /**
+   * Attach keyboard listeners.
+   * For tracks, these are only applicable when the track is selected
+   */
+  useEffect(() => {
+    logger.debug(`useEffect for track ${id}. Selected: ${selected}`)
+    if (selected) {
+      keyboard.on('r', `Track ${id}`, toggleArmRecording)
+      keyboard.on('i', `Track ${id}`, toggleMonitoring)
+      keyboard.on('m', `Track ${id}`, toggleMuted)
+    }
+    return () => {
+      logger.debug(`useEffect cleanup for track ${id}`)
+      keyboard.off('r', `Track ${id}`)
+      keyboard.off('i', `Track ${id}`)
+      keyboard.off('m', `Track ${id}`)
+    }
+  }, [selected, keyboard, id])
 
   return (
     <>
       <div
         className={`flex items-stretch content-center p-2 rounded-md
-                  ${selected ? 'shadow-[0_0_0_5px_rgba(82,142,176,1)]' : ''}`}
+                  ${selected ? 'shadow-[0_0_0_5px_#528eb0ff]' : ''}`}
       >
         {/* Controls */}
         <div className="flex flex-col">
