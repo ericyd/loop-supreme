@@ -73,10 +73,10 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 ## Keyboard
 
 - [ ] Keyboard shortcuts are added for most common actions
-  - `1`, `2`, `3`, etc select a track
-  - once a track is selected, `r` toggles "armed for recording", `m` toggles mute
-  - `t` is "tap tempo"
-  - `space` is play/pause
+  - [ ] `1`, `2`, `3`, etc select a track
+  - [ ] once a track is selected, `r` toggles "armed for recording", `m` toggles mute
+  - [ ] `t` is "tap tempo"
+  - [x] `space` is play/pause
 
 ## HTML
 

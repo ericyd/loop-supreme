@@ -1,3 +1,11 @@
+/**
+ * Tracks are where the magic happens!
+ * A Track encapsulates a single audio recording stream,
+ * either mono or stereo.
+ * Tracks contain controls for recording, monitoring, muting, etc.
+ * After recording is complete, the audio buffer loops automatically,
+ * a nice feature of the Web Audio API.
+ */
 import React, {
   ChangeEventHandler,
   useCallback,
@@ -26,6 +34,7 @@ type Props = {
   id: number
   onRemove(): void
   metronome: MetronomeReader
+  selected: boolean
 }
 
 type RecordingProperties = {
@@ -60,7 +69,12 @@ type RecordingMessage =
   | ShareRecordingBufferMessage
   | UpdateWaveformMessage
 
-export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
+export const Track: React.FC<Props> = ({
+  id,
+  onRemove,
+  metronome,
+  selected,
+}) => {
   const { audioContext, stream } = useAudioContext()
   const [title, setTitle] = useState(`Track ${id}`)
   const [armed, setArmed] = useState(false)
@@ -279,46 +293,53 @@ export const Track: React.FC<Props> = ({ id, onRemove, metronome }) => {
   })
 
   return (
-    <div className="flex items-stretch content-center mb-2 pb-2 border-b border-solid border-zinc-400">
-      {/* Controls */}
-      <div className="flex flex-col">
-        {/* Title, Record, Monitor */}
-        <div className="flex items-stretch content-center">
-          <input
-            value={title}
-            onChange={handleChangeTitle}
-            className="pl-2 -pr-2 flex-initial mr-2 rounded-full"
-          />
-          <ArmTrackRecording
-            toggleArmRecording={toggleArmRecording}
-            armed={armed}
-            recording={recording}
-          />
-          <MonitorInput
-            toggleMonitoring={toggleMonitoring}
-            monitoring={monitoring}
-          />
-          <Mute onClick={toggleMuted} muted={muted} />
+    <>
+      <div
+        className={`flex items-stretch content-center p-2 rounded-md
+                  ${selected ? 'shadow-[0_0_0_5px_rgba(82,142,176,1)]' : ''}`}
+      >
+        {/* Controls */}
+        <div className="flex flex-col">
+          {/* Title, Record, Monitor */}
+          <div className="flex items-stretch content-center">
+            <input
+              value={title}
+              onChange={handleChangeTitle}
+              className="pl-2 -pr-2 flex-initial mr-2 rounded-full"
+            />
+            <ArmTrackRecording
+              toggleArmRecording={toggleArmRecording}
+              armed={armed}
+              recording={recording}
+            />
+            <MonitorInput
+              toggleMonitoring={toggleMonitoring}
+              monitoring={monitoring}
+            />
+            <Mute onClick={toggleMuted} muted={muted} />
+          </div>
+
+          {/* Volume */}
+          <div className="w-full">
+            <VolumeControl gain={gain} onChange={setGain} />
+          </div>
+
+          {/* Remove */}
+          <div>
+            <RemoveTrack onRemove={onRemove} />
+          </div>
         </div>
 
-        {/* Volume */}
-        <div className="w-full">
-          <VolumeControl gain={gain} onChange={setGain} />
-        </div>
-
-        {/* Remove */}
-        <div>
-          <RemoveTrack onRemove={onRemove} />
+        {/* Waveform */}
+        <div className="grow self-stretch">
+          <Waveform
+            worker={waveformWorker}
+            sampleRate={audioContext.sampleRate}
+          />
         </div>
       </div>
-
-      {/* Waveform */}
-      <div className="grow self-stretch">
-        <Waveform
-          worker={waveformWorker}
-          sampleRate={audioContext.sampleRate}
-        />
-      </div>
-    </div>
+      {/* divider */}
+      <div className="border-b border-solid border-zinc-400 w-full h-2 mb-2" />
+    </>
   )
 }

@@ -3,6 +3,7 @@ import { useAudioContext } from '../AudioProvider'
 import { ControlPanel } from '../ControlPanel'
 import { Scene } from '../Scene'
 import type { ClockControllerMessage } from '../worklets/clock'
+import KeyboardBindings from './KeyboardBindings'
 import { decayingSine } from './waveforms'
 
 export type TimeSignature = {
@@ -187,6 +188,7 @@ export const Metronome: React.FC<Props> = () => {
     <>
       <ControlPanel metronome={reader} metronomeWriter={writer} />
       <Scene metronome={reader} />
+      <KeyboardBindings />
     </>
   )
 }

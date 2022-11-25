@@ -18,11 +18,14 @@
  *   keyboard.on('a', myFunction)
  * }
  */
-import React, { createContext, useContext, useEffect } from 'react'
+import React, { createContext, useContext, useEffect, useMemo } from 'react'
 import { logger } from '../util/logger'
 
+type KeyboardEventHandler = (event: KeyboardEvent) => void
+
 type KeyboardController = {
-  on(key: string, callback: () => void): void
+  on(key: string, callback: KeyboardEventHandler): void
+  off(key: string, callback: KeyboardEventHandler): void
 }
 
 const KeyboardContext = createContext<KeyboardController | null>(null)
@@ -31,24 +34,34 @@ type Props = {
   children: React.ReactNode
 }
 
-export const KeyboardProvider: React.FC<Props> = ({ children, ...adapter }) => {
-  // map of keys to callbacks
-  const callbackMap: Record<string, () => void> = {}
+const noop = () => {}
+
+export const KeyboardProvider: React.FC<Props> = ({ children }) => {
+  // map of keys to callbacks.
+  // this is extremely unsophisticated, and might need more complexity.
+  // However, since these are all set explicitly in the code, it is OK for now
+  const callbackMap: Record<string, KeyboardEventHandler> = useMemo(
+    () => ({}),
+    []
+  )
 
   useEffect(() => {
     const keydownCallback = (e: KeyboardEvent) => {
       logger.debug({ key: e.key, meta: e.metaKey, shift: e.shiftKey })
-      callbackMap[e.key]?.()
+      callbackMap[e.key]?.(e)
     }
     window.addEventListener('keydown', keydownCallback)
     return () => {
       window.removeEventListener('keydown', keydownCallback)
     }
-  }, [])
+  }, [callbackMap])
 
   const controller = {
-    on: (key: string, callback: () => void) => {
+    on(key: string, callback: KeyboardEventHandler) {
       callbackMap[key] = callback
+    },
+    off(key: string) {
+      callbackMap[key] = noop
     },
   }
 
