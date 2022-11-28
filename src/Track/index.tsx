@@ -234,7 +234,8 @@ export const Track: React.FC<Props> = ({
     const recordingProperties: RecordingProperties = {
       numberOfChannels: mediaSource.channelCount,
       sampleRate: audioContext.sampleRate,
-      maxRecordingSamples: audioContext.sampleRate * 10,
+      // max recording length of 30 seconds. I think that should be sufficient for now?
+      maxRecordingSamples: audioContext.sampleRate * 30,
       latencySamples: getLatencySamples(
         audioContext.sampleRate,
         stream,
