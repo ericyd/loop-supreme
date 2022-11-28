@@ -12,7 +12,7 @@ export default function Waveform(props: Props) {
   const [path, setPath] = useState('M 0 0')
 
   const yMax = 2
-  const xMax = 20
+  const xMax = 30
   useEffect(() => {
     props.worker.postMessage({
       message: 'INITIALIZE',
