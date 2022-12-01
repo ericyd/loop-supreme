@@ -33,12 +33,17 @@ import Waveform from './Waveform'
 import { useKeyboard } from '../KeyboardProvider'
 import SelectInput from './SelectInput'
 import { deviceIdFromStream } from './device-id-from-stream'
+import type {
+  ExportWavWorkerEvent,
+  WavBlobControllerEvent,
+} from '../worklets/export'
 
 type Props = {
   id: number
   onRemove(): void
   metronome: MetronomeReader
   selected: boolean
+  exportTarget: EventTarget
 }
 
 type RecordingProperties = {
@@ -78,6 +83,7 @@ export const Track: React.FC<Props> = ({
   onRemove,
   metronome,
   selected,
+  exportTarget,
 }) => {
   const { audioContext, stream: defaultStream } = useAudioContext()
   const [stream, setStream] = useState(defaultStream)
@@ -89,6 +95,10 @@ export const Track: React.FC<Props> = ({
   const [recording, setRecording] = useState(false)
   const waveformWorker = useMemo(
     () => new Worker(new URL('../worklets/waveform', import.meta.url)),
+    []
+  )
+  const exportWorker = useMemo(
+    () => new Worker(new URL('../worklets/export', import.meta.url)),
     []
   )
 
@@ -138,7 +148,6 @@ export const Track: React.FC<Props> = ({
   const buildRecorderMessageHandler = useCallback(
     (recordingProperties: RecordingProperties) => {
       return (event: MessageEvent<RecordingMessage>) => {
-        logger.debug({ recordingProcessorEventData: event.data })
         // If the max length is reached, we can no longer record.
         if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
           // TODO: stop recording, or show alert or something
@@ -349,6 +358,49 @@ export const Track: React.FC<Props> = ({
       keyboard.off('m', `Track ${id}`)
     }
   }, [selected, keyboard, id])
+
+  /**
+   * When "export" event is received from the Scene (via exportTarget),
+   * post event to exportWorker to generate wave file
+   */
+  useEffect(() => {
+    function postExportToWavMessage() {
+      logger.debug(`Posting export message for track ${title}, ID ${id}`)
+      if (bufferSource.current?.buffer) {
+        const buffer = bufferSource.current?.buffer
+        const channelsData = new Array(buffer.numberOfChannels)
+        for (let i = 0; i < buffer.numberOfChannels; i++) {
+          channelsData[i] = buffer.getChannelData(i)
+        }
+        exportWorker.postMessage({
+          message: 'EXPORT_TO_WAV',
+          audioBufferLength: buffer.length,
+          numberOfChannels: buffer.numberOfChannels,
+          sampleRate: buffer.sampleRate,
+          channelsData,
+        } as ExportWavWorkerEvent)
+      }
+    }
+
+    function handleWavBlob(event: MessageEvent<WavBlobControllerEvent>) {
+      logger.debug(`Handling WAV message for track ${title}, ID ${id}`)
+      if (event.data.message === 'WAV_BLOB') {
+        let file = new File([event.data.blob], `${title}.wav`, {
+          type: 'audio/wav',
+        })
+        let exportUrl = URL.createObjectURL(file)
+        window.open(exportUrl)
+        window.URL.revokeObjectURL(exportUrl)
+      }
+    }
+
+    exportTarget.addEventListener('export', postExportToWavMessage)
+    exportWorker.addEventListener('message', handleWavBlob)
+    return () => {
+      exportTarget.removeEventListener('export', postExportToWavMessage)
+      exportWorker.removeEventListener('message', handleWavBlob)
+    }
+  }, [exportTarget, exportWorker, title, id])
 
   return (
     <>

@@ -52,22 +52,22 @@ function floatBits(f: Float32) {
 }
 
 function writeAudioBufferToArray(
-  audioBuffer: AudioBuffer,
+  channelsData: Float32Array[],
+  length: number,
+  numberOfChannels: number,
   targetArray: Uint8Array,
   offset: number,
   bitDepth: 16 | 32
 ) {
   let index = 0
   let channel = 0
-  const length = audioBuffer.length
-  const channels = audioBuffer.numberOfChannels
   let channelData
   let sample
 
   // Clamping samples onto the 16-bit resolution.
   for (index = 0; index < length; ++index) {
-    for (channel = 0; channel < channels; ++channel) {
-      channelData = audioBuffer.getChannelData(channel)
+    for (channel = 0; channel < numberOfChannels; ++channel) {
+      channelData = channelsData[channel]
 
       // Branches upon the requested bit depth
       if (bitDepth === 16) {
@@ -100,14 +100,15 @@ const AudioFormatMap = {
 
 // to use this blob as a download URL, call
 // window.URL.createObjectURL(createWaveFileBlobFromAudioBuffer(audioBuffer, bitsPerSample))
-export function createWaveFileBlobFromAudioBuffer(
-  audioBuffer: AudioBuffer,
+function createWaveFileBlobFromAudioBuffer(
+  audioBufferLength: number,
+  numberOfChannels: number,
+  sampleRate: number,
+  channelsData: Float32Array[],
   bitsPerSample: 16 | 32
 ): Blob {
   // Encoding setup.
-  const frameLength = audioBuffer.length
-  const numberOfChannels = audioBuffer.numberOfChannels
-  const sampleRate = audioBuffer.sampleRate
+  const frameLength = audioBufferLength
   const bytesPerSample = bitsPerSample / 8
   const byteRate = (sampleRate * numberOfChannels * bitsPerSample) / 8
   const blockAlign = (numberOfChannels * bitsPerSample) / 8
@@ -143,25 +144,47 @@ export function createWaveFileBlobFromAudioBuffer(
   writeInt32ToArray(subChunk2Size, waveFileData, 40)
 
   // Write actual audio data starting at offset 44.
-  writeAudioBufferToArray(audioBuffer, waveFileData, 44, bitsPerSample)
+  writeAudioBufferToArray(
+    channelsData,
+    frameLength,
+    numberOfChannels,
+    waveFileData,
+    44,
+    bitsPerSample
+  )
 
   return new Blob([waveFileData], {
     type: 'audio/wave',
   })
 }
 
-/* eslint-disable no-restricted-globals */
-
-type ExportToWaveEvent = {
+export type ExportWavWorkerEvent = {
   message: 'EXPORT_TO_WAV'
-  audioBuffer: AudioBuffer
+  audioBufferLength: number
+  numberOfChannels: number
+  sampleRate: number
+  channelsData: Float32Array[]
 }
 
-self.onmessage = (event: MessageEvent<ExportToWaveEvent>) => {
+export type WavBlobControllerEvent = {
+  message: 'WAV_BLOB'
+  blob: Blob
+}
+
+// must add `webWorker` to `compilerOptions.lib` prop of tsconfig.json
+const self = globalThis as unknown as DedicatedWorkerGlobalScope
+
+self.onmessage = (event: MessageEvent<ExportWavWorkerEvent>) => {
   if (event.data.message === 'EXPORT_TO_WAV') {
     postMessage({
       message: 'WAV_BLOB',
-      blob: createWaveFileBlobFromAudioBuffer(event.data.audioBuffer, 32),
-    })
+      blob: createWaveFileBlobFromAudioBuffer(
+        event.data.audioBufferLength,
+        event.data.numberOfChannels,
+        event.data.sampleRate,
+        event.data.channelsData,
+        32
+      ),
+    } as WavBlobControllerEvent)
   }
 }
