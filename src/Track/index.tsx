@@ -31,6 +31,8 @@ import Mute from './Mute'
 import RemoveTrack from './RemoveTrack'
 import Waveform from './Waveform'
 import { useKeyboard } from '../KeyboardProvider'
+import SelectInput from './SelectInput'
+import { deviceIdFromStream } from './device-id-from-stream'
 
 type Props = {
   id: number
@@ -77,7 +79,9 @@ export const Track: React.FC<Props> = ({
   metronome,
   selected,
 }) => {
-  const { audioContext, stream } = useAudioContext()
+  const { audioContext, stream: defaultStream } = useAudioContext()
+  const [stream, setStream] = useState(defaultStream)
+  const defaultDeviceId = deviceIdFromStream(defaultStream) ?? ''
   const keyboard = useKeyboard()
   const [title, setTitle] = useState(`Track ${id}`)
   const [armed, setArmed] = useState(false)
@@ -234,7 +238,8 @@ export const Track: React.FC<Props> = ({
     const recordingProperties: RecordingProperties = {
       numberOfChannels: mediaSource.channelCount,
       sampleRate: audioContext.sampleRate,
-      maxRecordingSamples: audioContext.sampleRate * 10,
+      // max recording length of 30 seconds. I think that should be sufficient for now?
+      maxRecordingSamples: audioContext.sampleRate * 30,
       latencySamples: getLatencySamples(
         audioContext.sampleRate,
         stream,
@@ -348,7 +353,7 @@ export const Track: React.FC<Props> = ({
   return (
     <>
       <div
-        className={`flex items-stretch content-center p-2 rounded-md
+        className={`flex items-stretch content-center p-2 rounded-md flex-wrap
                   ${selected ? 'shadow-[0_0_0_5px_#528eb0ff]' : ''}`}
       >
         {/* Controls */}
@@ -378,8 +383,12 @@ export const Track: React.FC<Props> = ({
           </div>
 
           {/* Remove */}
-          <div>
+          <div className="flex items-stretch content-center justify-between">
             <RemoveTrack onRemove={onRemove} />
+            <SelectInput
+              setStream={setStream}
+              defaultDeviceId={defaultDeviceId}
+            />
           </div>
         </div>
 

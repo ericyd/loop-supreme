@@ -23,7 +23,9 @@ export default function MetronomeControl(props: MetronomeControlProps) {
     keyboard.on(' ', 'Metronome', (e) => {
       // Only toggle playing if another control element is not currently focused
       if (
-        !['SELECT', 'BUTTON'].includes(document.activeElement?.tagName ?? '')
+        !['INPUT', 'SELECT', 'BUTTON'].includes(
+          document.activeElement?.tagName ?? ''
+        )
       ) {
         props.togglePlaying()
         e.preventDefault()

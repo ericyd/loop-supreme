@@ -18,7 +18,8 @@ export const VolumeControl: React.FC<Props> = (props) => {
     <input
       type="range"
       min="0"
-      max="1"
+      // Allow slightly more than 1.0 gain, in case the track is very soft
+      max="1.4"
       step="0.01"
       value={props.gain}
       onChange={handleChangeGain}

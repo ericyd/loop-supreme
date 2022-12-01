@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./public/icons/loop-supreme-logo.svg" height="200px" alt="Loop Supreme">
+  <img src="./public/icons/loop-supreme-cover-art.svg" height="200px" alt="Loop Supreme">
 </p>
 
 <p align="center">
@@ -22,6 +22,16 @@ I'm planning to blog about the experience of building it.
 
 You can [check out my blog here!](https://ericyd.hashnode.dev/)
 
+## Building / running locally
+
+```shell
+git clone git@github.com:ericyd/loop-supreme
+cd loop-supreme
+npm i
+npm start
+npm run build
+```
+
 ## Useful resources in my Web Audio journey
 
 - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API
@@ -43,6 +53,6 @@ You can [check out my blog here!](https://ericyd.hashnode.dev/)
     - https://developer.chrome.com/blog/audio-worklet-design-pattern/
     - https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/src/audio-worklet/migration/worklet-recorder
 
-Icon attribution
+## Icon attribution
 
 - Metronome by ChangHoon Baek from <a href="https://thenounproject.com/icon/metronome-118052/" target="_blank" title="Metronome Icons">Noun Project</a>
