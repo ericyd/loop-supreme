@@ -45,7 +45,7 @@ export default function SelectInput(props: Props) {
 
   return (
     <select
-      className="rounded-full bg-white border border-zinc-900 px-2 max-w-min text-xs"
+      className="rounded-full bg-white border border-zinc-400 px-2 max-w-[50%] text-xs"
       onChange={handleChange}
       value={selected}
     >
