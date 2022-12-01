@@ -218,7 +218,6 @@ export const Track: React.FC<Props> = ({
 
           bufferSource.current = new AudioBufferSourceNode(audioContext, {
             buffer: recordingBuffer,
-            loop: true,
           })
 
           gainNode.current.connect(audioContext.destination)
@@ -312,6 +311,7 @@ export const Track: React.FC<Props> = ({
         message: 'UPDATE_RECORDING_STATE',
         recording: false,
       })
+      return
     }
     if (armed) {
       setRecording(true)
@@ -323,6 +323,48 @@ export const Track: React.FC<Props> = ({
       waveformWorker.postMessage({
         message: 'RESET_FRAMES',
       } as WaveformWorkerResetMessage)
+      return
+    }
+
+    // If source buffer exists, restart the playback.
+    // Why not use the `loop` parameter?
+    // because any microscopic delta between the clock and the loop length causes drift over time.
+    // this is almost certainly imperfect, but at least it will **appear** to be accurate.
+    // AudioSourceNodes, including AudioBufferSourceNodes, can only be started once, therefore
+    // need to stop, create new, and start again
+    // TODO: see if there is any way to soften the stop, so it doesn't sound so clippy
+    // TODO: allow clearing via re-recording. Maybe set up a second buffer?
+    // HUGE BUG: using keyboard short cuts is causing weird recording artifacts... 😭
+    if (bufferSource.current?.buffer) {
+      bufferSource.current.stop()
+
+      // maximal version
+      // const buffer = bufferSource.current.buffer
+
+      // const recordingBuffer = audioContext.createBuffer(
+      //   buffer.numberOfChannels,
+      //   buffer.length,
+      //   audioContext.sampleRate
+      // )
+
+      // for (let i = 0; i < buffer.numberOfChannels; i++) {
+      //   recordingBuffer.copyToChannel(buffer.getChannelData(i), i, 0)
+      // }
+
+      // bufferSource.current = new AudioBufferSourceNode(audioContext, {
+      //   buffer: recordingBuffer,
+      // })
+
+      // gainNode.current.connect(audioContext.destination)
+      // bufferSource.current.connect(gainNode.current)
+      // bufferSource.current.start()
+
+      // minimal version
+      bufferSource.current = new AudioBufferSourceNode(audioContext, {
+        buffer: bufferSource.current.buffer,
+      })
+      bufferSource.current.connect(gainNode.current)
+      bufferSource.current.start()
     }
   }
 
