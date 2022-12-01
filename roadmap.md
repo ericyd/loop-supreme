@@ -91,6 +91,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 
 ## Misc
 
+- [ ] `Bug`: using keyboard shortcuts is causing weird recording artifacts... 😭
 - [x] clean up "start" button/view
 - [x] Allow user to change inputs https://github.com/ericyd/loop-supreme/pull/25
 - [ ] clean up TODOs

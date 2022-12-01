@@ -332,16 +332,19 @@ export const Track: React.FC<Props> = ({
     // this is almost certainly imperfect, but at least it will **appear** to be accurate.
     // AudioSourceNodes, including AudioBufferSourceNodes, can only be started once, therefore
     // need to stop, create new, and start again
-    // TODO: see if there is any way to soften the stop, so it doesn't sound so clippy
     // TODO: allow clearing via re-recording. Maybe set up a second buffer?
-    // HUGE BUG: using keyboard short cuts is causing weird recording artifacts... 😭
     if (bufferSource.current?.buffer) {
-      // TODO: maybe I don't even need to stop?
-      // bufferSource.current.stop()
       bufferSource.current = new AudioBufferSourceNode(audioContext, {
         buffer: bufferSource.current.buffer,
       })
       bufferSource.current.connect(gainNode.current)
+      // ramp up to desired gain quickly to avoid clips at the beginning of the loop
+      gainNode.current.gain.value = 0.0
+      gainNode.current.gain.setTargetAtTime(
+        gain,
+        audioContext.currentTime,
+        0.02
+      )
       bufferSource.current.start()
     }
   }
