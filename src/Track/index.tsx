@@ -336,30 +336,8 @@ export const Track: React.FC<Props> = ({
     // TODO: allow clearing via re-recording. Maybe set up a second buffer?
     // HUGE BUG: using keyboard short cuts is causing weird recording artifacts... 😭
     if (bufferSource.current?.buffer) {
-      bufferSource.current.stop()
-
-      // maximal version
-      // const buffer = bufferSource.current.buffer
-
-      // const recordingBuffer = audioContext.createBuffer(
-      //   buffer.numberOfChannels,
-      //   buffer.length,
-      //   audioContext.sampleRate
-      // )
-
-      // for (let i = 0; i < buffer.numberOfChannels; i++) {
-      //   recordingBuffer.copyToChannel(buffer.getChannelData(i), i, 0)
-      // }
-
-      // bufferSource.current = new AudioBufferSourceNode(audioContext, {
-      //   buffer: recordingBuffer,
-      // })
-
-      // gainNode.current.connect(audioContext.destination)
-      // bufferSource.current.connect(gainNode.current)
-      // bufferSource.current.start()
-
-      // minimal version
+      // TODO: maybe I don't even need to stop?
+      // bufferSource.current.stop()
       bufferSource.current = new AudioBufferSourceNode(audioContext, {
         buffer: bufferSource.current.buffer,
       })
