@@ -32,6 +32,7 @@ import RemoveTrack from './RemoveTrack'
 import Waveform from './Waveform'
 import { useKeyboard } from '../KeyboardProvider'
 import SelectInput from './SelectInput'
+import { deviceIdFromStream } from './device-id-from-stream'
 
 type Props = {
   id: number
@@ -80,6 +81,7 @@ export const Track: React.FC<Props> = ({
 }) => {
   const { audioContext, stream: defaultStream } = useAudioContext()
   const [stream, setStream] = useState(defaultStream)
+  const defaultDeviceId = deviceIdFromStream(defaultStream) ?? ''
   const keyboard = useKeyboard()
   const [title, setTitle] = useState(`Track ${id}`)
   const [armed, setArmed] = useState(false)
@@ -383,7 +385,10 @@ export const Track: React.FC<Props> = ({
           {/* Remove */}
           <div className="flex items-stretch content-center justify-between">
             <RemoveTrack onRemove={onRemove} />
-            <SelectInput setStream={setStream} />
+            <SelectInput
+              setStream={setStream}
+              defaultDeviceId={defaultDeviceId}
+            />
           </div>
         </div>
 
