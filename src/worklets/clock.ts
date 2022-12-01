@@ -20,8 +20,6 @@
  *     This is a learning process for me and this may change in the future.
  */
 
-/* eslint-disable no-restricted-globals */
-
 type ClockWorkerStartMessage = {
   message: 'START'
   bpm: number
@@ -53,6 +51,9 @@ export type ClockControllerMessage = {
   // true on the first beat of each loop
   loopStart: boolean
 }
+
+// must add `webWorker` to `compilerOptions.lib` prop of tsconfig.json
+const self = globalThis as unknown as DedicatedWorkerGlobalScope
 
 postMessage({ message: 'clock ready' })
 

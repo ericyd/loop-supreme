@@ -1,5 +1,3 @@
-/* eslint-disable no-restricted-globals */
-
 export type WaveformWorkerFrameMessage = {
   message: 'FRAME'
   gain: number
@@ -50,6 +48,9 @@ let samplesPerSecond = 1
 let minGain = 0
 let maxGain = 0
 let samplesPerLoop = 1
+
+// must add `webWorker` to `compilerOptions.lib` prop of tsconfig.json
+const self = globalThis as unknown as DedicatedWorkerGlobalScope
 
 self.onmessage = (e: MessageEvent<WaveformWorkerMessage>) => {
   if (e.data.message === 'FRAME') {
