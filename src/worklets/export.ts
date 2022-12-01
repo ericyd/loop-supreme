@@ -51,21 +51,30 @@ function floatBits(f: Float32) {
   return bits | 0
 }
 
-function writeAudioBufferToArray(
-  channelsData: Float32Array[],
-  length: number,
-  numberOfChannels: number,
-  targetArray: Uint8Array,
-  offset: number,
+type AudioBufferWriteData = {
+  channelsData: Float32Array[]
+  frameLength: number
+  numberOfChannels: number
+  targetArray: Uint8Array
+  offset: number
   bitDepth: 16 | 32
-) {
+}
+
+function writeAudioBufferToArray({
+  channelsData,
+  frameLength,
+  numberOfChannels,
+  targetArray,
+  offset,
+  bitDepth,
+}: AudioBufferWriteData) {
   let index = 0
   let channel = 0
   let channelData
   let sample
 
   // Clamping samples onto the 16-bit resolution.
-  for (index = 0; index < length; ++index) {
+  for (index = 0; index < frameLength; ++index) {
     for (channel = 0; channel < numberOfChannels; ++channel) {
       channelData = channelsData[channel]
 
@@ -98,20 +107,28 @@ const AudioFormatMap = {
   32: 3,
 }
 
+type WaveFileData = {
+  audioBufferLength: number
+  numberOfChannels: number
+  sampleRate: number
+  channelsData: Float32Array[]
+  bitDepth: 16 | 32
+}
+
 // to use this blob as a download URL, call
-// window.URL.createObjectURL(createWaveFileBlobFromAudioBuffer(audioBuffer, bitsPerSample))
-function createWaveFileBlobFromAudioBuffer(
-  audioBufferLength: number,
-  numberOfChannels: number,
-  sampleRate: number,
-  channelsData: Float32Array[],
-  bitsPerSample: 16 | 32
-): Blob {
+// window.URL.createObjectURL(createWaveFileBlobFromAudioBuffer(audioBuffer, bitDepth))
+function createWaveFileBlobFromAudioBuffer({
+  audioBufferLength,
+  numberOfChannels,
+  sampleRate,
+  channelsData,
+  bitDepth,
+}: WaveFileData): Blob {
   // Encoding setup.
   const frameLength = audioBufferLength
-  const bytesPerSample = bitsPerSample / 8
-  const byteRate = (sampleRate * numberOfChannels * bitsPerSample) / 8
-  const blockAlign = (numberOfChannels * bitsPerSample) / 8
+  const bytesPerSample = bitDepth / 8
+  const byteRate = (sampleRate * numberOfChannels * bitDepth) / 8
+  const blockAlign = (numberOfChannels * bitDepth) / 8
   const wavDataByteLength = frameLength * numberOfChannels * bytesPerSample
   const headerByteLength = 44
   const totalLength = headerByteLength + wavDataByteLength
@@ -128,7 +145,7 @@ function createWaveFileBlobFromAudioBuffer(
   // SubChunk1Size (4)
   writeInt32ToArray(subChunk1Size, waveFileData, 16)
   // AudioFormat (2)
-  writeInt16ToArray(AudioFormatMap[bitsPerSample], waveFileData, 20)
+  writeInt16ToArray(AudioFormatMap[bitDepth], waveFileData, 20)
   // NumChannels (2)
   writeInt16ToArray(numberOfChannels, waveFileData, 22)
   // SampleRate (4)
@@ -137,21 +154,21 @@ function createWaveFileBlobFromAudioBuffer(
   writeInt32ToArray(byteRate, waveFileData, 28)
   // BlockAlign (2)
   writeInt16ToArray(blockAlign, waveFileData, 32)
-  // BitsPerSample (4)
-  writeInt32ToArray(bitsPerSample, waveFileData, 34)
+  // BitDepth (4)
+  writeInt32ToArray(bitDepth, waveFileData, 34)
   writeStringToArray('data', waveFileData, 36)
   // SubChunk2Size (4)
   writeInt32ToArray(subChunk2Size, waveFileData, 40)
 
   // Write actual audio data starting at offset 44.
-  writeAudioBufferToArray(
+  writeAudioBufferToArray({
     channelsData,
     frameLength,
     numberOfChannels,
-    waveFileData,
-    44,
-    bitsPerSample
-  )
+    targetArray: waveFileData,
+    offset: 44,
+    bitDepth,
+  })
 
   return new Blob([waveFileData], {
     type: 'audio/wave',
@@ -178,13 +195,13 @@ self.onmessage = (event: MessageEvent<ExportWavWorkerEvent>) => {
   if (event.data.message === 'EXPORT_TO_WAV') {
     postMessage({
       message: 'WAV_BLOB',
-      blob: createWaveFileBlobFromAudioBuffer(
-        event.data.audioBufferLength,
-        event.data.numberOfChannels,
-        event.data.sampleRate,
-        event.data.channelsData,
-        32
-      ),
+      blob: createWaveFileBlobFromAudioBuffer({
+        audioBufferLength: event.data.audioBufferLength,
+        numberOfChannels: event.data.numberOfChannels,
+        sampleRate: event.data.sampleRate,
+        channelsData: event.data.channelsData,
+        bitDepth: 32,
+      }),
     } as WavBlobControllerEvent)
   }
 }
