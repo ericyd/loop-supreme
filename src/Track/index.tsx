@@ -367,6 +367,7 @@ export const Track: React.FC<Props> = ({
     function postExportToWavMessage() {
       logger.debug(`Posting export message for track ${title}, ID ${id}`)
       if (bufferSource.current?.buffer) {
+        // AudioBuffers cannot be copied in a Worker message, so the composite pieces must be sent
         const buffer = bufferSource.current?.buffer
         const channelsData = new Array(buffer.numberOfChannels)
         for (let i = 0; i < buffer.numberOfChannels; i++) {
