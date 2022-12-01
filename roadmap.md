@@ -66,7 +66,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 
 ## Saving audio
 
-- [ ] Stems can be exported
+- [x] Stems can be exported https://github.com/ericyd/loop-supreme/pull/26
 - [ ] Bounced master can be exported
 - [ ] Live performance can be saved and exported
 
@@ -92,19 +92,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 ## Misc
 
 - [x] clean up "start" button/view
-- [ ] Allow user to change inputs https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/enumerateDevices. This method returns `Array<MediaDeviceInfo>` which looks like this:
-
-```json
-[
-  {
-    "deviceId": "fawzsPrkZbQN9fojBcmG6nlJp0DMXbkmPUxyNMrepqk=",
-    "groupId": "oJkNwmfoCVJ/Gy/1koTeGXQCaMLs22CBhWe2KT0Tdxs=",
-    "kind": "audioinput",
-    "label": "HD Pro Webcam C920"
-  }
-]
-```
-
+- [x] Allow user to change inputs https://github.com/ericyd/loop-supreme/pull/25
 - [ ] clean up TODOs
 - [x] show alert to user if latency cannot be detected due to their environment
 - [ ] show alert if track latency cannot be detected, or if it seems wildly out of the norm (~100ms +/ 20ms ???). Consider adding a "custom latency" input option???
