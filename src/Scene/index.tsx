@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import ButtonBase from '../ButtonBase'
 import { Plus } from '../icons/Plus'
 import { useKeyboard } from '../KeyboardProvider'
@@ -12,6 +12,7 @@ type Props = {
 export const Scene: React.FC<Props> = ({ metronome }) => {
   const keyboard = useKeyboard()
   const [tracks, setTracks] = useState([{ id: 1, selected: false }])
+  const exportTarget = useMemo(() => new EventTarget(), [])
 
   function handleAddTrack() {
     setTracks((tracks) => [
@@ -50,6 +51,15 @@ export const Scene: React.FC<Props> = ({ metronome }) => {
   }
 
   /**
+   * When called, exportTarget dispatches an event.
+   * Tracks listen to this event and create a wav file blob from their audio buffer,
+   * then download the file locally.
+   */
+  const handleExport = useCallback(() => {
+    exportTarget.dispatchEvent(new Event('export'))
+  }, [exportTarget])
+
+  /**
    * Attach keyboard events
    */
   useEffect(() => {
@@ -63,7 +73,7 @@ export const Scene: React.FC<Props> = ({ metronome }) => {
         keyboard.off(String(i), `Scene ${i}`)
       }
     }
-  }, [keyboard])
+  }, [keyboard, handleExport])
 
   return (
     <>
@@ -74,12 +84,19 @@ export const Scene: React.FC<Props> = ({ metronome }) => {
           selected={selected}
           onRemove={handleRemoveTrack(id)}
           metronome={metronome}
+          exportTarget={exportTarget}
         />
       ))}
-      <div className="my-8">
+      <div className="my-8 flex justify-between items-end">
         <ButtonBase onClick={handleAddTrack} large>
           <Plus />
         </ButtonBase>
+        <button
+          onClick={handleExport}
+          className="border border-zinc-400 border-solid rounded-full p-2 mr-2 hover:shadow-button"
+        >
+          Download stems
+        </button>
       </div>
     </>
   )

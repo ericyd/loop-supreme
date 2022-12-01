@@ -39,6 +39,9 @@ module.exports = {
           '50%': { opacity: 1 },
         },
       },
+      boxShadow: {
+        button: '0 0 0 2px #528eb0ff',
+      },
     },
   },
   plugins: [],

@@ -49,9 +49,9 @@ function ButtonBase(
   return (
     <button
       onClick={props.onClick}
-      className={`border-zinc-900 border-solid rounded-full flex-initial mr-2 ${h} ${w} ${p} ${b} ${
-        props.className ?? ''
-      }`}
+      className={`border-zinc-900 border-solid rounded-full flex-initial mr-2
+                  hover:shadow-button focus:shadow-button
+                  ${h} ${w} ${p} ${b} ${props.className ?? ''}`}
       ref={forwardRef}
     >
       {props.children}
