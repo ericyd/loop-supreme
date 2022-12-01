@@ -28,7 +28,7 @@ export default function KeyboardBindings() {
         </thead>
         <tbody>
           {Object.entries(globalKeyBindings).map(([key, action]) => (
-            <tr>
+            <tr key={`${key}_${action}`}>
               <td className="w-32">{key}</td>
               <td>{action}</td>
             </tr>
@@ -41,7 +41,7 @@ export default function KeyboardBindings() {
           </tr>
 
           {Object.entries(trackKeyBindings).map(([key, action]) => (
-            <tr>
+            <tr key={`${key}_${action}`}>
               <td className="w-32">{key}</td>
               <td>{action}</td>
             </tr>
