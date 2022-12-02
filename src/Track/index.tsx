@@ -84,7 +84,6 @@ export const Track: React.FC<Props> = ({
   selected,
   exportTarget,
 }) => {
-  console.log(`rendering track ${id}`)
   const { audioContext, stream: defaultStream } = useAudioContext()
   const [stream, setStream] = useState(defaultStream)
   const defaultDeviceId = deviceIdFromStream(defaultStream) ?? ''
