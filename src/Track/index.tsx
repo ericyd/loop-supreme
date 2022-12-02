@@ -89,10 +89,22 @@ export const Track: React.FC<Props> = ({
   const [stream, setStream] = useState(defaultStream)
   const defaultDeviceId = deviceIdFromStream(defaultStream) ?? ''
   const keyboard = useKeyboard()
+
+  // title is mostly display-only, but also defines the file name when downloading files
   const [title, setTitle] = useState(`Track ${id}`)
+  const handleChangeTitle: ChangeEventHandler<HTMLInputElement> = (event) => {
+    setTitle(event.target.value)
+  }
+
+  // when a track is armed, it will begin recording automatically on the next loop start
   const [armed, setArmed] = useState(false)
-  const toggleArmRecording = () => setArmed((value) => !value)
+  const toggleArmRecording = () => {
+    logger.debug('Toggling arm recording')
+    setArmed((value) => !value)
+  }
   const [recording, setRecording] = useState(false)
+
+  // delegate waveform generation and wav file writing to workers
   const waveformWorker = useMemo(
     () => new Worker(new URL('../worklets/waveform', import.meta.url)),
     []
@@ -301,11 +313,7 @@ export const Track: React.FC<Props> = ({
     waveformWorker,
   ])
 
-  const handleChangeTitle: ChangeEventHandler<HTMLInputElement> = (event) => {
-    setTitle(event.target.value)
-  }
-
-  function handleLoopstart() {
+  const handleLoopstart = useCallback(() => {
     if (recording) {
       setRecording(false)
       recorderWorklet.current?.port?.postMessage({
@@ -347,21 +355,20 @@ export const Track: React.FC<Props> = ({
       )
       bufferSource.current.start()
     }
-  }
-
-  function delegateClockMessage(event: MessageEvent<ClockControllerMessage>) {
-    if (event.data.loopStart) {
-      handleLoopstart()
-    }
-  }
+  }, [armed, audioContext, gain, recording, waveformWorker])
 
   useEffect(() => {
+    function delegateClockMessage(event: MessageEvent<ClockControllerMessage>) {
+      if (event.data.loopStart) {
+        handleLoopstart()
+      }
+    }
+
     metronome.clock.addEventListener('message', delegateClockMessage)
     return () => {
       metronome.clock.removeEventListener('message', delegateClockMessage)
     }
-    // TODO: include dependency array so these event listeners aren't added/removed on every render
-  })
+  }, [handleLoopstart, metronome.clock])
 
   /**
    * Attach keyboard listeners.
