@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react'
-import ButtonBase from '../ButtonBase'
-import { X } from '../icons/X'
+import ButtonBase from '../../ButtonBase'
+import { X } from '../../icons/X'
 
 type Props = {
   onRemove(): void
 }
 
-export default function RemoveTrack(props: Props) {
+export function RemoveTrack(props: Props) {
   const removeButtonRef = useRef<HTMLButtonElement>(null)
   const [confirmRemoval, setConfirmRemoval] = useState(false)
   function handleRemove() {

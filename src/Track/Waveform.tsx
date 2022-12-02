@@ -8,7 +8,7 @@ type Props = {
   worker: Worker
   sampleRate: number
 }
-export default function Waveform(props: Props) {
+export function Waveform(props: Props) {
   const [path, setPath] = useState('M 0 0')
 
   const yMax = 2

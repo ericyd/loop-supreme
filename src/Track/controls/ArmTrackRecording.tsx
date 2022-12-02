@@ -1,4 +1,4 @@
-import ButtonBase from '../ButtonBase'
+import ButtonBase from '../../ButtonBase'
 
 type Props = {
   toggleArmRecording(): void
@@ -6,7 +6,7 @@ type Props = {
   recording: boolean
 }
 
-export default function ArmTrackRecording(props: Props) {
+export function ArmTrackRecording(props: Props) {
   return (
     <ButtonBase onClick={props.toggleArmRecording}>
       <svg

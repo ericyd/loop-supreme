@@ -1,11 +1,11 @@
-import ButtonBase from '../ButtonBase'
+import ButtonBase from '../../ButtonBase'
 
 type Props = {
   onClick(): void
   muted: boolean
 }
 
-export default function Mute(props: Props) {
+export function Mute(props: Props) {
   return (
     <ButtonBase
       onClick={props.onClick}

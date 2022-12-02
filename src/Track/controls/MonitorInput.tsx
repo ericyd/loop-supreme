@@ -1,4 +1,4 @@
-import ButtonBase from '../ButtonBase'
+import ButtonBase from '../../ButtonBase'
 
 type Props = {
   toggleMonitoring(): void
@@ -6,7 +6,7 @@ type Props = {
 }
 
 // from https://iconmonstr.com/headphones-8-svg/
-export default function MonitorInput(props: Props) {
+export function MonitorInput(props: Props) {
   const zigZagPath =
     'm-1.151 16.712l.786-4.788.803 3.446c.079.353.569.393.703.053l.727-1.858.678 1.582c.113.262.468.303.637.072l.618-.84h1.199v-.737h-1.391c-.117 0-.229.056-.298.151l-.342.469-.779-1.813c-.13-.303-.562-.296-.683.011l-.616 1.576-.95-4.208c-.09-.398-.659-.375-.724.022l-.788 4.86-.805-2.993c-.09-.357-.595-.377-.709-.023l-.598 1.948h-1.317v.737h1.607c.133 0 .278-.108.315-.235l.298-1.008.906 3.607c.099.389.659.363.723-.031z'
   return (

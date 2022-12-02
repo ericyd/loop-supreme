@@ -16,22 +16,22 @@ import React, {
 } from 'react'
 import { useAudioContext } from '../AudioProvider'
 import { logger } from '../util/logger'
-import { VolumeControl } from './VolumeControl'
+import { VolumeControl } from './controls/VolumeControl'
 import type { ClockControllerMessage } from '../workers/clock'
 import type {
   WaveformWorkerFrameMessage,
   WaveformWorkerMetronomeMessage,
   WaveformWorkerResetMessage,
 } from '../workers/waveform'
-import ArmTrackRecording from './ArmTrackRecording'
-import { getLatencySamples } from './get-latency-samples'
-import MonitorInput from './MonitorInput'
-import Mute from './Mute'
-import RemoveTrack from './RemoveTrack'
-import Waveform from './Waveform'
+import { ArmTrackRecording } from './controls/ArmTrackRecording'
+import { getLatencySamples } from '../util/get-latency-samples'
+import { MonitorInput } from './controls/MonitorInput'
+import { Mute } from './controls/Mute'
+import { RemoveTrack } from './controls/RemoveTrack'
+import { Waveform } from './Waveform'
 import { useKeyboard } from '../KeyboardProvider'
-import SelectInput from './SelectInput'
-import { deviceIdFromStream } from './device-id-from-stream'
+import { SelectInput } from './controls/SelectInput'
+import { deviceIdFromStream } from '../util/device-id-from-stream'
 import type {
   ExportWavWorkerEvent,
   WavBlobControllerEvent,
