@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { Metronome } from '../Metronome'
 import { Scene } from '../Scene'
-import { KeyboardBindingsList } from './KeyboardBindingsList'
 
 export const Clock: React.FC = () => {
   /**
@@ -21,7 +20,6 @@ export const Clock: React.FC = () => {
     <>
       <Metronome clock={clock} />
       <Scene clock={clock} />
-      <KeyboardBindingsList />
     </>
   )
 }
