@@ -2,14 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import ButtonBase from '../ButtonBase'
 import { Plus } from '../icons/Plus'
 import { useKeyboard } from '../KeyboardProvider'
-import { MetronomeReader } from '../Metronome'
 import { Track } from '../Track'
 
 type Props = {
-  metronome: MetronomeReader
+  clock: Worker
 }
 
-export const Scene: React.FC<Props> = ({ metronome }) => {
+export const Scene: React.FC<Props> = ({ clock }) => {
   const keyboard = useKeyboard()
   const [tracks, setTracks] = useState([{ id: 1, selected: false }])
   const exportTarget = useMemo(() => new EventTarget(), [])
@@ -83,7 +82,7 @@ export const Scene: React.FC<Props> = ({ metronome }) => {
           id={id}
           selected={selected}
           onRemove={handleRemoveTrack(id)}
-          metronome={metronome}
+          clock={clock}
           exportTarget={exportTarget}
         />
       ))}

@@ -1,7 +1,7 @@
 import React from 'react'
 import { AudioProvider } from '../AudioProvider'
+import { Clock } from '../Clock'
 import { KeyboardProvider } from '../KeyboardProvider'
-import { Metronome } from '../Metronome'
 
 type Props = {
   stream: MediaStream
@@ -12,7 +12,7 @@ function App(props: Props) {
   return (
     <KeyboardProvider>
       <AudioProvider stream={props.stream} audioContext={props.audioContext}>
-        <Metronome />
+        <Clock />
       </AudioProvider>
     </KeyboardProvider>
   )

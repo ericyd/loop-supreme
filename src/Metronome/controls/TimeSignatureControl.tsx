@@ -1,12 +1,12 @@
-import { TimeSignature as TimeSignatureType } from '../Metronome'
-import ControlPanelItem from './ControlPanelItem'
+import { TimeSignature } from '..'
+import { ControlPanelItem } from '../ControlPanelItem'
 
 type TimeSignatureProps = {
-  onChange(signature: TimeSignatureType): void
+  onChange(signature: TimeSignature): void
   beatsPerMeasure: number
   beatUnit: number
 }
-export default function TimeSignature(props: TimeSignatureProps) {
+export function TimeSignatureControl(props: TimeSignatureProps) {
   const handleChange: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
     const [beatsPerMeasureStr, beatUnitStr] = event.target.value?.split('/')
     if (!beatsPerMeasureStr || !beatUnitStr) {

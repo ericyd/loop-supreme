@@ -1,10 +1,10 @@
-import ControlPanelItem from './ControlPanelItem'
+import { ControlPanelItem } from './ControlPanelItem'
 
 type BeatCounterProps = {
   currentTick: number
   currentMeasure: number
 }
-export default function BeatCounter(props: BeatCounterProps) {
+export function BeatCounter(props: BeatCounterProps) {
   return (
     <ControlPanelItem>
       <span className="font-mono text-2xl pr-2">

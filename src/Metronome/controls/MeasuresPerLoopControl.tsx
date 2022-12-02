@@ -1,10 +1,10 @@
-import ControlPanelItem from './ControlPanelItem'
+import { ControlPanelItem } from '../ControlPanelItem'
 
 type MeasuresPerLoopProps = {
   onChange(measuresPerLoop: number): void
   measuresPerLoop: number
 }
-export default function MeasuresPerLoop(props: MeasuresPerLoopProps) {
+export function MeasuresPerLoopControl(props: MeasuresPerLoopProps) {
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const measuresPerLoop = Number(event.target.value)
     if (Number.isNaN(measuresPerLoop)) {

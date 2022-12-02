@@ -16,7 +16,7 @@ const trackKeyBindings = {
   i: 'Monitor input',
 }
 
-export default function KeyboardBindings() {
+export function KeyboardBindingsList() {
   return (
     <div>
       <h2 className="text-xl mb-8 mt-16">Keyboard controls</h2>

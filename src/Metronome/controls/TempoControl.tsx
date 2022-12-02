@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import ControlPanelItem from './ControlPanelItem'
+import { ControlPanelItem } from '../ControlPanelItem'
 
 type TempoProps = {
   onChange(bpm: number): void
   defaultValue: number
 }
-export default function Tempo(props: TempoProps) {
+export function TempoControl(props: TempoProps) {
   const [visualBpm, setVisualBpm] = useState('120.0')
   // TODO: something about this isn't working right
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {

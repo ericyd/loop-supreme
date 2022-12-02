@@ -1,5 +1,5 @@
-import ButtonBase from '../ButtonBase'
-import MetronomeIcon from '../icons/MetronomeIcon'
+import ButtonBase from '../../ButtonBase'
+import MetronomeIcon from '../../icons/MetronomeIcon'
 
 type Props = {
   muted: boolean

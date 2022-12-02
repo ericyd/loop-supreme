@@ -20,21 +20,21 @@
  *     This is a learning process for me and this may change in the future.
  */
 
-type ClockWorkerStartMessage = {
+export type ClockWorkerStartMessage = {
   message: 'START'
   bpm: number
   beatsPerMeasure: number
   measuresPerLoop: number
 }
 
-type ClockWorkerUpdateMessage = {
+export type ClockWorkerUpdateMessage = {
   message: 'UPDATE'
   bpm: number
   beatsPerMeasure: number
   measuresPerLoop: number
 }
 
-type ClockWorkerStopMessage = {
+export type ClockWorkerStopMessage = {
   message: 'STOP'
 }
 

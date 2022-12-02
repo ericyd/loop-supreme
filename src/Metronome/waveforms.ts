@@ -1,10 +1,12 @@
+import { useMemo } from 'react'
+
 /**
  * This function builds and returns a Float32Array.
  * The data of the array is a quickly decaying sine wave.
  * The Float32Array can be copied to an AudioBuffer for playback.
  * Inspired by https://blog.paul.cx/post/metronome/
  */
-export function decayingSine(sampleRate: number, frequency: number) {
+function decayingSine(sampleRate: number, frequency: number) {
   const channel = new Float32Array(sampleRate)
   // create a quickly decaying sine wave
   const durationMs = 100
@@ -24,4 +26,18 @@ export function decayingSine(sampleRate: number, frequency: number) {
   }
 
   return channel
+}
+
+export function useDecayingSine(audioContext: AudioContext, frequency: number) {
+  return useMemo(() => {
+    const buffer = audioContext.createBuffer(
+      1,
+      // this should be the maximum length needed for the audio;
+      // since this buffer is just holding a short sine wave, 1 second will be plenty
+      audioContext.sampleRate,
+      audioContext.sampleRate
+    )
+    buffer.copyToChannel(decayingSine(buffer.sampleRate, frequency), 0)
+    return buffer
+  }, [audioContext, frequency])
 }

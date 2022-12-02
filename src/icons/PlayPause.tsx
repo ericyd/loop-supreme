@@ -7,7 +7,7 @@ type Props = {
 
 // from https://iconmonstr.com/media-control-48-svg/
 // and https://iconmonstr.com/media-control-49-svg/
-export default function PlayPause(props: Props) {
+export function PlayPause(props: Props) {
   return (
     <ButtonBase onClick={props.onClick} large>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
