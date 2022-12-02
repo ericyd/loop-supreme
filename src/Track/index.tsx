@@ -101,6 +101,7 @@ export const Track: React.FC<Props> = ({
     () => new Worker(new URL('../worklets/export', import.meta.url)),
     []
   )
+  const downloadLinkRef = useRef<HTMLAnchorElement>(null)
 
   /**
    * Set up track gain.
@@ -218,7 +219,6 @@ export const Track: React.FC<Props> = ({
 
           bufferSource.current = new AudioBufferSourceNode(audioContext, {
             buffer: recordingBuffer,
-            loop: true,
           })
 
           gainNode.current.connect(audioContext.destination)
@@ -312,6 +312,7 @@ export const Track: React.FC<Props> = ({
         message: 'UPDATE_RECORDING_STATE',
         recording: false,
       })
+      return
     }
     if (armed) {
       setRecording(true)
@@ -323,6 +324,29 @@ export const Track: React.FC<Props> = ({
       waveformWorker.postMessage({
         message: 'RESET_FRAMES',
       } as WaveformWorkerResetMessage)
+      return
+    }
+
+    // If source buffer exists, restart the playback.
+    // Why not use the `loop` parameter?
+    // because any microscopic delta between the clock and the loop length causes drift over time.
+    // this is almost certainly imperfect, but at least it will **appear** to be accurate.
+    // AudioSourceNodes, including AudioBufferSourceNodes, can only be started once, therefore
+    // need to stop, create new, and start again
+    // TODO: allow clearing via re-recording. Maybe set up a second buffer?
+    if (bufferSource.current?.buffer) {
+      bufferSource.current = new AudioBufferSourceNode(audioContext, {
+        buffer: bufferSource.current.buffer,
+      })
+      bufferSource.current.connect(gainNode.current)
+      // ramp up to desired gain quickly to avoid clips at the beginning of the loop
+      gainNode.current.gain.value = 0.0
+      gainNode.current.gain.setTargetAtTime(
+        gain,
+        audioContext.currentTime,
+        0.02
+      )
+      bufferSource.current.start()
     }
   }
 
@@ -385,13 +409,12 @@ export const Track: React.FC<Props> = ({
 
     function handleWavBlob(event: MessageEvent<WavBlobControllerEvent>) {
       logger.debug(`Handling WAV message for track ${title}, ID ${id}`)
-      if (event.data.message === 'WAV_BLOB') {
-        let file = new File([event.data.blob], `${title}.wav`, {
-          type: 'audio/wav',
-        })
-        let exportUrl = URL.createObjectURL(file)
-        window.open(exportUrl)
-        window.URL.revokeObjectURL(exportUrl)
+      if (event.data.message === 'WAV_BLOB' && downloadLinkRef.current) {
+        const url = window.URL.createObjectURL(event.data.blob)
+        downloadLinkRef.current.href = url
+        downloadLinkRef.current.download = `${title.replace(/\s/g, '-')}.wav`
+        downloadLinkRef.current.click()
+        window.URL.revokeObjectURL(url)
       }
     }
 
@@ -453,6 +476,14 @@ export const Track: React.FC<Props> = ({
           />
         </div>
       </div>
+      {/* Download element - inspired by this SO answer https://stackoverflow.com/a/19328891/3991555 */}
+      <a
+        ref={downloadLinkRef}
+        href="https://test.example.com"
+        className="hidden"
+      >
+        Download
+      </a>
       {/* divider */}
       <div className="border-b border-solid border-zinc-400 w-full h-2 mb-2" />
     </>
