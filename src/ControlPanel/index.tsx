@@ -1,11 +1,13 @@
-import React from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
 import { MetronomeReader, MetronomeState, MetronomeWriter } from '../Metronome'
 import MeasuresPerLoop from './MeasuresPerLoop'
 import TimeSignature from './TimeSignature'
 import Tempo from './Tempo'
 import BeatCounter from './BeatCounter'
-import MetronomeControls from './MetronomeControls'
+import { VolumeControl } from './VolumeControl'
+import PlayPause from '../icons/PlayPause'
+import { useKeyboard } from '../KeyboardProvider'
 
 type Props = {
   metronome: MetronomeReader
@@ -23,16 +25,42 @@ export const ControlPanel: React.FC<Props> = ({
     trailing: false,
   })
 
+  const keyboard = useKeyboard()
+  const toggleMuted = useCallback(() => {
+    metronomeWriter.setMuted((muted) => !muted)
+  }, [metronomeWriter])
+
+  useEffect(() => {
+    keyboard.on('c', 'Metronome', toggleMuted)
+    // kinda wish I could write "space" but I guess this is the way this works.
+    keyboard.on(' ', 'Metronome', (e) => {
+      // Only toggle playing if another control element is not currently focused
+      if (
+        !['INPUT', 'SELECT', 'BUTTON'].includes(
+          document.activeElement?.tagName ?? ''
+        )
+      ) {
+        metronomeWriter.togglePlaying()
+        e.preventDefault()
+      }
+    })
+  }, [keyboard, metronomeWriter, toggleMuted])
+
   return (
     <div className="flex mb-12 items-end justify-between">
-      <MetronomeControls
-        playing={metronome.playing}
-        muted={metronome.muted}
-        togglePlaying={metronomeWriter.togglePlaying}
-        setMuted={metronomeWriter.setMuted}
-        setGain={metronomeWriter.setGain}
-        gain={metronome.gain}
-      />
+      <div className="flex items-start content-center mb-2 mr-2">
+        <PlayPause
+          onClick={metronomeWriter.togglePlaying}
+          playing={metronome.playing}
+        />
+
+        <VolumeControl
+          muted={metronome.muted}
+          toggleMuted={toggleMuted}
+          gain={metronome.gain}
+          onChange={metronomeWriter.setGain}
+        />
+      </div>
 
       <div className="flex">
         <div className="flex flex-col items-center">
