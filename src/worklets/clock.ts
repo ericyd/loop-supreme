@@ -50,6 +50,9 @@ export type ClockControllerMessage = {
   downbeat: boolean
   // true on the first beat of each loop
   loopStart: boolean
+  bpm: number
+  measuresPerLoop: number
+  beatsPerMeasure: number
 }
 
 // must add `webWorker` to `compilerOptions.lib` prop of tsconfig.json
@@ -73,6 +76,9 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
       currentTick,
       downbeat: currentTick % beatsPerMeasure === 0,
       loopStart: currentTick === 0,
+      bpm,
+      beatsPerMeasure,
+      measuresPerLoop,
     })
     timeoutId = setInterval(() => {
       currentTick = (currentTick + 1) % (beatsPerMeasure * measuresPerLoop)
@@ -81,7 +87,10 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
         currentTick,
         downbeat: currentTick % beatsPerMeasure === 0,
         loopStart: currentTick === 0,
-      })
+        bpm,
+        beatsPerMeasure,
+        measuresPerLoop,
+      } as ClockControllerMessage)
     }, (60 / bpm) * 1000)
   }
 

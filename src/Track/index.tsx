@@ -15,7 +15,6 @@ import React, {
   useState,
 } from 'react'
 import { useAudioContext } from '../AudioProvider'
-import { MetronomeReader } from '../Metronome'
 import { logger } from '../util/logger'
 import { VolumeControl } from './VolumeControl'
 import type { ClockControllerMessage } from '../worklets/clock'
@@ -41,7 +40,7 @@ import type {
 type Props = {
   id: number
   onRemove(): void
-  metronome: MetronomeReader
+  clock: Worker
   selected: boolean
   exportTarget: EventTarget
 }
@@ -81,10 +80,11 @@ type RecordingMessage =
 export const Track: React.FC<Props> = ({
   id,
   onRemove,
-  metronome,
+  clock,
   selected,
   exportTarget,
 }) => {
+  console.log(`rendering track ${id}`)
   const { audioContext, stream: defaultStream } = useAudioContext()
   const [stream, setStream] = useState(defaultStream)
   const defaultDeviceId = deviceIdFromStream(defaultStream) ?? ''
@@ -186,11 +186,22 @@ export const Track: React.FC<Props> = ({
           //   seconds    minutes   measures    beats     samples     samples
           //  ————————— 𝒙 ———————— 𝒙 ———————— 𝒙 ———————— 𝒙 ————————— 🟰 ——————————
           //   minute     beat      loop       measure    second       loop
-          const targetRecordingLength =
-            (60 / metronome.bpm) *
-            metronome.measuresPerLoop *
-            metronome.timeSignature.beatsPerMeasure *
-            audioContext.sampleRate
+
+          // This is "correct", but hard to get these props from here...
+          // const targetRecordingLength =
+          //   (60 / metronome.bpm) *
+          //   metronome.measuresPerLoop *
+          //   metronome.timeSignature.beatsPerMeasure *
+          //   audioContext.sampleRate
+
+          // this is "easy", and over-estimates the buffer length, but since it isn't looping anyway.... perhaps it doesn't matter???
+          // ahhhhh, shitty... it doesn't work great because when you export a track it's massive
+          // I think basically 3 options:
+          // 1. use the "recordingLength" property from the recorder. It might be off by a few samples but should be relatively accurate
+          // 2. send a message to the clock worker to get latest metronome settings. Don't love this, but I guess it would work?
+          // 3. revert to nesting this within Metronome and passing these as props
+          const targetRecordingLength = audioContext.sampleRate * 4 * 8 * 1
+
           logger.debug({
             fullRecordingLength,
             targetRecordingLength,
@@ -241,13 +252,7 @@ export const Track: React.FC<Props> = ({
         }
       }
     },
-    [
-      audioContext,
-      waveformWorker,
-      metronome.bpm,
-      metronome.measuresPerLoop,
-      metronome.timeSignature.beatsPerMeasure,
-    ]
+    [audioContext, waveformWorker]
   )
 
   /**
@@ -294,24 +299,6 @@ export const Track: React.FC<Props> = ({
       mediaSource.disconnect()
     }
   }, [audioContext, buildRecorderMessageHandler, stream])
-
-  /**
-   * Update waveform worker when metronome parameters change,
-   * so waveforms can be scaled properly
-   */
-  useEffect(() => {
-    waveformWorker.postMessage({
-      message: 'UPDATE_METRONOME',
-      beatsPerSecond: metronome.bpm / 60,
-      measuresPerLoop: metronome.measuresPerLoop,
-      beatsPerMeasure: metronome.timeSignature.beatsPerMeasure,
-    } as WaveformWorkerMetronomeMessage)
-  }, [
-    metronome.bpm,
-    metronome.measuresPerLoop,
-    metronome.timeSignature.beatsPerMeasure,
-    waveformWorker,
-  ])
 
   const handleLoopstart = useCallback(() => {
     if (recording) {
@@ -361,14 +348,22 @@ export const Track: React.FC<Props> = ({
     function delegateClockMessage(event: MessageEvent<ClockControllerMessage>) {
       if (event.data.loopStart) {
         handleLoopstart()
+      } else {
+        // keep waveform worker updated to metronome settings
+        waveformWorker.postMessage({
+          message: 'UPDATE_METRONOME',
+          beatsPerSecond: event.data.bpm / 60,
+          measuresPerLoop: event.data.measuresPerLoop,
+          beatsPerMeasure: event.data.beatsPerMeasure,
+        } as WaveformWorkerMetronomeMessage)
       }
     }
 
-    metronome.clock.addEventListener('message', delegateClockMessage)
+    clock.addEventListener('message', delegateClockMessage)
     return () => {
-      metronome.clock.removeEventListener('message', delegateClockMessage)
+      clock.removeEventListener('message', delegateClockMessage)
     }
-  }, [handleLoopstart, metronome.clock])
+  }, [handleLoopstart, clock, waveformWorker])
 
   /**
    * Attach keyboard listeners.
