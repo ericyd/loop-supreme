@@ -333,7 +333,6 @@ export const Track: React.FC<Props> = ({
     // this is almost certainly imperfect, but at least it will **appear** to be accurate.
     // AudioSourceNodes, including AudioBufferSourceNodes, can only be started once, therefore
     // need to stop, create new, and start again
-    // TODO: allow clearing via re-recording. Maybe set up a second buffer?
     if (bufferSource.current?.buffer) {
       bufferSource.current = new AudioBufferSourceNode(audioContext, {
         buffer: bufferSource.current.buffer,

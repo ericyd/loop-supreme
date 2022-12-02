@@ -51,6 +51,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [x] Component can remove itself from scene https://github.com/ericyd/loop-supreme/pull/5
 - [x] Component has arm toggle button https://github.com/ericyd/loop-supreme/pull/8
 - [x] ~audio data can be cleared from component without deleting it (to preserve track name)~ just mute, and then re-record if desired
+- [ ] `regression` allow re-recording audio over a track [regression introduced here](https://github.com/ericyd/loop-supreme/pull/27)
 - [x] deleting a track stops playback https://github.com/ericyd/loop-supreme/pull/13
 - [x] Component can record data from user device https://github.com/ericyd/loop-supreme/pull/8
 - [x] Component shows waveform of recorded audio https://github.com/ericyd/loop-supreme/pull/20
