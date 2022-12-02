@@ -5,7 +5,7 @@
  *    https://glitch.com/edit/#!/metronomes?path=worker.js%3A1%3A0
  * Why setInterval?
  *    I found that using setInterval in the client-side app was creating really bad latency
- *    between the recording and the metronome. I decided to migrate to a worklet to reduce
+ *    between the recording and the metronome. I decided to migrate to a worker to reduce
  *    the chance timing issues due to blocking code on the main thread (e.g. from React).
  *    However, this still may not be the endgame.
  *    This fantastic blog post[1] and the accompanying example code[2] demonstrate that using

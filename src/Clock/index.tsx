@@ -12,7 +12,7 @@ export const Clock: React.FC = () => {
    * I tried refactoring this into a custom hook but ran into all sorts of weird issues. This is easy enough so leaving as is
    */
   const clock = useMemo(
-    () => new Worker(new URL('../worklets/clock', import.meta.url)),
+    () => new Worker(new URL('../workers/clock', import.meta.url)),
     []
   )
 

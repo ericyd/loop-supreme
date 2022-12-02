@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   WaveformControllerMessage,
   WaveformWorkerInitializeMessage,
-} from '../worklets/waveform'
+} from '../workers/waveform'
 
 type Props = {
   worker: Worker

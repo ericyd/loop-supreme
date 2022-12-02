@@ -17,12 +17,12 @@ import React, {
 import { useAudioContext } from '../AudioProvider'
 import { logger } from '../util/logger'
 import { VolumeControl } from './VolumeControl'
-import type { ClockControllerMessage } from '../worklets/clock'
+import type { ClockControllerMessage } from '../workers/clock'
 import type {
   WaveformWorkerFrameMessage,
   WaveformWorkerMetronomeMessage,
   WaveformWorkerResetMessage,
-} from '../worklets/waveform'
+} from '../workers/waveform'
 import ArmTrackRecording from './ArmTrackRecording'
 import { getLatencySamples } from './get-latency-samples'
 import MonitorInput from './MonitorInput'
@@ -35,7 +35,7 @@ import { deviceIdFromStream } from './device-id-from-stream'
 import type {
   ExportWavWorkerEvent,
   WavBlobControllerEvent,
-} from '../worklets/export'
+} from '../workers/export'
 
 type Props = {
   id: number
@@ -106,11 +106,11 @@ export const Track: React.FC<Props> = ({
 
   // delegate waveform generation and wav file writing to workers
   const waveformWorker = useMemo(
-    () => new Worker(new URL('../worklets/waveform', import.meta.url)),
+    () => new Worker(new URL('../workers/waveform', import.meta.url)),
     []
   )
   const exportWorker = useMemo(
-    () => new Worker(new URL('../worklets/export', import.meta.url)),
+    () => new Worker(new URL('../workers/export', import.meta.url)),
     []
   )
   const downloadLinkRef = useRef<HTMLAnchorElement>(null)
@@ -154,7 +154,7 @@ export const Track: React.FC<Props> = ({
   const bufferSource = useRef<AudioBufferSourceNode>()
 
   /**
-   * Builds a callback that handles the messages from the recorder worklet.
+   * Builds a callback that handles the messages from the recorder worker.
    * The most important message to handle is SHARE_RECORDING_BUFFER,
    * which indicates that the recording buffer is ready for playback.
    */

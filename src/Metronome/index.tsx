@@ -23,7 +23,7 @@ import type {
   ClockWorkerStartMessage,
   ClockWorkerStopMessage,
   ClockWorkerUpdateMessage,
-} from '../worklets/clock'
+} from '../workers/clock'
 import { useDecayingSine } from './waveforms'
 import { useDebouncedCallback } from 'use-debounce'
 import { PlayPause } from '../icons/PlayPause'
