@@ -3,17 +3,17 @@
   "name": "Loop Supreme",
   "icons": [
     {
-      "src": "loop-supreme-logo.png",
+      "src": "icons/loop-supreme-logo.png",
       "type": "image/png",
       "sizes": "240x240"
     },
     {
-      "src": "loop-supreme-logo.svg",
+      "src": "icons/loop-supreme-logo.svg",
       "type": "image/svg",
       "sizes": "240x240"
     }
   ],
-  "start_url": "https://loop-supreme.com",
+  "start_url": "https://loopsupreme.com",
   "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#ffffff"
