@@ -101,6 +101,7 @@ export const Track: React.FC<Props> = ({
     () => new Worker(new URL('../worklets/export', import.meta.url)),
     []
   )
+  const downloadLinkRef = useRef<HTMLAnchorElement>(null)
 
   /**
    * Set up track gain.
@@ -408,13 +409,12 @@ export const Track: React.FC<Props> = ({
 
     function handleWavBlob(event: MessageEvent<WavBlobControllerEvent>) {
       logger.debug(`Handling WAV message for track ${title}, ID ${id}`)
-      if (event.data.message === 'WAV_BLOB') {
-        let file = new File([event.data.blob], `${title}.wav`, {
-          type: 'audio/wav',
-        })
-        let exportUrl = URL.createObjectURL(file)
-        window.open(exportUrl)
-        window.URL.revokeObjectURL(exportUrl)
+      if (event.data.message === 'WAV_BLOB' && downloadLinkRef.current) {
+        const url = window.URL.createObjectURL(event.data.blob)
+        downloadLinkRef.current.href = url
+        downloadLinkRef.current.download = `${title.replace(/\s/g, '-')}.wav`
+        downloadLinkRef.current.click()
+        window.URL.revokeObjectURL(url)
       }
     }
 
@@ -476,6 +476,14 @@ export const Track: React.FC<Props> = ({
           />
         </div>
       </div>
+      {/* Download element - inspired by this SO answer https://stackoverflow.com/a/19328891/3991555 */}
+      <a
+        ref={downloadLinkRef}
+        href="https://test.example.com"
+        className="hidden"
+      >
+        Download
+      </a>
       {/* divider */}
       <div className="border-b border-solid border-zinc-400 w-full h-2 mb-2" />
     </>
