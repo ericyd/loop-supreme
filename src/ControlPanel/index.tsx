@@ -1,6 +1,6 @@
 import React from 'react'
 import { useDebouncedCallback } from 'use-debounce'
-import { MetronomeReader, MetronomeWriter } from '../Metronome'
+import { MetronomeReader, MetronomeState, MetronomeWriter } from '../Metronome'
 import MeasuresPerLoop from './MeasuresPerLoop'
 import TimeSignature from './TimeSignature'
 import Tempo from './Tempo'
@@ -10,11 +10,13 @@ import MetronomeControls from './MetronomeControls'
 type Props = {
   metronome: MetronomeReader
   metronomeWriter: MetronomeWriter
+  metronomeState: MetronomeState
 }
 
 export const ControlPanel: React.FC<Props> = ({
   metronome,
   metronomeWriter,
+  metronomeState,
 }) => {
   const setUpstreamBpm = useDebouncedCallback(metronomeWriter.setBpm, 100, {
     leading: true,
@@ -35,8 +37,8 @@ export const ControlPanel: React.FC<Props> = ({
       <div className="flex">
         <div className="flex flex-col items-center">
           <BeatCounter
-            currentTick={metronome.currentTick}
-            currentMeasure={metronome.currentMeasure}
+            currentTick={metronomeState.currentTick}
+            currentMeasure={metronomeState.currentMeasure}
           />
 
           <TimeSignature

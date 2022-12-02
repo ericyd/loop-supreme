@@ -14,12 +14,15 @@ export type TimeSignature = {
   beatUnit: number
 }
 
+export type MetronomeState = {
+  currentTick: number
+  currentMeasure: number
+}
+
 export type MetronomeReader = {
   bpm: number
-  currentTick: number
   timeSignature: TimeSignature
   measuresPerLoop: number
-  currentMeasure: number
   playing: boolean
   clock: Worker
   gain: number
@@ -160,17 +163,20 @@ export const Metronome: React.FC<Props> = () => {
     })
   }, [bpm, timeSignature.beatsPerMeasure, measuresPerLoop, clock])
 
-  const reader: MetronomeReader = {
-    bpm,
+  const currentState: MetronomeState = {
     // we start at -1 to make the first beat work easily,
     // but we don't want to *show* -1 to the user
     currentTick: Math.max(currentTick % timeSignature.beatsPerMeasure, 0),
-    timeSignature,
-    measuresPerLoop,
     currentMeasure: Math.max(
       Math.floor(currentTick / timeSignature.beatsPerMeasure),
       0
     ),
+  }
+  const reader: MetronomeReader = {
+    bpm,
+    timeSignature,
+    measuresPerLoop,
+
     playing,
     clock,
     gain,
@@ -186,7 +192,11 @@ export const Metronome: React.FC<Props> = () => {
   }
   return (
     <>
-      <ControlPanel metronome={reader} metronomeWriter={writer} />
+      <ControlPanel
+        metronome={reader}
+        metronomeWriter={writer}
+        metronomeState={currentState}
+      />
       <Scene metronome={reader} />
       <KeyboardBindings />
     </>
