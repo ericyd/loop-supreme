@@ -86,9 +86,6 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
     (event: MessageEvent<ClockControllerMessage>) => {
       // console.log(event.data) // this is really noisy
       if (event.data.message === 'TICK') {
-        const { currentTick } = event.data
-        setCurrentTick(currentTick)
-
         const source = new AudioBufferSourceNode(audioContext, {
           buffer: event.data.downbeat ? sine380 : sine330,
         })
@@ -192,16 +189,8 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
       <div className="flex">
         <div className="flex flex-col items-center">
           <BeatCounter
-            // we start at -1 to make the first beat work easily,
-            // but we don't want to *show* -1 to the user
-            currentTick={Math.max(
-              currentTick % timeSignature.beatsPerMeasure,
-              0
-            )}
-            currentMeasure={Math.max(
-              Math.floor(currentTick / timeSignature.beatsPerMeasure),
-              0
-            )}
+              clock={clock}
+              beatsPerMeasure={timeSignature.beatsPerMeasure}
           />
 
           <TimeSignatureControl
