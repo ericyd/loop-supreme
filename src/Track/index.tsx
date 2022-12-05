@@ -175,46 +175,17 @@ export const Track: React.FC<Props> = ({
         }
 
         if (event.data.message === 'SHARE_RECORDING_BUFFER') {
+          // This "should" be calculated for higher accuracy, from the metronome properties.
+          // However, to avoid passing them as props (which is slightly more work ¯\_(ツ)_/¯), we are using this.
+          // Here is a reference implementation calculating the length from metronome props if it ever makes sense to change back.
+          // https://github.com/ericyd/loop-supreme/blob/562936dd53bbd2158e6779d1c9dbc89ee4684863/src/Track/index.tsx#L167-L189
           const fullRecordingLength = event.data.recordingLength
-          // When in doubt... use dimensional analysis! 🙃
-          //
-          //  60 seconds    beats       60 seconds    minute
-          // ———————————— ➗ —————   🟰  ——————————— 𝒙  ———————      =>
-          //   minute      minute        minute       beats
-          //
-          //   seconds    minutes   measures    beats     samples     samples
-          //  ————————— 𝒙 ———————— 𝒙 ———————— 𝒙 ———————— 𝒙 ————————— 🟰 ——————————
-          //   minute     beat      loop       measure    second       loop
-
-          // This is "correct", but hard to get these props from here...
-          // const targetRecordingLength =
-          //   (60 / metronome.bpm) *
-          //   metronome.measuresPerLoop *
-          //   metronome.timeSignature.beatsPerMeasure *
-          //   audioContext.sampleRate
-
-          // this is "easy", and over-estimates the buffer length, but since it isn't looping anyway.... perhaps it doesn't matter???
-          // ahhhhh, shitty... it doesn't work great because when you export a track it's massive
-          // I think basically 3 options:
-          // 1. use the "recordingLength" property from the recorder. It might be off by a few samples but should be relatively accurate
-          // 2. send a message to the clock worker to get latest metronome settings. Don't love this, but I guess it would work?
-          // 3. revert to nesting this within Metronome and passing these as props
-          const targetRecordingLength = audioContext.sampleRate * 4 * 8 * 1
-
-          logger.debug({
-            fullRecordingLength,
-            targetRecordingLength,
-            differenceInSamples: fullRecordingLength - targetRecordingLength,
-            differenceInSeconds:
-              (fullRecordingLength - targetRecordingLength) /
-              audioContext.sampleRate,
-          })
 
           // create recording buffer with targetRecordingLength,
           // to ensure it matches the loop length precisely.
           const recordingBuffer = audioContext.createBuffer(
             recordingProperties.numberOfChannels,
-            targetRecordingLength,
+            fullRecordingLength,
             audioContext.sampleRate
           )
 
@@ -233,7 +204,7 @@ export const Track: React.FC<Props> = ({
               // See `worklets/recorder` for the buffer offset
               // [1] https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer/copyToChannel
               // [2] https://jsfiddle.net/y7qL9wr4/7
-              event.data.channelsData[i].slice(0, targetRecordingLength),
+              event.data.channelsData[i].slice(0, fullRecordingLength),
               i,
               0
             )
