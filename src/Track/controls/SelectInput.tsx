@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { logger } from '../../util/logger'
 import { deviceIdFromStream } from '../../util/device-id-from-stream'
+import { useAudioContext } from '../../AudioProvider'
 
 type Props = {
   defaultDeviceId: string
@@ -8,21 +9,8 @@ type Props = {
 }
 
 export function SelectInput(props: Props) {
-  const [inputs, setInputs] = useState<MediaDeviceInfo[]>([])
+  const { devices } = useAudioContext()
   const [selected, setSelected] = useState(props.defaultDeviceId)
-
-  useEffect(() => {
-    async function getInputs() {
-      const devices = await navigator.mediaDevices.enumerateDevices()
-      const audioInputs = devices.filter(
-        (device) => device.kind === 'audioinput'
-      )
-      logger.debug({ audioInputs })
-      setInputs(audioInputs)
-    }
-
-    getInputs()
-  }, [])
 
   const handleChange: React.ChangeEventHandler<HTMLSelectElement> = async (
     event
@@ -36,7 +24,11 @@ export function SelectInput(props: Props) {
       setSelected(deviceIdFromStream(stream) ?? '')
     } catch (e) {
       alert('oh no, you broke it 😿')
-      console.error(e)
+      logger.error({
+        e,
+        event,
+        message: 'Failed to create stream from selected device',
+      })
     }
   }
 
@@ -46,10 +38,10 @@ export function SelectInput(props: Props) {
       onChange={handleChange}
       value={selected}
     >
-      {inputs.map((input) => (
-        <option key={JSON.stringify(input)} value={input.deviceId}>
+      {devices.map((device) => (
+        <option key={JSON.stringify(device)} value={device.deviceId}>
           {/* Chrome appends a weird hex ID to some inputs */}
-          {input.label.replace(/\([a-z0-9]+:[a-z0-9]+\)/, '')}
+          {device.label.replace(/\([a-z0-9]+:[a-z0-9]+\)/, '')}
         </option>
       ))}
     </select>

@@ -22,6 +22,7 @@ import { logger } from '../util/logger'
 export const Start: React.FC = () => {
   const [stream, setStream] = useState<MediaStream>()
   const [audioContext, setAudioContext] = useState<AudioContext>()
+  const [devices, setDevices] = useState<MediaDeviceInfo[] | null>(null)
   const [latencySupported, setLatencySupported] = useState(true)
 
   useEffect(() => {
@@ -51,7 +52,24 @@ export const Start: React.FC = () => {
       alert(
         'big, terrible error occurred and there is no coming back from that 😿'
       )
-      logger.error(e, 'Error getting user media')
+      logger.error({ e, message: 'Error getting user media' })
+    }
+
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices()
+      const audioDevices = devices.filter(
+        (device) => device.kind === 'audioinput'
+      )
+      if (audioDevices.length === 0) {
+        logger.error({ devices })
+        throw new Error('No audio devices found')
+      }
+      setDevices(audioDevices)
+    } catch (e) {
+      alert(
+        'big, terrible error occurred and there is no coming back from that 😿'
+      )
+      logger.error({ e, message: 'Error getting user devices' })
     }
 
     const workletUrl = new URL('../workers/recorder', import.meta.url)
@@ -71,8 +89,8 @@ export const Start: React.FC = () => {
     }
   }
 
-  return stream && audioContext ? (
-    <App stream={stream} audioContext={audioContext} />
+  return stream && audioContext && devices?.length ? (
+    <App stream={stream} audioContext={audioContext} devices={devices} />
   ) : (
     <>
       <div className="flex flex-col items-center justify-center mx-auto">

@@ -6,6 +6,7 @@ import { KeyboardBindingsList } from './KeyboardBindingsList'
 type Props = {
   stream: MediaStream
   audioContext: AudioContext
+  devices: MediaDeviceInfo[]
 }
 
 function App(props: Props) {

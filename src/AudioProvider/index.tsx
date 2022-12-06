@@ -8,6 +8,7 @@ import React, { createContext, useContext } from 'react'
 type AudioAdapter = {
   audioContext: AudioContext
   stream: MediaStream
+  devices: MediaDeviceInfo[]
 }
 
 const AudioRouter = createContext<AudioAdapter | null>(null)
@@ -15,6 +16,7 @@ const AudioRouter = createContext<AudioAdapter | null>(null)
 type Props = {
   stream: MediaStream
   audioContext: AudioContext
+  devices: MediaDeviceInfo[]
   children: React.ReactNode
 }
 
