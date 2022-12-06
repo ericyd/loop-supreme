@@ -116,8 +116,8 @@ export const Track: React.FC<Props> = ({
 
   /**
    * Set up track gain.
-   * Refs vs State ... still learning.
-   * I believe this is correct because if the GainNode were a piece of State,
+   * Refs vs State vs Memo:
+   * Using a ref is the easiest because if the GainNode were a piece of State or a Memo,
    * then the GainNode would be re-instantiated every time the gain changed.
    * That would destroy the audio graph that gets connected when the track is playing back.
    * The audio graph should stay intact, so mutating the gain value directly is (I believe) the correct way to achieve this.
@@ -305,14 +305,16 @@ export const Track: React.FC<Props> = ({
       bufferSource.current.connect(gainNode.current)
       // ramp up to desired gain quickly to avoid clips at the beginning of the loop
       gainNode.current.gain.value = 0.0
+      if (!muted) {
       gainNode.current.gain.setTargetAtTime(
         gain,
         audioContext.currentTime,
         0.02
       )
+      }
       bufferSource.current.start()
     }
-  }, [armed, audioContext, gain, recording, waveformWorker])
+  }, [armed, audioContext, gain, muted, recording, waveformWorker])
 
   useEffect(() => {
     function delegateClockMessage(event: MessageEvent<ClockControllerMessage>) {
