@@ -66,6 +66,11 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
     gainNode.current.gain.value = muted ? 0.0 : gain
   }, [gain, muted])
 
+  // I don't think this is an ideal use for a ref,
+  // but this is the easiest way to be able to "disconnect" on each loop.
+  // This isn't strictly necessary afaik, but I think it will help with garbage cleanup
+  const source = useRef<AudioBufferSourceNode | null>(null)
+
   /**
    * On each tick, set the "currentTick" value and emit a beep.
    * The AudioBufferSourceNode must be created fresh each time,
@@ -75,11 +80,14 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
     (event: MessageEvent<ClockControllerMessage>) => {
       // console.log(event.data) // this is really noisy
       if (event.data.message === 'TICK') {
-        const source = new AudioBufferSourceNode(audioContext, {
+        if (source.current) {
+          source.current.disconnect()
+        }
+        source.current = new AudioBufferSourceNode(audioContext, {
           buffer: event.data.downbeat ? sine380 : sine330,
         })
-        source.connect(gainNode.current)
-        source.start()
+        source.current.connect(gainNode.current)
+        source.current.start()
       }
     },
     [audioContext, sine330, sine380]
