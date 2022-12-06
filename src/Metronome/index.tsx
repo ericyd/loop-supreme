@@ -1,15 +1,3 @@
-/*
-
-I think what I need to do is
-1. create a "Clock" component that is the parent of everything
-2. the only thing it really does is create a Clock worker, and pass that to all children
-3. one child of Clock is Metronome. Metronome sends events to Clock to start or stop, as well as controlling speed, etc
-4. Scene is also a child of Clock. Scene passes Clock to its child Tracks
-5. Tracks subscribe to Clock events
-6. IMPORTANT: clock events must send additional properties in the events, so that metronome props like bpm, time signature, etc DO NOT need to get passed as props
-
-*/
-
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useAudioContext } from '../AudioProvider'
 import { BeatCounter } from './BeatCounter'
@@ -43,7 +31,6 @@ type Props = {
 export const Metronome: React.FC<Props> = ({ clock }) => {
   const { audioContext } = useAudioContext()
   const keyboard = useKeyboard()
-  const [currentTick, setCurrentTick] = useState(-1)
   const [bpm, setBpmDefault] = useState(120)
   const setBpm = useDebouncedCallback(setBpmDefault, 100, {
     leading: true,
@@ -189,8 +176,8 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
       <div className="flex">
         <div className="flex flex-col items-center">
           <BeatCounter
-              clock={clock}
-              beatsPerMeasure={timeSignature.beatsPerMeasure}
+            clock={clock}
+            beatsPerMeasure={timeSignature.beatsPerMeasure}
           />
 
           <TimeSignatureControl
