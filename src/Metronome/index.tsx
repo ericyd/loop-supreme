@@ -1,10 +1,20 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useAudioContext } from '../AudioProvider'
-import { ControlPanel } from '../ControlPanel'
-import { Scene } from '../Scene'
-import type { ClockControllerMessage } from '../worklets/clock'
-import KeyboardBindings from './KeyboardBindings'
-import { decayingSine } from './waveforms'
+import { BeatCounter } from './BeatCounter'
+import { MeasuresPerLoopControl } from './controls/MeasuresPerLoopControl'
+import { TempoControl } from './controls/TempoControl'
+import { TimeSignatureControl } from './controls/TimeSignatureControl'
+import { useKeyboard } from '../KeyboardProvider'
+import { VolumeControl } from './controls/VolumeControl'
+import type {
+  ClockControllerMessage,
+  ClockWorkerStartMessage,
+  ClockWorkerStopMessage,
+  ClockWorkerUpdateMessage,
+} from '../workers/clock'
+import { useDecayingSine } from './waveforms'
+import { useDebouncedCallback } from 'use-debounce'
+import { PlayPause } from '../icons/PlayPause'
 
 export type TimeSignature = {
   beatsPerMeasure: number
@@ -14,35 +24,18 @@ export type TimeSignature = {
   beatUnit: number
 }
 
-export type MetronomeReader = {
-  bpm: number
-  currentTick: number
-  timeSignature: TimeSignature
-  measuresPerLoop: number
-  currentMeasure: number
-  playing: boolean
-  clock: Worker
-  gain: number
-  muted: boolean
-}
-
-export type MetronomeWriter = {
-  setBpm: (bpm: number) => void
-  setTimeSignature: (timeSignature: TimeSignature) => void
-  setMeasuresPerLoop: (count: number) => void
-  togglePlaying: () => Promise<void>
-  setGain: (gain: number) => void
-  setMuted: React.Dispatch<React.SetStateAction<boolean>>
-}
-
 type Props = {
-  children?: React.ReactNode
+  clock: Worker
 }
 
-export const Metronome: React.FC<Props> = () => {
+export const Metronome: React.FC<Props> = ({ clock }) => {
   const { audioContext } = useAudioContext()
-  const [currentTick, setCurrentTick] = useState(-1)
-  const [bpm, setBpm] = useState(120)
+  const keyboard = useKeyboard()
+  const [bpm, setBpmDefault] = useState(120)
+  const setBpm = useDebouncedCallback(setBpmDefault, 100, {
+    leading: true,
+    trailing: false,
+  })
   const [timeSignature, setTimeSignature] = useState<TimeSignature>({
     beatsPerMeasure: 4,
     beatUnit: 4,
@@ -51,44 +44,14 @@ export const Metronome: React.FC<Props> = () => {
   const [playing, setPlaying] = useState(false)
   const [gain, setGain] = useState(0.5)
   const [muted, setMuted] = useState(false)
+  const toggleMuted = useCallback(() => setMuted((muted) => !muted), [])
 
   /**
    * create 2 AudioBuffers with different frequencies,
    * to be used for the metronome beep.
    */
-  const sine330 = useMemo(() => {
-    const buffer = audioContext.createBuffer(
-      1,
-      // this should be the maximum length needed for the audio;
-      // since this buffer is just holding a short sine wave, 1 second will be plenty
-      audioContext.sampleRate,
-      audioContext.sampleRate
-    )
-    buffer.copyToChannel(decayingSine(buffer.sampleRate, 330), 0)
-    return buffer
-  }, [audioContext])
-  const sine380 = useMemo(() => {
-    const buffer = audioContext.createBuffer(
-      1,
-      audioContext.sampleRate,
-      audioContext.sampleRate
-    )
-    buffer.copyToChannel(decayingSine(buffer.sampleRate, 380), 0)
-    return buffer
-  }, [audioContext])
-
-  /**
-   * Instantiate the clock worker.
-   * This is truly the heartbeat of the entire app 🥹
-   * Workers should be loaded exactly once for a Component.
-   * The `import.meta.url` is thanks to this SO answer https://stackoverflow.com/a/71134400/3991555,
-   * which is just a digestible version of the webpack docs https://webpack.js.org/guides/web-workers/
-   * I tried refactoring this into a custom hook but ran into all sorts of weird issues. This is easy enough so leaving as is
-   */
-  const clock = useMemo(
-    () => new Worker(new URL('../worklets/clock', import.meta.url)),
-    []
-  )
+  const sine330 = useDecayingSine(audioContext, 330)
+  const sine380 = useDecayingSine(audioContext, 380)
 
   /**
    * Set up metronome gain node.
@@ -110,9 +73,6 @@ export const Metronome: React.FC<Props> = () => {
     (event: MessageEvent<ClockControllerMessage>) => {
       // console.log(event.data) // this is really noisy
       if (event.data.message === 'TICK') {
-        const { currentTick } = event.data
-        setCurrentTick(currentTick)
-
         const source = new AudioBufferSourceNode(audioContext, {
           buffer: event.data.downbeat ? sine380 : sine330,
         })
@@ -125,6 +85,9 @@ export const Metronome: React.FC<Props> = () => {
     [audioContext, sine330, sine380]
   )
 
+  /**
+   * Add clock event listeners
+   */
   useEffect(() => {
     clock.addEventListener('message', clockMessageHandler)
     return () => {
@@ -132,63 +95,105 @@ export const Metronome: React.FC<Props> = () => {
     }
   }, [clockMessageHandler, clock])
 
-  async function togglePlaying() {
+  /**
+   * When "playing" is toggled on/off,
+   * Send a message to the clock worker to start or stop.
+   * In addition, suspend the audio context.
+   * Suspending the audio context is _probably_ redundant,
+   * since the clock events drive the whole app.
+   * But, until proven otherwise, going to leave it.
+   */
+  const togglePlaying = useCallback(async () => {
     if (playing) {
       await audioContext.suspend()
       clock.postMessage({
         message: 'STOP',
-      })
+      } as ClockWorkerStopMessage)
       setPlaying(false)
     } else {
       await audioContext.resume()
       clock.postMessage({
+        message: 'START',
         bpm,
         beatsPerMeasure: timeSignature.beatsPerMeasure,
         measuresPerLoop,
-        message: 'START',
-      })
+      } as ClockWorkerStartMessage)
       setPlaying(true)
     }
-  }
+  }, [
+    audioContext,
+    playing,
+    timeSignature.beatsPerMeasure,
+    measuresPerLoop,
+    bpm,
+    clock,
+  ])
 
+  /**
+   * Bind any changes to core metronome properties to the clock.
+   */
   useEffect(() => {
     clock.postMessage({
+      message: 'UPDATE',
       bpm,
       beatsPerMeasure: timeSignature.beatsPerMeasure,
       measuresPerLoop,
-      message: 'UPDATE',
-    })
+    } as ClockWorkerUpdateMessage)
   }, [bpm, timeSignature.beatsPerMeasure, measuresPerLoop, clock])
 
-  const reader: MetronomeReader = {
-    bpm,
-    // we start at -1 to make the first beat work easily,
-    // but we don't want to *show* -1 to the user
-    currentTick: Math.max(currentTick % timeSignature.beatsPerMeasure, 0),
-    timeSignature,
-    measuresPerLoop,
-    currentMeasure: Math.max(
-      Math.floor(currentTick / timeSignature.beatsPerMeasure),
-      0
-    ),
-    playing,
-    clock,
-    gain,
-    muted,
-  }
-  const writer: MetronomeWriter = {
-    setBpm,
-    setTimeSignature,
-    setMeasuresPerLoop,
-    togglePlaying,
-    setGain,
-    setMuted,
-  }
+  /**
+   * Bind keyboard effects
+   */
+  useEffect(() => {
+    keyboard.on('c', 'Metronome', toggleMuted)
+    // kinda wish I could write "space" but I guess this is the way this works.
+    keyboard.on(' ', 'Metronome', (e) => {
+      // Only toggle playing if another control element is not currently focused
+      if (
+        !['INPUT', 'SELECT', 'BUTTON'].includes(
+          document.activeElement?.tagName ?? ''
+        )
+      ) {
+        togglePlaying()
+        e.preventDefault()
+      }
+    })
+  }, [keyboard, togglePlaying, toggleMuted])
+
   return (
-    <>
-      <ControlPanel metronome={reader} metronomeWriter={writer} />
-      <Scene metronome={reader} />
-      <KeyboardBindings />
-    </>
+    <div className="flex mb-12 items-end justify-between">
+      <div className="flex items-start content-center mb-2 mr-2">
+        <PlayPause onClick={togglePlaying} playing={playing} />
+
+        <VolumeControl
+          muted={muted}
+          toggleMuted={toggleMuted}
+          gain={gain}
+          onChange={setGain}
+        />
+      </div>
+
+      <div className="flex">
+        <div className="flex flex-col items-center">
+          <BeatCounter
+            clock={clock}
+            beatsPerMeasure={timeSignature.beatsPerMeasure}
+          />
+
+          <TimeSignatureControl
+            onChange={setTimeSignature}
+            beatsPerMeasure={timeSignature.beatsPerMeasure}
+            beatUnit={timeSignature.beatUnit}
+          />
+        </div>
+
+        <TempoControl onChange={setBpm} defaultValue={bpm} />
+
+        <MeasuresPerLoopControl
+          onChange={setMeasuresPerLoop}
+          measuresPerLoop={measuresPerLoop}
+        />
+      </div>
+    </div>
   )
 }

@@ -15,33 +15,32 @@ import React, {
   useState,
 } from 'react'
 import { useAudioContext } from '../AudioProvider'
-import { MetronomeReader } from '../Metronome'
 import { logger } from '../util/logger'
-import { VolumeControl } from './VolumeControl'
-import type { ClockControllerMessage } from '../worklets/clock'
+import { VolumeControl } from './controls/VolumeControl'
+import type { ClockControllerMessage } from '../workers/clock'
 import type {
   WaveformWorkerFrameMessage,
   WaveformWorkerMetronomeMessage,
   WaveformWorkerResetMessage,
-} from '../worklets/waveform'
-import ArmTrackRecording from './ArmTrackRecording'
-import { getLatencySamples } from './get-latency-samples'
-import MonitorInput from './MonitorInput'
-import Mute from './Mute'
-import RemoveTrack from './RemoveTrack'
-import Waveform from './Waveform'
+} from '../workers/waveform'
+import { ArmTrackRecording } from './controls/ArmTrackRecording'
+import { getLatencySamples } from '../util/get-latency-samples'
+import { MonitorInput } from './controls/MonitorInput'
+import { Mute } from './controls/Mute'
+import { RemoveTrack } from './controls/RemoveTrack'
+import { Waveform } from './Waveform'
 import { useKeyboard } from '../KeyboardProvider'
-import SelectInput from './SelectInput'
-import { deviceIdFromStream } from './device-id-from-stream'
+import { SelectInput } from './controls/SelectInput'
+import { deviceIdFromStream } from '../util/device-id-from-stream'
 import type {
   ExportWavWorkerEvent,
   WavBlobControllerEvent,
-} from '../worklets/export'
+} from '../workers/export'
 
 type Props = {
   id: number
   onRemove(): void
-  metronome: MetronomeReader
+  clock: Worker
   selected: boolean
   exportTarget: EventTarget
 }
@@ -81,7 +80,7 @@ type RecordingMessage =
 export const Track: React.FC<Props> = ({
   id,
   onRemove,
-  metronome,
+  clock,
   selected,
   exportTarget,
 }) => {
@@ -89,24 +88,36 @@ export const Track: React.FC<Props> = ({
   const [stream, setStream] = useState(defaultStream)
   const defaultDeviceId = deviceIdFromStream(defaultStream) ?? ''
   const keyboard = useKeyboard()
+
+  // title is mostly display-only, but also defines the file name when downloading files
   const [title, setTitle] = useState(`Track ${id}`)
+  const handleChangeTitle: ChangeEventHandler<HTMLInputElement> = (event) => {
+    setTitle(event.target.value)
+  }
+
+  // when a track is armed, it will begin recording automatically on the next loop start
   const [armed, setArmed] = useState(false)
-  const toggleArmRecording = () => setArmed((value) => !value)
+  const toggleArmRecording = () => {
+    logger.debug('Toggling arm recording')
+    setArmed((value) => !value)
+  }
   const [recording, setRecording] = useState(false)
+
+  // delegate waveform generation and wav file writing to workers
   const waveformWorker = useMemo(
-    () => new Worker(new URL('../worklets/waveform', import.meta.url)),
+    () => new Worker(new URL('../workers/waveform', import.meta.url)),
     []
   )
   const exportWorker = useMemo(
-    () => new Worker(new URL('../worklets/export', import.meta.url)),
+    () => new Worker(new URL('../workers/export', import.meta.url)),
     []
   )
   const downloadLinkRef = useRef<HTMLAnchorElement>(null)
 
   /**
    * Set up track gain.
-   * Refs vs State ... still learning.
-   * I believe this is correct because if the GainNode were a piece of State,
+   * Refs vs State vs Memo:
+   * Using a ref is the easiest because if the GainNode were a piece of State or a Memo,
    * then the GainNode would be re-instantiated every time the gain changed.
    * That would destroy the audio graph that gets connected when the track is playing back.
    * The audio graph should stay intact, so mutating the gain value directly is (I believe) the correct way to achieve this.
@@ -142,7 +153,7 @@ export const Track: React.FC<Props> = ({
   const bufferSource = useRef<AudioBufferSourceNode>()
 
   /**
-   * Builds a callback that handles the messages from the recorder worklet.
+   * Builds a callback that handles the messages from the recorder worker.
    * The most important message to handle is SHARE_RECORDING_BUFFER,
    * which indicates that the recording buffer is ready for playback.
    */
@@ -164,35 +175,17 @@ export const Track: React.FC<Props> = ({
         }
 
         if (event.data.message === 'SHARE_RECORDING_BUFFER') {
+          // This "should" be calculated for higher accuracy, from the metronome properties.
+          // However, to avoid passing them as props (which is slightly more work ¯\_(ツ)_/¯), we are using this.
+          // Here is a reference implementation calculating the length from metronome props if it ever makes sense to change back.
+          // https://github.com/ericyd/loop-supreme/blob/562936dd53bbd2158e6779d1c9dbc89ee4684863/src/Track/index.tsx#L167-L189
           const fullRecordingLength = event.data.recordingLength
-          // When in doubt... use dimensional analysis! 🙃
-          //
-          //  60 seconds    beats       60 seconds    minute
-          // ———————————— ➗ —————   🟰  ——————————— 𝒙  ———————      =>
-          //   minute      minute        minute       beats
-          //
-          //   seconds    minutes   measures    beats     samples     samples
-          //  ————————— 𝒙 ———————— 𝒙 ———————— 𝒙 ———————— 𝒙 ————————— 🟰 ——————————
-          //   minute     beat      loop       measure    second       loop
-          const targetRecordingLength =
-            (60 / metronome.bpm) *
-            metronome.measuresPerLoop *
-            metronome.timeSignature.beatsPerMeasure *
-            audioContext.sampleRate
-          logger.debug({
-            fullRecordingLength,
-            targetRecordingLength,
-            differenceInSamples: fullRecordingLength - targetRecordingLength,
-            differenceInSeconds:
-              (fullRecordingLength - targetRecordingLength) /
-              audioContext.sampleRate,
-          })
 
           // create recording buffer with targetRecordingLength,
           // to ensure it matches the loop length precisely.
           const recordingBuffer = audioContext.createBuffer(
             recordingProperties.numberOfChannels,
-            targetRecordingLength,
+            fullRecordingLength,
             audioContext.sampleRate
           )
 
@@ -211,7 +204,7 @@ export const Track: React.FC<Props> = ({
               // See `worklets/recorder` for the buffer offset
               // [1] https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer/copyToChannel
               // [2] https://jsfiddle.net/y7qL9wr4/7
-              event.data.channelsData[i].slice(0, targetRecordingLength),
+              event.data.channelsData[i].slice(0, fullRecordingLength),
               i,
               0
             )
@@ -229,13 +222,7 @@ export const Track: React.FC<Props> = ({
         }
       }
     },
-    [
-      audioContext,
-      waveformWorker,
-      metronome.bpm,
-      metronome.measuresPerLoop,
-      metronome.timeSignature.beatsPerMeasure,
-    ]
+    [audioContext, waveformWorker]
   )
 
   /**
@@ -283,29 +270,7 @@ export const Track: React.FC<Props> = ({
     }
   }, [audioContext, buildRecorderMessageHandler, stream])
 
-  /**
-   * Update waveform worker when metronome parameters change,
-   * so waveforms can be scaled properly
-   */
-  useEffect(() => {
-    waveformWorker.postMessage({
-      message: 'UPDATE_METRONOME',
-      beatsPerSecond: metronome.bpm / 60,
-      measuresPerLoop: metronome.measuresPerLoop,
-      beatsPerMeasure: metronome.timeSignature.beatsPerMeasure,
-    } as WaveformWorkerMetronomeMessage)
-  }, [
-    metronome.bpm,
-    metronome.measuresPerLoop,
-    metronome.timeSignature.beatsPerMeasure,
-    waveformWorker,
-  ])
-
-  const handleChangeTitle: ChangeEventHandler<HTMLInputElement> = (event) => {
-    setTitle(event.target.value)
-  }
-
-  function handleLoopstart() {
+  const handleLoopstart = useCallback(() => {
     if (recording) {
       setRecording(false)
       recorderWorklet.current?.port?.postMessage({
@@ -333,7 +298,6 @@ export const Track: React.FC<Props> = ({
     // this is almost certainly imperfect, but at least it will **appear** to be accurate.
     // AudioSourceNodes, including AudioBufferSourceNodes, can only be started once, therefore
     // need to stop, create new, and start again
-    // TODO: allow clearing via re-recording. Maybe set up a second buffer?
     if (bufferSource.current?.buffer) {
       bufferSource.current = new AudioBufferSourceNode(audioContext, {
         buffer: bufferSource.current.buffer,
@@ -341,28 +305,37 @@ export const Track: React.FC<Props> = ({
       bufferSource.current.connect(gainNode.current)
       // ramp up to desired gain quickly to avoid clips at the beginning of the loop
       gainNode.current.gain.value = 0.0
+      if (!muted) {
       gainNode.current.gain.setTargetAtTime(
         gain,
         audioContext.currentTime,
         0.02
       )
+      }
       bufferSource.current.start()
     }
-  }
-
-  function delegateClockMessage(event: MessageEvent<ClockControllerMessage>) {
-    if (event.data.loopStart) {
-      handleLoopstart()
-    }
-  }
+  }, [armed, audioContext, gain, muted, recording, waveformWorker])
 
   useEffect(() => {
-    metronome.clock.addEventListener('message', delegateClockMessage)
-    return () => {
-      metronome.clock.removeEventListener('message', delegateClockMessage)
+    function delegateClockMessage(event: MessageEvent<ClockControllerMessage>) {
+      if (event.data.loopStart) {
+        handleLoopstart()
+      } else {
+        // keep waveform worker updated to metronome settings
+        waveformWorker.postMessage({
+          message: 'UPDATE_METRONOME',
+          beatsPerSecond: event.data.bpm / 60,
+          measuresPerLoop: event.data.measuresPerLoop,
+          beatsPerMeasure: event.data.beatsPerMeasure,
+        } as WaveformWorkerMetronomeMessage)
+      }
     }
-    // TODO: include dependency array so these event listeners aren't added/removed on every render
-  })
+
+    clock.addEventListener('message', delegateClockMessage)
+    return () => {
+      clock.removeEventListener('message', delegateClockMessage)
+    }
+  }, [handleLoopstart, clock, waveformWorker])
 
   /**
    * Attach keyboard listeners.

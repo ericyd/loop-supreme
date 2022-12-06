@@ -1,19 +1,17 @@
 import { useEffect, useState } from 'react'
-import { logger } from '../util/logger'
-import { deviceIdFromStream } from './device-id-from-stream'
+import { logger } from '../../util/logger'
+import { deviceIdFromStream } from '../../util/device-id-from-stream'
 
 type Props = {
   defaultDeviceId: string
   setStream(stream: MediaStream): void
 }
 
-export default function SelectInput(props: Props) {
+export function SelectInput(props: Props) {
   const [inputs, setInputs] = useState<MediaDeviceInfo[]>([])
-  const [selected, setSelected] = useState('')
+  const [selected, setSelected] = useState(props.defaultDeviceId)
 
   useEffect(() => {
-    logger.debug({ defaultDeviceId: props.defaultDeviceId })
-
     async function getInputs() {
       const devices = await navigator.mediaDevices.enumerateDevices()
       const audioInputs = devices.filter(
@@ -21,7 +19,6 @@ export default function SelectInput(props: Props) {
       )
       logger.debug({ audioInputs })
       setInputs(audioInputs)
-      setSelected(props.defaultDeviceId)
     }
 
     getInputs()

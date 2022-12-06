@@ -15,5 +15,5 @@
 
 for filepath in build/static/media/*.js; do
   filename=$(basename $filepath | sed -E 's|([^\.]+).*|\1|')
-  cp src/worklets/$filename.js "build/static/media/$(ls build/static/media | grep $filename)"
+  cp src/workers/$filename.js "build/static/media/$(ls build/static/media | grep $filename)"
 done

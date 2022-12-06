@@ -5,7 +5,7 @@
  *    https://glitch.com/edit/#!/metronomes?path=worker.js%3A1%3A0
  * Why setInterval?
  *    I found that using setInterval in the client-side app was creating really bad latency
- *    between the recording and the metronome. I decided to migrate to a worklet to reduce
+ *    between the recording and the metronome. I decided to migrate to a worker to reduce
  *    the chance timing issues due to blocking code on the main thread (e.g. from React).
  *    However, this still may not be the endgame.
  *    This fantastic blog post[1] and the accompanying example code[2] demonstrate that using
@@ -20,21 +20,21 @@
  *     This is a learning process for me and this may change in the future.
  */
 
-type ClockWorkerStartMessage = {
+export type ClockWorkerStartMessage = {
   message: 'START'
   bpm: number
   beatsPerMeasure: number
   measuresPerLoop: number
 }
 
-type ClockWorkerUpdateMessage = {
+export type ClockWorkerUpdateMessage = {
   message: 'UPDATE'
   bpm: number
   beatsPerMeasure: number
   measuresPerLoop: number
 }
 
-type ClockWorkerStopMessage = {
+export type ClockWorkerStopMessage = {
   message: 'STOP'
 }
 
@@ -50,6 +50,9 @@ export type ClockControllerMessage = {
   downbeat: boolean
   // true on the first beat of each loop
   loopStart: boolean
+  bpm: number
+  measuresPerLoop: number
+  beatsPerMeasure: number
 }
 
 // must add `webWorker` to `compilerOptions.lib` prop of tsconfig.json
@@ -73,6 +76,9 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
       currentTick,
       downbeat: currentTick % beatsPerMeasure === 0,
       loopStart: currentTick === 0,
+      bpm,
+      beatsPerMeasure,
+      measuresPerLoop,
     })
     timeoutId = setInterval(() => {
       currentTick = (currentTick + 1) % (beatsPerMeasure * measuresPerLoop)
@@ -81,7 +87,10 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
         currentTick,
         downbeat: currentTick % beatsPerMeasure === 0,
         loopStart: currentTick === 0,
-      })
+        bpm,
+        beatsPerMeasure,
+        measuresPerLoop,
+      } as ClockControllerMessage)
     }, (60 / bpm) * 1000)
   }
 

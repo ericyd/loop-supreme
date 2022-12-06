@@ -54,7 +54,7 @@ export const Start: React.FC = () => {
       logger.error(e, 'Error getting user media')
     }
 
-    const workletUrl = new URL('../worklets/recorder', import.meta.url)
+    const workletUrl = new URL('../workers/recorder', import.meta.url)
     try {
       const audioContext = new AudioContext()
 

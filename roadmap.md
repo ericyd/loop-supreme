@@ -2,13 +2,13 @@
 
 This is a rough list of tasks that should be completed to consider this project "done"
 
-## Project setup
+## ✅ Project setup
 
 - [x] create-react-app https://github.com/ericyd/loop-supreme/pull/1
 - [x] configure tailwind https://github.com/ericyd/loop-supreme/pull/1
 - [x] add project roadmap https://github.com/ericyd/loop-supreme/pull/2
 
-## Metronome
+## ✅ Metronome
 
 The `Metronome` is the heart of the app. The BPM, measure, current tick, and time signature should be synchronized to all the components. The metronome will probably be a Context, accessed via a hook that returns a Reader and Writer
 
@@ -29,7 +29,7 @@ The `Metronome` is the heart of the app. The BPM, measure, current tick, and tim
 - [x] Metronome must play an audible click on each tick https://github.com/ericyd/loop-supreme/pull/4
 - [x] Metronome must initialize as "stopped", and can be "started" by user input https://github.com/ericyd/loop-supreme/pull/4
 - [x] Metronome can be muted, while still running https://github.com/ericyd/loop-supreme/pull/11
-- [ ] move "playing" state into MetronomeControls; there is no obvious need for it to live in Metronome
+- [x] ~move "playing" state into MetronomeControls; there is no obvious need for it to live in Metronome~ irrelevant after https://github.com/ericyd/loop-supreme/pull/28
 
 ## Scene
 
@@ -51,6 +51,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [x] Component can remove itself from scene https://github.com/ericyd/loop-supreme/pull/5
 - [x] Component has arm toggle button https://github.com/ericyd/loop-supreme/pull/8
 - [x] ~audio data can be cleared from component without deleting it (to preserve track name)~ just mute, and then re-record if desired
+- [ ] `regression` allow re-recording audio over a track [regression introduced here](https://github.com/ericyd/loop-supreme/pull/27)
 - [x] deleting a track stops playback https://github.com/ericyd/loop-supreme/pull/13
 - [x] Component can record data from user device https://github.com/ericyd/loop-supreme/pull/8
 - [x] Component shows waveform of recorded audio https://github.com/ericyd/loop-supreme/pull/20
@@ -78,13 +79,13 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
   - [x] `space` is play/pause
 - [ ] add "tap tempo" functionlity and bind to `t` key
 
-## HTML
+## ✅ HTML
 
 - [x] flesh out header (add links to blog, etc) https://github.com/ericyd/loop-supreme/pull/16
 - [x] track page views (done automatically through Cloudflare)
 - [x] OG tags, SEO https://github.com/ericyd/loop-supreme/pull/16
 
-## Deploy
+## ✅ Deploy
 
 - [x] building (GH Actions) https://github.com/ericyd/loop-supreme/pull/17 and https://github.com/ericyd/loop-supreme/pull/19
 - [x] hosting (Cloudflare)
@@ -99,6 +100,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [ ] show alert if track latency cannot be detected, or if it seems wildly out of the norm (~100ms +/ 20ms ???). Consider adding a "custom latency" input option???
 - [x] remove useInterval hook (not used)
 - [x] investigate network calls to workers. https://github.com/ericyd/loop-supreme/pull/21
+- [ ] keyboard bindings should respect certain boundaries. For example, renaming tracks causes all sorts of things to fire, e.g. `a`, `m`, `r`, `c` all do things that probably shouldn't happen. Maybe this should/could be a global thing? Always check for event target types.
 
 ## Design
 
@@ -108,3 +110,5 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [ ] Add dark mode toggle button
 - [ ] allow Track to wrap (controls top, waveform bottom)
 - [ ] make Track controls slightly less wide
+- [ ] add track ID indicator so keyboard controls make sense
+- [ ] make beat counter sticky so you can see it even when you scroll

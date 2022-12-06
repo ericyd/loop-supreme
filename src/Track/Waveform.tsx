@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 import {
   WaveformControllerMessage,
   WaveformWorkerInitializeMessage,
-} from '../worklets/waveform'
+} from '../workers/waveform'
 
 type Props = {
   worker: Worker
   sampleRate: number
 }
-export default function Waveform(props: Props) {
+export function Waveform(props: Props) {
   const [path, setPath] = useState('M 0 0')
 
   const yMax = 2
