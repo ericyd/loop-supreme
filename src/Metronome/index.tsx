@@ -60,6 +60,9 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
     new GainNode(audioContext, { gain: muted ? 0.0 : gain })
   )
   useEffect(() => {
+    gainNode.current.connect(audioContext.destination)
+  }, [audioContext.destination])
+  useEffect(() => {
     gainNode.current.gain.value = muted ? 0.0 : gain
   }, [gain, muted])
 
@@ -75,8 +78,6 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
         const source = new AudioBufferSourceNode(audioContext, {
           buffer: event.data.downbeat ? sine380 : sine330,
         })
-
-        gainNode.current.connect(audioContext.destination)
         source.connect(gainNode.current)
         source.start()
       }
