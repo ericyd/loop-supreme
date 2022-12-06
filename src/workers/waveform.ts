@@ -136,7 +136,11 @@ export function constructPath({
 
   // construct the SVG path command
   const first = positivePoints[0]
-  const firstPoint = `M ${round2(first[0])} ${round2(first[1])}`
+  const firstPoint = [
+    'M',
+    handleNaN(round2(first[0])),
+    handleNaN(round2(first[1])),
+  ].join(' ')
   const positivePath = smoothCubicBezierPoints(
     positivePoints.slice(1),
     xMax / framesPerLoop / 2
@@ -185,9 +189,9 @@ function smoothCubicBezierPoints(
 ): string {
   return points
     .map((pt) => {
-      const y = round2(pt[1])
-      const x = round2(pt[0])
-      const xOffset = round2(pt[0] - xControlPointOffset)
+      const y = handleNaN(round2(pt[1]))
+      const x = handleNaN(round2(pt[0]))
+      const xOffset = handleNaN(round2(pt[0] - xControlPointOffset))
       return `S ${xOffset},${y} ${x},${y}`
     })
     .join(' ')
@@ -199,3 +203,7 @@ function roundN(decimalCount: number): (decimal: number) => number {
     Math.pow(10, decimalCount)
 }
 const round2 = roundN(2)
+
+function handleNaN(value: number) {
+  return Number.isNaN(value) ? 0.0 : value
+}
