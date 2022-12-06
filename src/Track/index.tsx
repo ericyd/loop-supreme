@@ -84,9 +84,9 @@ export const Track: React.FC<Props> = ({
   selected,
   exportTarget,
 }) => {
-  const { audioContext, stream: defaultStream } = useAudioContext()
-  const [stream, setStream] = useState(defaultStream)
-  const defaultDeviceId = deviceIdFromStream(defaultStream) ?? ''
+  const { audioContext, defaultDeviceId } = useAudioContext()
+  // stream is initialized in SelectInput
+  const [stream, setStream] = useState<MediaStream | null>(null)
 
   // title is mostly display-only, but also defines the file name when downloading files
   const [title, setTitle] = useState(`Track ${id}`)
@@ -229,6 +229,9 @@ export const Track: React.FC<Props> = ({
    * Initialize the recorder worklet, and connect the audio graph for eventual playback.
    */
   useEffect(() => {
+    if (!stream) {
+      return
+    }
     const mediaSource = audioContext.createMediaStreamSource(stream)
     const recordingProperties: RecordingProperties = {
       numberOfChannels: mediaSource.channelCount,
@@ -298,6 +301,7 @@ export const Track: React.FC<Props> = ({
     // AudioSourceNodes, including AudioBufferSourceNodes, can only be started once, therefore
     // need to stop, create new, and start again
     if (bufferSource.current?.buffer) {
+      bufferSource.current.disconnect()
       bufferSource.current = new AudioBufferSourceNode(audioContext, {
         buffer: bufferSource.current.buffer,
       })

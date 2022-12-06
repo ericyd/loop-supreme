@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { logger } from '../../util/logger'
 import { deviceIdFromStream } from '../../util/device-id-from-stream'
 import { useAudioContext } from '../../AudioProvider'
@@ -8,29 +8,40 @@ type Props = {
   setStream(stream: MediaStream): void
 }
 
-export function SelectInput(props: Props) {
+export function SelectInput({ defaultDeviceId, setStream }: Props) {
   const { devices } = useAudioContext()
-  const [selected, setSelected] = useState(props.defaultDeviceId)
+  const [selected, setSelected] = useState(defaultDeviceId)
+
+  const setStreamByDeviceId = useCallback(
+    async (id: string) => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { deviceId: id },
+          video: false,
+        })
+        setStream(stream)
+        setSelected(deviceIdFromStream(stream) ?? '')
+      } catch (e) {
+        alert('oh no, you broke it 😿')
+        logger.error({
+          e,
+          id,
+          message: 'Failed to create stream from selected device',
+        })
+      }
+    },
+    [setStream]
+  )
 
   const handleChange: React.ChangeEventHandler<HTMLSelectElement> = async (
     event
   ) => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { deviceId: event.target.value },
-        video: false,
-      })
-      props.setStream(stream)
-      setSelected(deviceIdFromStream(stream) ?? '')
-    } catch (e) {
-      alert('oh no, you broke it 😿')
-      logger.error({
-        e,
-        event,
-        message: 'Failed to create stream from selected device',
-      })
-    }
+    return setStreamByDeviceId(event.target.value)
   }
+
+  useEffect(() => {
+    setStreamByDeviceId(defaultDeviceId)
+  }, [setStreamByDeviceId, defaultDeviceId])
 
   return (
     <select

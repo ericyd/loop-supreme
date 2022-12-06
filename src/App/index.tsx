@@ -4,7 +4,7 @@ import { useKeybindings } from '../hooks/use-keybindings'
 import { KeyboardBindingsList } from './KeyboardBindingsList'
 
 type Props = {
-  stream: MediaStream
+  defaultDeviceId: string
   audioContext: AudioContext
   devices: MediaDeviceInfo[]
 }

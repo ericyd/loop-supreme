@@ -79,7 +79,7 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
   const clockMessageHandler = useCallback(
     (event: MessageEvent<ClockControllerMessage>) => {
       // console.log(event.data) // this is really noisy
-      if (event.data.message === 'TICK') {
+      if (event.data.message === 'TICK' && !muted) {
         if (source.current) {
           source.current.disconnect()
         }
@@ -90,7 +90,7 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
         source.current.start()
       }
     },
-    [audioContext, sine330, sine380]
+    [audioContext, sine330, sine380, muted]
   )
 
   /**
