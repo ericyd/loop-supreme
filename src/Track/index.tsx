@@ -30,7 +30,6 @@ import { Mute } from './controls/Mute'
 import { RemoveTrack } from './controls/RemoveTrack'
 import { Waveform } from './Waveform'
 import { SelectInput } from './controls/SelectInput'
-import { deviceIdFromStream } from '../util/device-id-from-stream'
 import type {
   ExportWavWorkerEvent,
   WavBlobControllerEvent,
@@ -126,6 +125,9 @@ export const Track: React.FC<Props> = ({
   const toggleMuted = () => setMuted((value) => !value)
   const gainNode = useRef(new GainNode(audioContext, { gain }))
   useEffect(() => {
+    gainNode.current.connect(audioContext.destination)
+  }, [audioContext.destination])
+  useEffect(() => {
     gainNode.current.gain.value = muted ? 0.0 : gain
   }, [gain, muted])
 
@@ -148,8 +150,20 @@ export const Track: React.FC<Props> = ({
   /**
    * Both of these are instantiated on mount
    */
-  const recorderWorklet = useRef<AudioWorkletNode>()
-  const bufferSource = useRef<AudioBufferSourceNode>()
+  // const recorderWorklet = useRef<AudioWorkletNode>()
+  // const bufferSource = useRef<AudioBufferSourceNode>()
+  const [buffer, setBuffer] = useState<AudioBuffer | null>(null)
+  const bufferSource = useMemo<AudioBufferSourceNode | null>(() => {
+    if (!buffer) {
+      return null
+    }
+    const source = new AudioBufferSourceNode(audioContext, {
+      buffer,
+    })
+    source.connect(gainNode.current)
+    source.start()
+    return source
+  }, [buffer, audioContext])
 
   /**
    * Builds a callback that handles the messages from the recorder worker.
@@ -157,7 +171,7 @@ export const Track: React.FC<Props> = ({
    * which indicates that the recording buffer is ready for playback.
    */
   const buildRecorderMessageHandler = useCallback(
-    (recordingProperties: RecordingProperties) => {
+    (numberOfChannels: number) => {
       return (event: MessageEvent<RecordingMessage>) => {
         // If the max length is reached, we can no longer record.
         if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
@@ -183,12 +197,12 @@ export const Track: React.FC<Props> = ({
           // create recording buffer with targetRecordingLength,
           // to ensure it matches the loop length precisely.
           const recordingBuffer = audioContext.createBuffer(
-            recordingProperties.numberOfChannels,
+            numberOfChannels,
             fullRecordingLength,
             audioContext.sampleRate
           )
 
-          for (let i = 0; i < recordingProperties.numberOfChannels; i++) {
+          for (let i = 0; i < numberOfChannels; i++) {
             // channelsData is an Array of Float32Arrays;
             // each element of Array is a channel, which contain
             // the raw samples for the audio data of that channel
@@ -209,32 +223,31 @@ export const Track: React.FC<Props> = ({
             )
           }
 
-          bufferSource.current = new AudioBufferSourceNode(audioContext, {
-            buffer: recordingBuffer,
-          })
+          setBuffer(buffer)
 
-          gainNode.current.connect(audioContext.destination)
-          bufferSource.current.connect(gainNode.current)
-          bufferSource.current.start()
+          // bufferSource.current = new AudioBufferSourceNode(audioContext, {
+          //   buffer: recordingBuffer,
+          // })
 
-          return recordingBuffer
+          // bufferSource.current.connect(gainNode.current)
+          // bufferSource.current.start()
+
+          // return recordingBuffer
         }
       }
     },
-    [audioContext, waveformWorker]
+    [audioContext, waveformWorker, buffer]
   )
 
-  /**
-   * On mount, create a media stream source from the user's input stream.
-   * Initialize the recorder worklet, and connect the audio graph for eventual playback.
-   */
-  useEffect(() => {
+  const [mediaSource, recorderWorklet] = useMemo<
+    [MediaStreamAudioSourceNode, AudioWorkletNode] | [null, null]
+  >(() => {
     if (!stream) {
-      return
+      return [null, null]
     }
-    const mediaSource = audioContext.createMediaStreamSource(stream)
+    const source = audioContext.createMediaStreamSource(stream)
     const recordingProperties: RecordingProperties = {
-      numberOfChannels: mediaSource.channelCount,
+      numberOfChannels: source.channelCount,
       sampleRate: audioContext.sampleRate,
       // max recording length of 30 seconds. I think that should be sufficient for now?
       maxRecordingSamples: audioContext.sampleRate * 30,
@@ -245,37 +258,74 @@ export const Track: React.FC<Props> = ({
       ),
     }
     logger.debug({ recordingProperties })
-    recorderWorklet.current = new AudioWorkletNode(audioContext, 'recorder', {
+    const worklet = new AudioWorkletNode(audioContext, 'recorder', {
       processorOptions: recordingProperties,
     })
+    return [source, worklet]
+  }, [stream, audioContext])
+
+  /**
+   * On mount, create a media stream source from the user's input stream.
+   * Initialize the recorder worklet, and connect the audio graph for eventual playback.
+   */
+  useEffect(() => {
+    if (!recorderWorklet) {
+      return
+    }
+    // if (!stream) {
+    //   return
+    // }
+    // const mediaSource = audioContext.createMediaStreamSource(stream)
+    // const recordingProperties: RecordingProperties = {
+    //   numberOfChannels: mediaSource.channelCount,
+    //   sampleRate: audioContext.sampleRate,
+    //   // max recording length of 30 seconds. I think that should be sufficient for now?
+    //   maxRecordingSamples: audioContext.sampleRate * 30,
+    //   latencySamples: getLatencySamples(
+    //     audioContext.sampleRate,
+    //     stream,
+    //     audioContext
+    //   ),
+    // }
+    // logger.debug({ recordingProperties })
+    // recorderWorklet.current = new AudioWorkletNode(audioContext, 'recorder', {
+    //   processorOptions: recordingProperties,
+    // })
 
     // Wanna have your mind blown?
     // Adding an event listener to this port with `addEventListener` simply doesn't work!
     // go ahead and try it:
     // recorderWorklet.current.port.addEventListener('message', console.log.bind(console))
-    recorderWorklet.current.port.onmessage =
-      buildRecorderMessageHandler(recordingProperties)
+    recorderWorklet.port.onmessage = buildRecorderMessageHandler(
+      recorderWorklet.channelCount
+    )
 
     mediaSource
-      .connect(recorderWorklet.current)
+      ?.connect(recorderWorklet)
       .connect(monitorNode.current)
       .connect(audioContext.destination)
 
     return () => {
-      if (recorderWorklet.current) {
-        recorderWorklet.current.disconnect()
-        recorderWorklet.current.port.onmessage = null
-        recorderWorklet.current = undefined
+      if (recorderWorklet) {
+        recorderWorklet.disconnect()
+        recorderWorklet.port.onmessage = null
       }
-      bufferSource.current?.stop()
-      mediaSource.disconnect()
+      bufferSource?.stop()
+      mediaSource?.disconnect()
     }
-  }, [audioContext, buildRecorderMessageHandler, stream])
+  }, [
+    bufferSource,
+    audioContext,
+    buildRecorderMessageHandler,
+    stream,
+    mediaSource,
+    recorderWorklet,
+  ])
 
   const handleLoopstart = useCallback(() => {
     if (recording) {
       setRecording(false)
-      recorderWorklet.current?.port?.postMessage({
+      recorderWorklet?.port?.postMessage({
         message: 'UPDATE_RECORDING_STATE',
         recording: false,
       })
@@ -284,7 +334,7 @@ export const Track: React.FC<Props> = ({
     if (armed) {
       setRecording(true)
       setArmed(false)
-      recorderWorklet.current?.port?.postMessage({
+      recorderWorklet?.port?.postMessage({
         message: 'UPDATE_RECORDING_STATE',
         recording: true,
       })
@@ -300,12 +350,14 @@ export const Track: React.FC<Props> = ({
     // this is almost certainly imperfect, but at least it will **appear** to be accurate.
     // AudioSourceNodes, including AudioBufferSourceNodes, can only be started once, therefore
     // need to stop, create new, and start again
-    if (bufferSource.current?.buffer) {
-      bufferSource.current.disconnect()
-      bufferSource.current = new AudioBufferSourceNode(audioContext, {
-        buffer: bufferSource.current.buffer,
-      })
-      bufferSource.current.connect(gainNode.current)
+    if (bufferSource?.buffer) {
+      bufferSource.disconnect()
+      setBuffer(bufferSource?.buffer)
+
+      // bufferSource = new AudioBufferSourceNode(audioContext, {
+      //   buffer: bufferSource.buffer,
+      // })
+      // bufferSource.connect(gainNode.current)
       // ramp up to desired gain quickly to avoid clips at the beginning of the loop
       gainNode.current.gain.value = 0.0
       if (!muted) {
@@ -315,9 +367,18 @@ export const Track: React.FC<Props> = ({
           0.02
         )
       }
-      bufferSource.current.start()
+      // bufferSource.start()
     }
-  }, [armed, audioContext, gain, muted, recording, waveformWorker])
+  }, [
+    armed,
+    audioContext,
+    gain,
+    muted,
+    recording,
+    waveformWorker,
+    recorderWorklet,
+    bufferSource,
+  ])
 
   useEffect(() => {
     function delegateClockMessage(event: MessageEvent<ClockControllerMessage>) {
@@ -347,9 +408,9 @@ export const Track: React.FC<Props> = ({
   useEffect(() => {
     function postExportToWavMessage() {
       logger.debug(`Posting export message for track ${title}, ID ${id}`)
-      if (bufferSource.current?.buffer) {
+      if (buffer) {
         // AudioBuffers cannot be copied in a Worker message, so the composite pieces must be sent
-        const buffer = bufferSource.current?.buffer
+        // const buffer = bufferSource?.buffer
         const channelsData = new Array(buffer.numberOfChannels)
         for (let i = 0; i < buffer.numberOfChannels; i++) {
           channelsData[i] = buffer.getChannelData(i)
@@ -381,7 +442,7 @@ export const Track: React.FC<Props> = ({
       exportTarget.removeEventListener('export', postExportToWavMessage)
       exportWorker.removeEventListener('message', handleWavBlob)
     }
-  }, [exportTarget, exportWorker, title, id])
+  }, [exportTarget, exportWorker, title, id, buffer])
 
   useKeybindings(
     selected
