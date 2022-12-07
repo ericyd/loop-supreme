@@ -16,7 +16,18 @@ export function SelectInput({ defaultDeviceId, setStream }: Props) {
     async (id: string) => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          audio: { deviceId: id },
+          audio: {
+            deviceId: id,
+
+            // for some reason,
+            // having these defined makes a HUGE difference in the recording quality.
+            // Without these defined, the audio will pulse in and out, but with these defined, it sounds great
+            echoCancellation: false,
+            autoGainControl: false, // this is good too
+            noiseSuppression: false, // this makes a big difference, weirdly
+            suppressLocalAudioPlayback: false,
+            latency: 0,
+          },
           video: false,
         })
         setStream(stream)

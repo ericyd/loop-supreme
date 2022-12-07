@@ -38,13 +38,14 @@ export const Start: React.FC = () => {
   async function handleClick() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        // audio: {
-        //   echoCancellation: true,
-        //   autoGainControl: false,
-        //   noiseSuppression: true,
-        //   latency: 0,
-        // },
+        // audio: true,
+        audio: {
+          echoCancellation: false,
+          autoGainControl: true, // this is good too
+          noiseSuppression: true, // this makes a big difference, weirdly
+          suppressLocalAudioPlayback: true,
+          latency: 0,
+        },
         video: false,
       })
       setDefaultDeviceId(deviceIdFromStream(stream) ?? null)
