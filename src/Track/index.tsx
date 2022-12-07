@@ -123,28 +123,21 @@ export const Track: React.FC<Props> = ({
   const [gain, setGain] = useState(1)
   const [muted, setMuted] = useState(false)
   const toggleMuted = () => setMuted((value) => !value)
-  const gainNode = useRef(new GainNode(audioContext, { gain }))
-  useEffect(() => {
-    gainNode.current.connect(audioContext.destination)
-  }, [audioContext.destination])
-  useEffect(() => {
-    gainNode.current.gain.value = muted ? 0.0 : gain
-  }, [gain, muted])
+  const gainNode = useMemo(() => {
+    const node = new GainNode(audioContext, { gain: muted ? 0.0 : gain })
+    node.connect(audioContext.destination)
+    return node
+  }, [gain, muted, audioContext])
 
   /**
    * Set up track monitoring
    */
   const [monitoring, setMonitoring] = useState(false)
   const toggleMonitoring = () => setMonitoring((value) => !value)
-  const monitorNode = useRef(
-    new GainNode(audioContext, { gain: monitoring ? 1.0 : 0.0 })
-  )
-  useEffect(() => {
-    monitorNode.current.gain.setTargetAtTime(
-      monitoring ? 1.0 : 0.0,
-      audioContext.currentTime,
-      0.1
-    )
+  const monitorNode = useMemo(() => {
+    const node = new GainNode(audioContext, { gain: monitoring ? 1.0 : 0.0 })
+    node.connect(audioContext.destination)
+    return node
   }, [monitoring, audioContext])
 
   /**
@@ -160,10 +153,13 @@ export const Track: React.FC<Props> = ({
     const source = new AudioBufferSourceNode(audioContext, {
       buffer,
     })
-    source.connect(gainNode.current)
     source.start()
     return source
   }, [buffer, audioContext])
+  useEffect(() => {
+    bufferSource?.disconnect()
+    bufferSource?.connect(gainNode)
+  }, [bufferSource, gainNode])
 
   /**
    * Builds a callback that handles the messages from the recorder worker.
@@ -223,7 +219,7 @@ export const Track: React.FC<Props> = ({
             )
           }
 
-          setBuffer(buffer)
+          setBuffer(recordingBuffer)
 
           // bufferSource.current = new AudioBufferSourceNode(audioContext, {
           //   buffer: recordingBuffer,
@@ -236,7 +232,7 @@ export const Track: React.FC<Props> = ({
         }
       }
     },
-    [audioContext, waveformWorker, buffer]
+    [audioContext, waveformWorker]
   )
 
   const [mediaSource, recorderWorklet] = useMemo<
@@ -269,7 +265,7 @@ export const Track: React.FC<Props> = ({
    * Initialize the recorder worklet, and connect the audio graph for eventual playback.
    */
   useEffect(() => {
-    if (!recorderWorklet) {
+    if (!recorderWorklet || !mediaSource) {
       return
     }
     // if (!stream) {
@@ -301,8 +297,8 @@ export const Track: React.FC<Props> = ({
     )
 
     mediaSource
-      ?.connect(recorderWorklet)
-      .connect(monitorNode.current)
+      .connect(recorderWorklet)
+      .connect(monitorNode)
       .connect(audioContext.destination)
 
     return () => {
@@ -320,6 +316,7 @@ export const Track: React.FC<Props> = ({
     stream,
     mediaSource,
     recorderWorklet,
+    monitorNode,
   ])
 
   const handleLoopstart = useCallback(() => {
@@ -352,20 +349,24 @@ export const Track: React.FC<Props> = ({
     // need to stop, create new, and start again
     if (bufferSource?.buffer) {
       bufferSource.disconnect()
-      setBuffer(bufferSource?.buffer)
+      const newBuffer = audioContext.createBuffer(
+        bufferSource.buffer.numberOfChannels,
+        bufferSource.buffer.length,
+        audioContext.sampleRate
+      )
+      for (let i = 0; i < newBuffer.numberOfChannels; i++) {
+        newBuffer.copyToChannel(bufferSource.buffer.getChannelData(i), i, 0)
+      }
+      setBuffer(newBuffer)
 
       // bufferSource = new AudioBufferSourceNode(audioContext, {
       //   buffer: bufferSource.buffer,
       // })
       // bufferSource.connect(gainNode.current)
       // ramp up to desired gain quickly to avoid clips at the beginning of the loop
-      gainNode.current.gain.value = 0.0
+      gainNode.gain.value = 0.0
       if (!muted) {
-        gainNode.current.gain.setTargetAtTime(
-          gain,
-          audioContext.currentTime,
-          0.02
-        )
+        gainNode.gain.setTargetAtTime(gain, audioContext.currentTime, 0.02)
       }
       // bufferSource.start()
     }
@@ -378,6 +379,7 @@ export const Track: React.FC<Props> = ({
     waveformWorker,
     recorderWorklet,
     bufferSource,
+    gainNode,
   ])
 
   useEffect(() => {
