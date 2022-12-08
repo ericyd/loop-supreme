@@ -1,44 +1,57 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { logger } from '../../util/logger'
 import { deviceIdFromStream } from '../../util/device-id-from-stream'
+import { useAudioContext } from '../../AudioProvider'
 
 type Props = {
-  defaultDeviceId: string
   setStream(stream: MediaStream): void
 }
 
-export function SelectInput(props: Props) {
-  const [inputs, setInputs] = useState<MediaDeviceInfo[]>([])
-  const [selected, setSelected] = useState(props.defaultDeviceId)
+export function SelectInput({ setStream }: Props) {
+  const { devices, defaultDeviceId } = useAudioContext()
+  const [selected, setSelected] = useState(defaultDeviceId)
 
-  useEffect(() => {
-    async function getInputs() {
-      const devices = await navigator.mediaDevices.enumerateDevices()
-      const audioInputs = devices.filter(
-        (device) => device.kind === 'audioinput'
-      )
-      logger.debug({ audioInputs })
-      setInputs(audioInputs)
-    }
+  const setStreamByDeviceId = useCallback(
+    async (id: string) => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            deviceId: id,
 
-    getInputs()
-  }, [])
+            // for some reason,
+            // having these defined makes a HUGE difference in the recording quality.
+            // Without these defined, the audio will pulse in and out, but with these defined, it sounds great
+            echoCancellation: false,
+            autoGainControl: false,
+            noiseSuppression: false,
+            suppressLocalAudioPlayback: false,
+            latency: 0,
+          },
+          video: false,
+        })
+        setStream(stream)
+        setSelected(deviceIdFromStream(stream) ?? '')
+      } catch (e) {
+        alert('oh no, you broke it 😿')
+        logger.error({
+          e,
+          id,
+          message: 'Failed to create stream from selected device',
+        })
+      }
+    },
+    [setStream]
+  )
 
   const handleChange: React.ChangeEventHandler<HTMLSelectElement> = async (
     event
   ) => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { deviceId: event.target.value },
-        video: false,
-      })
-      props.setStream(stream)
-      setSelected(deviceIdFromStream(stream) ?? '')
-    } catch (e) {
-      alert('oh no, you broke it 😿')
-      console.error(e)
-    }
+    return setStreamByDeviceId(event.target.value)
   }
+
+  useEffect(() => {
+    setStreamByDeviceId(defaultDeviceId)
+  }, [setStreamByDeviceId, defaultDeviceId])
 
   return (
     <select
@@ -46,10 +59,10 @@ export function SelectInput(props: Props) {
       onChange={handleChange}
       value={selected}
     >
-      {inputs.map((input) => (
-        <option key={JSON.stringify(input)} value={input.deviceId}>
+      {devices.map((device) => (
+        <option key={JSON.stringify(device)} value={device.deviceId}>
           {/* Chrome appends a weird hex ID to some inputs */}
-          {input.label.replace(/\([a-z0-9]+:[a-z0-9]+\)/, '')}
+          {device.label.replace(/\([a-z0-9]+:[a-z0-9]+\)/, '')}
         </option>
       ))}
     </select>
