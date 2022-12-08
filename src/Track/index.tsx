@@ -30,7 +30,6 @@ import { Mute } from './controls/Mute'
 import { RemoveTrack } from './controls/RemoveTrack'
 import { Waveform } from './Waveform'
 import { SelectInput } from './controls/SelectInput'
-import { deviceIdFromStream } from '../util/device-id-from-stream'
 import type {
   ExportWavWorkerEvent,
   WavBlobControllerEvent,
@@ -84,9 +83,9 @@ export const Track: React.FC<Props> = ({
   selected,
   exportTarget,
 }) => {
-  const { audioContext, stream: defaultStream } = useAudioContext()
-  const [stream, setStream] = useState(defaultStream)
-  const defaultDeviceId = deviceIdFromStream(defaultStream) ?? ''
+  const { audioContext } = useAudioContext()
+  // stream is initialized in SelectInput
+  const [stream, setStream] = useState<MediaStream | null>(null)
 
   // title is mostly display-only, but also defines the file name when downloading files
   const [title, setTitle] = useState(`Track ${id}`)
@@ -229,6 +228,9 @@ export const Track: React.FC<Props> = ({
    * Initialize the recorder worklet, and connect the audio graph for eventual playback.
    */
   useEffect(() => {
+    if (!stream) {
+      return
+    }
     const mediaSource = audioContext.createMediaStreamSource(stream)
     const recordingProperties: RecordingProperties = {
       numberOfChannels: mediaSource.channelCount,
@@ -424,10 +426,7 @@ export const Track: React.FC<Props> = ({
           {/* Remove */}
           <div className="flex items-stretch content-center justify-between">
             <RemoveTrack onRemove={onRemove} />
-            <SelectInput
-              setStream={setStream}
-              defaultDeviceId={defaultDeviceId}
-            />
+            <SelectInput setStream={setStream} />
           </div>
         </div>
 

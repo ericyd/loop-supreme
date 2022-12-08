@@ -17,11 +17,13 @@
  */
 import { useEffect, useState } from 'react'
 import App from '../App'
+import { deviceIdFromStream } from '../util/device-id-from-stream'
 import { logger } from '../util/logger'
 
 export const Start: React.FC = () => {
-  const [stream, setStream] = useState<MediaStream>()
+  const [defaultDeviceId, setDefaultDeviceId] = useState<string | null>(null)
   const [audioContext, setAudioContext] = useState<AudioContext>()
+  const [devices, setDevices] = useState<MediaDeviceInfo[] | null>(null)
   const [latencySupported, setLatencySupported] = useState(true)
 
   useEffect(() => {
@@ -33,27 +35,48 @@ export const Start: React.FC = () => {
     }
   }, [])
 
-  async function handleClick() {
+  async function grantDevicePermission() {
     try {
-      setStream(
-        await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          // audio: {
-          //   echoCancellation: true,
-          //   autoGainControl: false,
-          //   noiseSuppression: true,
-          //   latency: 0,
-          // },
-          video: false,
-        })
-      )
+      const stream = await navigator.mediaDevices.getUserMedia({
+        // see src/Track/controls/SelectInput.tsx for related note
+        audio: {
+          echoCancellation: false,
+          autoGainControl: false,
+          noiseSuppression: false,
+          suppressLocalAudioPlayback: false,
+          latency: 0,
+        },
+        video: false,
+      })
+      setDefaultDeviceId(deviceIdFromStream(stream) ?? null)
     } catch (e) {
       alert(
         'big, terrible error occurred and there is no coming back from that 😿'
       )
-      logger.error(e, 'Error getting user media')
+      logger.error({ e, message: 'Error getting user media' })
     }
+  }
 
+  async function enumerateDevices() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices()
+      const audioDevices = devices.filter(
+        (device) => device.kind === 'audioinput'
+      )
+      if (audioDevices.length === 0) {
+        logger.error({ devices })
+        throw new Error('No audio devices found')
+      }
+      setDevices(audioDevices)
+    } catch (e) {
+      alert(
+        'big, terrible error occurred and there is no coming back from that 😿'
+      )
+      logger.error({ e, message: 'Error getting user devices' })
+    }
+  }
+
+  async function initializeAudioContext() {
     const workletUrl = new URL('../workers/recorder', import.meta.url)
     try {
       const audioContext = new AudioContext()
@@ -71,8 +94,20 @@ export const Start: React.FC = () => {
     }
   }
 
-  return stream && audioContext ? (
-    <App stream={stream} audioContext={audioContext} />
+  async function handleClick() {
+    await Promise.all([
+      grantDevicePermission(),
+      enumerateDevices(),
+      initializeAudioContext(),
+    ])
+  }
+
+  return defaultDeviceId && audioContext && devices?.length ? (
+    <App
+      defaultDeviceId={defaultDeviceId}
+      audioContext={audioContext}
+      devices={devices}
+    />
   ) : (
     <>
       <div className="flex flex-col items-center justify-center mx-auto">
