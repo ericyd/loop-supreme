@@ -35,7 +35,7 @@ import type {
   ExportWavWorkerEvent,
   WavBlobControllerEvent,
 } from '../workers/export'
-import { KeyBindings } from '../KeyBindings'
+import { useKeybindings } from '../hooks/use-keybindings'
 
 type Props = {
   id: number
@@ -379,6 +379,16 @@ export const Track: React.FC<Props> = ({
     }
   }, [exportTarget, exportWorker, title, id])
 
+  useKeybindings(
+    selected
+      ? {
+          r: { callback: toggleArmRecording },
+          i: { callback: toggleMonitoring },
+          m: { callback: toggleMuted },
+        }
+      : {}
+  )
+
   return (
     <>
       <div
@@ -439,17 +449,6 @@ export const Track: React.FC<Props> = ({
       </a>
       {/* divider */}
       <div className="border-b border-solid border-zinc-400 w-full h-2 mb-2" />
-      <KeyBindings
-        bindings={
-          selected
-            ? {
-                r: { callback: toggleArmRecording },
-                i: { callback: toggleMonitoring },
-                m: { callback: toggleMuted },
-              }
-            : {}
-        }
-      />
     </>
   )
 }

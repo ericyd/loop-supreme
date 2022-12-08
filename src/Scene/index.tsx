@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import ButtonBase from '../ButtonBase'
+import { useKeybindings } from '../hooks/use-keybindings'
 import { Plus } from '../icons/Plus'
-import { KeyBindings } from '../KeyBindings'
 import { Track } from '../Track'
 
 type Props = {
@@ -66,6 +66,21 @@ export const Scene: React.FC<Props> = ({ clock }) => {
     exportTarget.dispatchEvent(new Event('export'))
   }, [exportTarget])
 
+  useKeybindings({
+    a: { callback: handleAddTrack },
+    ...new Array(10).fill(0).reduce(
+      (map, _, i) => ({
+        ...map,
+        [i]: { callback: setSelected(i) },
+      }),
+      {}
+    ),
+    Escape: {
+      callback: deselectAll,
+      tagIgnoreList: [],
+    },
+  })
+
   return (
     <>
       {tracks.map(({ id, selected }) => (
@@ -89,22 +104,6 @@ export const Scene: React.FC<Props> = ({ clock }) => {
           Download stems
         </button>
       </div>
-      <KeyBindings
-        bindings={{
-          a: { callback: handleAddTrack },
-          ...new Array(10).fill(0).reduce(
-            (map, _, i) => ({
-              ...map,
-              [i]: { callback: setSelected(i) },
-            }),
-            {}
-          ),
-          Escape: {
-            callback: deselectAll,
-            tagIgnoreList: [],
-          },
-        }}
-      />
     </>
   )
 }

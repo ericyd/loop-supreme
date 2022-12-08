@@ -1,5 +1,5 @@
-import { useEffect, memo } from 'react'
-import { logger } from '../util/logger'
+import { useEffect } from "react"
+import { logger } from "../util/logger"
 
 type KeyboardEventHandler = (event: KeyboardEvent) => void
 type IgnorableTagName = 'INPUT' | 'SELECT' | 'BUTTON'
@@ -9,11 +9,7 @@ type KeyBinding = {
 }
 type CallbackMap = Record<string, KeyBinding>
 
-type Props = {
-  bindings: CallbackMap
-}
-
-const Component: React.FC<Props> = ({ bindings }) => {
+export function useKeybindings(bindings: CallbackMap) {
   useEffect(() => {
     logger.debug({ bindings })
     const keydownCallback = (e: KeyboardEvent) => {
@@ -35,7 +31,4 @@ const Component: React.FC<Props> = ({ bindings }) => {
       window.removeEventListener('keydown', keydownCallback)
     }
   }, [bindings])
-  return null
 }
-
-export const KeyBindings = memo(Component)

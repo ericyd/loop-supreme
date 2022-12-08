@@ -100,7 +100,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [ ] show alert if track latency cannot be detected, or if it seems wildly out of the norm (~100ms +/ 20ms ???). Consider adding a "custom latency" input option???
 - [x] remove useInterval hook (not used)
 - [x] investigate network calls to workers. https://github.com/ericyd/loop-supreme/pull/21
-- [ ] keyboard bindings should respect certain boundaries. For example, renaming tracks causes all sorts of things to fire, e.g. `a`, `m`, `r`, `c` all do things that probably shouldn't happen. Maybe this should/could be a global thing? Always check for event target types.
+- [x] keyboard bindings should respect certain boundaries. For example, renaming tracks causes all sorts of things to fire, e.g. `a`, `m`, `r`, `c` all do things that probably shouldn't happen. https://github.com/ericyd/loop-supreme/pull/29
 
 ## Design
 

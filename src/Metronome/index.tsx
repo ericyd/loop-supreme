@@ -14,7 +14,7 @@ import type {
 import { useDecayingSine } from './waveforms'
 import { useDebouncedCallback } from 'use-debounce'
 import { PlayPause } from '../icons/PlayPause'
-import { KeyBindings } from '../KeyBindings'
+import { useKeybindings } from '../hooks/use-keybindings'
 
 export type TimeSignature = {
   beatsPerMeasure: number
@@ -140,6 +140,11 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
     } as ClockWorkerUpdateMessage)
   }, [bpm, timeSignature.beatsPerMeasure, measuresPerLoop, clock])
 
+  useKeybindings({
+    c: { callback: toggleMuted },
+    ' ': { callback: togglePlaying },
+  })
+
   return (
     <div className="flex mb-12 items-end justify-between">
       <div className="flex items-start content-center mb-2 mr-2">
@@ -174,12 +179,6 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
           measuresPerLoop={measuresPerLoop}
         />
       </div>
-      <KeyBindings
-        bindings={{
-          c: { callback: toggleMuted },
-          ' ': { callback: togglePlaying },
-        }}
-      />
     </div>
   )
 }
