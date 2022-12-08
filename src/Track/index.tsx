@@ -83,7 +83,7 @@ export const Track: React.FC<Props> = ({
   selected,
   exportTarget,
 }) => {
-  const { audioContext, defaultDeviceId } = useAudioContext()
+  const { audioContext } = useAudioContext()
   // stream is initialized in SelectInput
   const [stream, setStream] = useState<MediaStream | null>(null)
 
@@ -491,10 +491,7 @@ export const Track: React.FC<Props> = ({
           {/* Remove */}
           <div className="flex items-stretch content-center justify-between">
             <RemoveTrack onRemove={onRemove} />
-            <SelectInput
-              setStream={setStream}
-              defaultDeviceId={defaultDeviceId}
-            />
+            <SelectInput setStream={setStream} />
           </div>
         </div>
 

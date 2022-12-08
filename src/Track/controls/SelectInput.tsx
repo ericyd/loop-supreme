@@ -4,12 +4,11 @@ import { deviceIdFromStream } from '../../util/device-id-from-stream'
 import { useAudioContext } from '../../AudioProvider'
 
 type Props = {
-  defaultDeviceId: string
   setStream(stream: MediaStream): void
 }
 
-export function SelectInput({ defaultDeviceId, setStream }: Props) {
-  const { devices } = useAudioContext()
+export function SelectInput({ setStream }: Props) {
+  const { devices, defaultDeviceId } = useAudioContext()
   const [selected, setSelected] = useState(defaultDeviceId)
 
   const setStreamByDeviceId = useCallback(
@@ -23,8 +22,8 @@ export function SelectInput({ defaultDeviceId, setStream }: Props) {
             // having these defined makes a HUGE difference in the recording quality.
             // Without these defined, the audio will pulse in and out, but with these defined, it sounds great
             echoCancellation: false,
-            autoGainControl: false, // this is good too
-            noiseSuppression: false, // this makes a big difference, weirdly
+            autoGainControl: false,
+            noiseSuppression: false,
             suppressLocalAudioPlayback: false,
             latency: 0,
           },

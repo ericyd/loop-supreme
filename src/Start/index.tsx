@@ -35,15 +35,15 @@ export const Start: React.FC = () => {
     }
   }, [])
 
-  async function handleClick() {
+  async function grantDevicePermission() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        // audio: true,
+        // see src/Track/controls/SelectInput.tsx for related note
         audio: {
           echoCancellation: false,
-          autoGainControl: true, // this is good too
-          noiseSuppression: true, // this makes a big difference, weirdly
-          suppressLocalAudioPlayback: true,
+          autoGainControl: false,
+          noiseSuppression: false,
+          suppressLocalAudioPlayback: false,
           latency: 0,
         },
         video: false,
@@ -55,7 +55,9 @@ export const Start: React.FC = () => {
       )
       logger.error({ e, message: 'Error getting user media' })
     }
+  }
 
+  async function enumerateDevices() {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices()
       const audioDevices = devices.filter(
@@ -72,7 +74,9 @@ export const Start: React.FC = () => {
       )
       logger.error({ e, message: 'Error getting user devices' })
     }
+  }
 
+  async function initializeAudioContext() {
     const workletUrl = new URL('../workers/recorder', import.meta.url)
     try {
       const audioContext = new AudioContext()
@@ -88,6 +92,14 @@ export const Start: React.FC = () => {
         urlToString: workletUrl.toString(),
       })
     }
+  }
+
+  async function handleClick() {
+    await Promise.all([
+      grantDevicePermission(),
+      enumerateDevices(),
+      initializeAudioContext(),
+    ])
   }
 
   return defaultDeviceId && audioContext && devices?.length ? (
