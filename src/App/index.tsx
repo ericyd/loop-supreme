@@ -1,7 +1,6 @@
-import React from 'react'
 import { AudioProvider } from '../AudioProvider'
 import { Clock } from '../Clock'
-import { KeyboardProvider } from '../KeyboardProvider'
+import { KeyBindings } from '../KeyBindings'
 import { KeyboardBindingsList } from './KeyboardBindingsList'
 
 type Props = {
@@ -11,12 +10,27 @@ type Props = {
 
 function App(props: Props) {
   return (
-    <KeyboardProvider>
-      <AudioProvider stream={props.stream} audioContext={props.audioContext}>
-        <Clock />
-        <KeyboardBindingsList />
-      </AudioProvider>
-    </KeyboardProvider>
+    <AudioProvider {...props}>
+      <Clock />
+      <KeyboardBindingsList />
+      <KeyBindings
+        bindings={{
+          Escape: {
+            callback: () => {
+              // @ts-expect-error this is totally valid, not sure why TS doesn't think so
+              const maybeFn = document.activeElement?.blur?.bind(
+                document.activeElement
+              )
+              console.log(maybeFn)
+              if (typeof maybeFn === 'function') {
+                maybeFn()
+              }
+            },
+            tagIgnoreList: [],
+          },
+        }}
+      />
+    </AudioProvider>
   )
 }
 

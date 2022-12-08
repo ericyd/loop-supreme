@@ -4,7 +4,6 @@ import { BeatCounter } from './BeatCounter'
 import { MeasuresPerLoopControl } from './controls/MeasuresPerLoopControl'
 import { TempoControl } from './controls/TempoControl'
 import { TimeSignatureControl } from './controls/TimeSignatureControl'
-import { useKeyboard } from '../KeyboardProvider'
 import { VolumeControl } from './controls/VolumeControl'
 import type {
   ClockControllerMessage,
@@ -15,6 +14,7 @@ import type {
 import { useDecayingSine } from './waveforms'
 import { useDebouncedCallback } from 'use-debounce'
 import { PlayPause } from '../icons/PlayPause'
+import { KeyBindings } from '../KeyBindings'
 
 export type TimeSignature = {
   beatsPerMeasure: number
@@ -30,7 +30,6 @@ type Props = {
 
 export const Metronome: React.FC<Props> = ({ clock }) => {
   const { audioContext } = useAudioContext()
-  const keyboard = useKeyboard()
   const [bpm, setBpmDefault] = useState(120)
   const setBpm = useDebouncedCallback(setBpmDefault, 100, {
     leading: true,
@@ -141,25 +140,6 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
     } as ClockWorkerUpdateMessage)
   }, [bpm, timeSignature.beatsPerMeasure, measuresPerLoop, clock])
 
-  /**
-   * Bind keyboard effects
-   */
-  useEffect(() => {
-    keyboard.on('c', 'Metronome', toggleMuted)
-    // kinda wish I could write "space" but I guess this is the way this works.
-    keyboard.on(' ', 'Metronome', (e) => {
-      // Only toggle playing if another control element is not currently focused
-      if (
-        !['INPUT', 'SELECT', 'BUTTON'].includes(
-          document.activeElement?.tagName ?? ''
-        )
-      ) {
-        togglePlaying()
-        e.preventDefault()
-      }
-    })
-  }, [keyboard, togglePlaying, toggleMuted])
-
   return (
     <div className="flex mb-12 items-end justify-between">
       <div className="flex items-start content-center mb-2 mr-2">
@@ -194,6 +174,12 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
           measuresPerLoop={measuresPerLoop}
         />
       </div>
+      <KeyBindings
+        bindings={{
+          c: { callback: toggleMuted },
+          ' ': { callback: togglePlaying },
+        }}
+      />
     </div>
   )
 }

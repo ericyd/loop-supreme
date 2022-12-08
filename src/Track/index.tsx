@@ -29,13 +29,13 @@ import { MonitorInput } from './controls/MonitorInput'
 import { Mute } from './controls/Mute'
 import { RemoveTrack } from './controls/RemoveTrack'
 import { Waveform } from './Waveform'
-import { useKeyboard } from '../KeyboardProvider'
 import { SelectInput } from './controls/SelectInput'
 import { deviceIdFromStream } from '../util/device-id-from-stream'
 import type {
   ExportWavWorkerEvent,
   WavBlobControllerEvent,
 } from '../workers/export'
+import { KeyBindings } from '../KeyBindings'
 
 type Props = {
   id: number
@@ -87,7 +87,6 @@ export const Track: React.FC<Props> = ({
   const { audioContext, stream: defaultStream } = useAudioContext()
   const [stream, setStream] = useState(defaultStream)
   const defaultDeviceId = deviceIdFromStream(defaultStream) ?? ''
-  const keyboard = useKeyboard()
 
   // title is mostly display-only, but also defines the file name when downloading files
   const [title, setTitle] = useState(`Track ${id}`)
@@ -306,11 +305,11 @@ export const Track: React.FC<Props> = ({
       // ramp up to desired gain quickly to avoid clips at the beginning of the loop
       gainNode.current.gain.value = 0.0
       if (!muted) {
-      gainNode.current.gain.setTargetAtTime(
-        gain,
-        audioContext.currentTime,
-        0.02
-      )
+        gainNode.current.gain.setTargetAtTime(
+          gain,
+          audioContext.currentTime,
+          0.02
+        )
       }
       bufferSource.current.start()
     }
@@ -336,25 +335,6 @@ export const Track: React.FC<Props> = ({
       clock.removeEventListener('message', delegateClockMessage)
     }
   }, [handleLoopstart, clock, waveformWorker])
-
-  /**
-   * Attach keyboard listeners.
-   * For tracks, these are only applicable when the track is selected
-   */
-  useEffect(() => {
-    logger.debug(`useEffect for track ${id}. Selected: ${selected}`)
-    if (selected) {
-      keyboard.on('r', `Track ${id}`, toggleArmRecording)
-      keyboard.on('i', `Track ${id}`, toggleMonitoring)
-      keyboard.on('m', `Track ${id}`, toggleMuted)
-    }
-    return () => {
-      logger.debug(`useEffect cleanup for track ${id}`)
-      keyboard.off('r', `Track ${id}`)
-      keyboard.off('i', `Track ${id}`)
-      keyboard.off('m', `Track ${id}`)
-    }
-  }, [selected, keyboard, id])
 
   /**
    * When "export" event is received from the Scene (via exportTarget),
@@ -459,6 +439,17 @@ export const Track: React.FC<Props> = ({
       </a>
       {/* divider */}
       <div className="border-b border-solid border-zinc-400 w-full h-2 mb-2" />
+      <KeyBindings
+        bindings={
+          selected
+            ? {
+                r: { callback: toggleArmRecording },
+                i: { callback: toggleMonitoring },
+                m: { callback: toggleMuted },
+              }
+            : {}
+        }
+      />
     </>
   )
 }
