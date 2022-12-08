@@ -5,7 +5,9 @@ export function deviceIdFromStream(stream: MediaStream): string | undefined {
     return settingsDeviceId
   }
 
-  const constraintsDeviceId = stream.getAudioTracks()[0].getConstraints()?.deviceId
+  const constraintsDeviceId = stream
+    .getAudioTracks()[0]
+    .getConstraints()?.deviceId
 
   if (typeof constraintsDeviceId === 'string') {
     return constraintsDeviceId

@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import ButtonBase from '../ButtonBase'
+import { useKeybindings } from '../hooks/use-keybindings'
 import { Plus } from '../icons/Plus'
-import { useKeyboard } from '../KeyboardProvider'
 import { Track } from '../Track'
 
 type Props = {
@@ -9,7 +9,6 @@ type Props = {
 }
 
 export const Scene: React.FC<Props> = ({ clock }) => {
-  const keyboard = useKeyboard()
   const [tracks, setTracks] = useState([{ id: 1, selected: false }])
   const exportTarget = useMemo(() => new EventTarget(), [])
 
@@ -49,6 +48,15 @@ export const Scene: React.FC<Props> = ({ clock }) => {
     }
   }
 
+  const deselectAll = useCallback(() => {
+    setTracks((tracks) =>
+      tracks.map((track, i) => ({
+        ...track,
+        selected: false,
+      }))
+    )
+  }, [])
+
   /**
    * When called, exportTarget dispatches an event.
    * Tracks listen to this event and create a wav file blob from their audio buffer,
@@ -58,21 +66,20 @@ export const Scene: React.FC<Props> = ({ clock }) => {
     exportTarget.dispatchEvent(new Event('export'))
   }, [exportTarget])
 
-  /**
-   * Attach keyboard events
-   */
-  useEffect(() => {
-    keyboard.on('a', 'Scene', handleAddTrack)
-    for (let i = 0; i < 10; i++) {
-      keyboard.on(String(i), `Scene ${i}`, setSelected(i))
-    }
-    return () => {
-      keyboard.off('a', 'Scene')
-      for (let i = 0; i < 10; i++) {
-        keyboard.off(String(i), `Scene ${i}`)
-      }
-    }
-  }, [keyboard, handleExport])
+  useKeybindings({
+    a: { callback: handleAddTrack },
+    ...new Array(10).fill(0).reduce(
+      (map, _, i) => ({
+        ...map,
+        [i]: { callback: setSelected(i) },
+      }),
+      {}
+    ),
+    Escape: {
+      callback: deselectAll,
+      tagIgnoreList: [],
+    },
+  })
 
   return (
     <>
