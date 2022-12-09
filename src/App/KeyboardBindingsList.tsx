@@ -14,6 +14,7 @@ const trackKeyBindings = {
   r: 'Arm for recording',
   m: 'Mute track',
   i: 'Monitor input',
+  n: 'Rename track',
 }
 
 export function KeyboardBindingsList() {
