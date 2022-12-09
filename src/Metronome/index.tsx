@@ -153,7 +153,7 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
 
   useKeybindings({
     c: { callback: toggleMuted },
-    ' ': { callback: togglePlaying },
+    ' ': { callback: togglePlaying, preventDefault: true },
   })
 
   return (
