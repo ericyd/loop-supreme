@@ -157,7 +157,7 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
   })
 
   return (
-    <div className="flex mb-12 items-end justify-between">
+    <div className="flex mb-8 items-end justify-between sticky top-0 bg-white py-4">
       <div className="flex items-start content-center mb-2 mr-2">
         <PlayPause onClick={togglePlaying} playing={playing} />
 
