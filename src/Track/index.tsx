@@ -409,7 +409,7 @@ export const Track: React.FC<Props> = ({
         <div className="flex flex-col">
           {/* Title, Record, Monitor */}
           <div className="flex items-stretch content-center">
-            <span className="w-4 h-4 text-xs pl-1 mr-2 rounded-full border border-solid border-zinc-900">
+            <span className="w-4 h-4 text-xs pl-1 mr-2 rounded-full">
               {index + 1}
             </span>
             <input

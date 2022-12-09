@@ -98,7 +98,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [x] Allow user to change inputs https://github.com/ericyd/loop-supreme/pull/25
 - [x] clean up TODOs https://github.com/ericyd/loop-supreme/pull/32
 - [x] show alert to user if latency cannot be detected due to their environment
-- [ ] show alert if track latency cannot be detected, or if it seems wildly out of the norm (~100ms +/ 20ms ???). Consider adding a "custom latency" input option???
+- [x] ~show alert if track latency cannot be detected, or if it seems wildly out of the norm (~100ms +/ 20ms ???). Consider adding a "custom latency" input option???~ punting on this until I see the demand
 - [x] remove useInterval hook (not used)
 - [x] investigate network calls to workers. https://github.com/ericyd/loop-supreme/pull/21
 - [x] keyboard bindings should respect certain boundaries. For example, renaming tracks causes all sorts of things to fire, e.g. `a`, `m`, `r`, `c` all do things that probably shouldn't happen. https://github.com/ericyd/loop-supreme/pull/29
