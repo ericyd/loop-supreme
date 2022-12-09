@@ -1,6 +1,5 @@
 /**
- * Exposes AudioContext (the web audio kind, not a React context)
- * and a MediaStream globally.
+ * Exposes AudioContext (the web audio kind, not a React context) globally.
  * This could probably just be passed as props, but this is marginally more convenient.
  */
 import React, { createContext, useContext } from 'react'
