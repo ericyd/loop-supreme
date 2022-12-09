@@ -116,3 +116,4 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 ## Enhancements
 
 - [ ] allow changing tempo by typing value into an input
+- [ ] add workbox so PWA can be installed
