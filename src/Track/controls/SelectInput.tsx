@@ -55,7 +55,7 @@ export function SelectInput({ setStream }: Props) {
 
   return (
     <select
-      className="rounded-full bg-white border border-zinc-400 px-2 max-w-[50%] text-xs"
+      className="rounded-full border border-zinc-400 dark:border-gray-600 dark:bg-zinc-900 px-2 max-w-[50%] text-xs"
       onChange={handleChange}
       value={selected}
     >

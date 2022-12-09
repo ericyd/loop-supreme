@@ -107,9 +107,9 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 
 - [ ] Use brand colors for range inputs
 - [ ] Use brand colors for all colors!
-- [ ] Add dark mode capabilities (honor system preferences)
-- [ ] Add dark mode toggle button
-- [ ] allow Track to wrap (controls top, waveform bottom)
+- [x] Add dark mode capabilities (honor system preferences)
+- [x] ~Add dark mode toggle button~ respecting system preferences should be sufficient
+- [x] allow Track to wrap (controls top, waveform bottom)
 - [ ] make Track controls slightly less wide
-- [ ] add track ID indicator so keyboard controls make sense
-- [ ] make beat counter sticky so you can see it even when you scroll
+- [x] add track ID indicator so keyboard controls make sense
+- [x] make beat counter sticky so you can see it even when you scroll
