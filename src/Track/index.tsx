@@ -165,7 +165,7 @@ export const Track: React.FC<Props> = ({
       return (event: MessageEvent<RecordingMessage>) => {
         // If the max length is reached, we can no longer record.
         if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
-          // TODO: stop recording, or show alert or something
+          // Not exactly sure what should happen in this case ¯\_(ツ)_/¯
           logger.error(event.data)
         }
 

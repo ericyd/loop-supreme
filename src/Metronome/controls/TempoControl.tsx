@@ -51,8 +51,8 @@ export function TempoControl({ onChange, defaultValue }: TempoProps) {
   return (
     <ControlPanelItem>
       <div>
-        <span className="font-mono text-4xl pr-3">{bpm.toFixed(1)}</span>
-        <span className="font-mono text-xl">BPM</span>
+        <span className="text-4xl pr-3">{bpm.toFixed(1)}</span>
+        <span className="text-xl">BPM</span>
       </div>
       <input
         type="range"

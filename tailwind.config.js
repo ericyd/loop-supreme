@@ -3,30 +3,26 @@ module.exports = {
   content: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
   theme: {
     fontFamily: {
-      // TODO: what is the Tailwind way to make this the default font class, without overwriting font-sans?
+      // This feels strange but I think this is the "right" way to set a default tailwind font.
+      // Additional fonts defined here can be used in place of sans
       sans: [
         'Inconsolata',
         'GTAmericaMono-Light',
         'Consolas',
         'Ubuntu Mono',
         'monospace',
-        // '-apple-system',
-        // 'BlinkMacSystemFont',
-        // 'Segoe UI',
-        // 'Roboto',
-        // 'Oxygen',
-        // 'Ubuntu',
-        // 'Cantarell',
-        // 'Fira Sans',
-        // 'Droid Sans',
-        // 'Helvetica Neue',
       ],
-      mono: [
-        'Inconsolata',
-        'GTAmericaMono-Light',
-        'Consolas',
-        'Ubuntu Mono',
-        'monospace',
+      'sans-real': [
+        '-apple-system',
+        'BlinkMacSystemFont',
+        'Segoe UI',
+        'Roboto',
+        'Oxygen',
+        'Ubuntu',
+        'Cantarell',
+        'Fira Sans',
+        'Droid Sans',
+        'Helvetica Neue',
       ],
     },
     extend: {
