@@ -30,7 +30,6 @@ The `Metronome` is the heart of the app. The BPM, measure, current tick, and tim
 - [x] Metronome must initialize as "stopped", and can be "started" by user input https://github.com/ericyd/loop-supreme/pull/4
 - [x] Metronome can be muted, while still running https://github.com/ericyd/loop-supreme/pull/11
 - [x] ~move "playing" state into MetronomeControls; there is no obvious need for it to live in Metronome~ irrelevant after https://github.com/ericyd/loop-supreme/pull/28
-- [ ] allow changing tempo by typing value into an input
 
 ## Scene
 
@@ -43,7 +42,7 @@ A `Scene` is a collection of one or more Tracks. All Tracks in a Scene are synch
 - [ ] Component has a vertical line that tracks the current tick/current measure
 - [ ] global lock prevents recording multiple tracks at once
 
-## Track
+## ✅ Track
 
 A `Track` is a single mono or stereo audio buffer that contains audio data. A `Track` can be armed for recording, de-armed, muted, and unmuted. By default, the audio data in a `Track` will loop indefinitely. The audio data in a `Track` can be cleared.
 
@@ -91,7 +90,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [x] building (GH Actions) https://github.com/ericyd/loop-supreme/pull/17 and https://github.com/ericyd/loop-supreme/pull/19
 - [x] hosting (Cloudflare)
 
-## Misc
+## ✅ Misc
 
 - [x] `Bug`: using keyboard shortcuts is causing weird recording artifacts... 😭 https://github.com/ericyd/loop-supreme/pull/30
 - [x] clean up "start" button/view
@@ -113,3 +112,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [ ] make Track controls slightly less wide
 - [x] add track ID indicator so keyboard controls make sense
 - [x] make beat counter sticky so you can see it even when you scroll
+
+## Enhancements
+
+- [ ] allow changing tempo by typing value into an input

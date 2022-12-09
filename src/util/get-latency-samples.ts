@@ -1,11 +1,9 @@
 import { logger } from './logger'
 
 /**
- *
- * @param sampleRate
- * @param stream
- * @param audioContext
- * @returns
+ * Media streams typically have some amount of latency.
+ * Latency is reported in seconds, but converting it to
+ * number of samples is more useful to offset the audio buffer.
  */
 export function getLatencySamples(
   sampleRate: number,

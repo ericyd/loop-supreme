@@ -8,30 +8,31 @@ type Props = {
   worker: Worker
   sampleRate: number
 }
-export function Waveform(props: Props) {
+export function Waveform({ worker, sampleRate }: Props) {
   const [path, setPath] = useState('M 0 0')
 
   const yMax = 2
   const xMax = 30
   useEffect(() => {
-    props.worker.postMessage({
+    worker.postMessage({
       message: 'INITIALIZE',
       yMax,
       xMax,
-      sampleRate: props.sampleRate,
+      sampleRate,
     } as WaveformWorkerInitializeMessage)
   })
 
   useEffect(() => {
-    props.worker.addEventListener(
-      'message',
-      (event: MessageEvent<WaveformControllerMessage>) => {
-        if (event.data.message === 'WAVEFORM_PATH') {
-          setPath(event.data.path)
-        }
+    const messageHandler = (event: MessageEvent<WaveformControllerMessage>) => {
+      if (event.data.message === 'WAVEFORM_PATH') {
+        setPath(event.data.path)
       }
-    )
-  })
+    }
+    worker.addEventListener('message', messageHandler)
+    return () => {
+      worker.removeEventListener('message', messageHandler)
+    }
+  }, [worker])
 
   return (
     <svg

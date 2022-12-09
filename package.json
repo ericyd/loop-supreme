@@ -23,8 +23,6 @@
     "wrangler": "^2.4.2"
   },
   "scripts": {
-    "css": "npx tailwindcss -i src/index.css -o ./public/output.css",
-    "css:watch": "npx tailwindcss -i src/index.css -o ./public/output.css --watch",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "postbuild": "./scripts/postbuild.sh",

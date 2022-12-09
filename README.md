@@ -6,21 +6,47 @@
   <strong><em>Browser-based live looper for music performance and audio fun!</em></strong>
 </p>
 
+- [How to use](#how-to-use)
+- [Motivation](#motivation)
+- [What features does this have?](#what-features-does-this-have)
+- [Where can I read more?](#where-can-i-read-more)
+- [Building / running locally](#building-running-locally)
+- [Useful resources in my Web Audio journey](#useful-resources-in-my-web-audio-journey)
+- [Acknowledgements](#acknowledgements)
+
+## How to use
+
+1. Go to [loopsupreme.com](https://loopsupreme.com)
+2. Click "play"
+3. Arm a track for recording
+4. Add more tracks and keep building!
+
 ## Motivation
 
 I wanted to do some live looping on my keyboard but wasn't super satisfied with any of the options out there. I wanted something quick-and-dirty but made it (somewhat) easy to do a loop performance.
 
 I've also been itching for a side project. Seemed like a great way to feed two birds with one scone!
 
-## What features does / will this have?
+## What features does this have?
 
 You can check out [The Roadmap](./roadmap.md)!
 
 ## Where can I read more?
 
-I'm planning to blog about the experience of building it.
+I blogged about this as I made it
 
-You can [check out my blog here!](https://ericyd.hashnode.dev/)
+* Part 12: v1.0 release, and project retro (_coming soon!_)
+* [Part 11: Exporting stems and changing inputs](https://ericyd.hashnode.dev/loop-supreme-part-11-exporting-stems-and-changing-inputs)
+* [Part 10: Keyboard bindings](https://ericyd.hashnode.dev/loop-supreme-part-10-keyboard-bindings)
+* [Part 9: Visualizing the waveform](https://ericyd.hashnode.dev/loop-supreme-part-9-visualizing-the-waveform)
+* [Part 8: Building and hosting](https://ericyd.hashnode.dev/loop-supreme-part-8-building-and-hosting)
+* [Part 7: Latency and adding Track functionality](https://ericyd.hashnode.dev/loop-supreme-part-7-latency-and-adding-track-functionality)
+* [Part 6: Workers and AudioWorklets](https://ericyd.hashnode.dev/loop-supreme-part-6-workers-and-audioworklets)
+* [Part 5: Record and loop a track](https://ericyd.hashnode.dev/loop-supreme-part-5-record-and-loop-a-track)
+* [Part 4: Adding a Scene](https://ericyd.hashnode.dev/loop-supreme-part-4-adding-a-scene)
+* [Part 3: Metronome click](https://ericyd.hashnode.dev/loop-supreme-part-3-metronome-click)
+* [Part 2: Adding a Metronome](https://ericyd.hashnode.dev/loop-supreme-part-2-adding-a-metronome)
+* [Part 1: New project: building a web-based audio looper!](https://ericyd.hashnode.dev/new-project-building-a-web-based-audio-looper)
 
 ## Building / running locally
 
@@ -52,7 +78,13 @@ npm run build
     - https://googlechromelabs.github.io/web-audio-samples/audio-worklet/
     - https://developer.chrome.com/blog/audio-worklet-design-pattern/
     - https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/src/audio-worklet/migration/worklet-recorder
+- inspiration
+  - https://github.com/pkalogiros/AudioMass/
 
-## Icon attribution
+## Acknowledgements
 
 - Metronome by ChangHoon Baek from <a href="https://thenounproject.com/icon/metronome-118052/" target="_blank" title="Metronome Icons">Noun Project</a>
+- Cloudflare Pages has an amazing free hosting tier, and great admin and tooling
+- create-react-app is still going strong and super useful
+- [Chicle font](https://fonts.google.com/specimen/Chicle) used in the logo, copyright (c) 2011 Angel Koziupa (sudtipos@sudtipos.com) and copyright (c) 2011 Alejandro Paul (sudtipos@sudtipos.com)
+- MDN, what would we do without you
