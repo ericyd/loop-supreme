@@ -105,7 +105,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 ## Design
 
 - [ ] Use brand colors for range inputs
-- [ ] Use brand colors for all colors!
+- [x] Use brand colors for all colors! https://github.com/ericyd/loop-supreme/pull/36
 - [x] Add dark mode capabilities (honor system preferences)
 - [x] ~Add dark mode toggle button~ respecting system preferences should be sufficient
 - [x] allow Track to wrap (controls top, waveform bottom)
@@ -116,3 +116,4 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 ## Enhancements
 
 - [ ] allow changing tempo by typing value into an input
+- [x] add workbox so PWA can be installed https://github.com/ericyd/loop-supreme/pull/36

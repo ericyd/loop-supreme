@@ -1,3 +1,6 @@
+<!-- For me, this only renders correctly in Firefox.
+     Also, it nearly crashes the browser, so only open it if you like pain.
+     The rendered and cropped versions are saved as loop-supreme-icon-512.png -->
 <svg version="1.1" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
 
 <defs>
@@ -10,8 +13,7 @@
   <!-- define the color we want for the outline -->
   <feFlood flood-color="#528eb0ff" flood-opacity="1" result="OUTLINE_COLOR"></feFlood>
   
-
-    <!-- cut out the "padding" from the base outline -->
+  <!-- cut out the "padding" from the base outline -->
   <feComposite operator="out" in="OUTLINE_BASE" in2="PADDING" result="CUTOUT"></feComposite>
   <!-- color the outline with the flood color -->
   <feComposite operator="in" in="OUTLINE_COLOR" in2="CUTOUT" result="CUTOUT_COLOR"></feComposite>
@@ -65,11 +67,11 @@
   <feComposite operator="in" in="OUTLINE_COLOR" in2="CUTOUT" result="CUTOUT_COLOR"></feComposite>
 </filter>
 
- <g stroke-width="107.67" aria-label="L" id="L">
+<g stroke-width="107.67" aria-label="L" id="L">
   <path d="m324.27 315.07q0 30.827-12.134 44.6t-58.046 13.774q-20.988 0-31.81-2.2956-10.494-2.2956-12.79-4.9191-2.2956-2.9515-2.2956-8.1986l0.65588-4.9191q7.5427-40.665 7.5427-110.52l-1.3118-55.75q-0.65589-11.806-7.5427-21.316-4.2632-4.2632-4.2632-8.8544 0-10.822 19.677-21.316 20.004-10.494 31.154-10.494 11.15 0 11.15 9.1824-4.2632 32.794-5.2471 60.013-0.65588 26.891-0.65588 61.653 0 34.434 0.32794 41.649 0.32794 7.2147 0.32794 7.8706 0.32794 0.65589 0.98383 2.2956 0.98382 1.6397 2.6235 2.9515 3.9353 2.9515 12.134 2.9515 18.037 0 28.859-12.462 5.2471-5.2471 10.494-5.2471 10.166 0 10.166 19.349z"/>
- </g>
+</g>
 
- </defs>
+</defs>
 
 <use href="#L" filter="url(#outline7)" />
 <use href="#L" filter="url(#outline6)" />
@@ -78,6 +80,6 @@
 <use href="#L" filter="url(#outline3)" />
 <use href="#L" filter="url(#outline2)" />
 <use href="#L" filter="url(#outline1)" />
-<use href="#L"  />
+<use href="#L" />
 
 </svg>

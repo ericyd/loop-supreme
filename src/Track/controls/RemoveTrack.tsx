@@ -22,13 +22,13 @@ export function RemoveTrack(props: Props) {
 
   return (
     <ButtonBase
-      className={confirmRemoval ? 'bg-red-400' : ''}
+      className={confirmRemoval ? 'bg-red' : ''}
       wide={confirmRemoval}
       onClick={handleRemove}
       ref={removeButtonRef}
     >
       {confirmRemoval ? (
-        <div className="text-xs dark:text-zinc-900">Delete?</div>
+        <div className="text-xs dark:text-black">Delete?</div>
       ) : (
         <X />
       )}

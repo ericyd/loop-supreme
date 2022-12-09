@@ -50,9 +50,13 @@ export function TempoControl({ onChange, defaultValue }: TempoProps) {
 
   return (
     <ControlPanelItem>
-      <div>
+      <div className="flex flex-row">
         <span className="text-4xl pr-3">{bpm.toFixed(1)}</span>
-        <span className="text-xl">BPM</span>
+        <span className="text-sm">
+          (t)ap
+          <br />
+          (t)empo
+        </span>
       </div>
       <input
         type="range"
@@ -76,6 +80,6 @@ function average(ns: number[]) {
 }
 
 // returns average delta between adjacent elements of the array
-function averageBetween(ns: number[]) {
+export function averageBetween(ns: number[]) {
   return average(ns.map((n, i) => n - ns[Math.max(i - 1, 0)]).slice(1))
 }

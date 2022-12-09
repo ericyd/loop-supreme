@@ -419,7 +419,7 @@ export const Track: React.FC<Props> = ({
               value={title}
               onChange={handleChangeTitle}
               onFocus={rename}
-              className="pl-2 -pr-2 flex-initial mr-2 rounded-full bg-gray-50 dark:bg-zinc-900"
+              className="pl-2 -pr-2 flex-initial mr-2 rounded-full bg-white dark:bg-black"
             />
             <ArmTrackRecording
               toggleArmRecording={toggleArmRecording}
@@ -462,7 +462,7 @@ export const Track: React.FC<Props> = ({
         Download
       </a>
       {/* divider */}
-      <div className="border-b border-solid border-zinc-400 w-full h-2 mb-2" />
+      <div className="border-b border-solid border-light-gray w-full h-2 mb-2" />
     </>
   )
 }

@@ -24,7 +24,7 @@ export const VolumeControl: React.FC<Props> = (props) => {
       <ButtonBase
         onClick={props.toggleMuted}
         large
-        className={props.muted ? 'bg-red-400' : ''}
+        className={props.muted ? 'bg-red' : ''}
       >
         <MetronomeIcon />
       </ButtonBase>

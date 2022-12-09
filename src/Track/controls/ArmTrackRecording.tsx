@@ -24,7 +24,7 @@ export function ArmTrackRecording(props: Props) {
           cy="12"
           fillRule="nonzero"
           r="10"
-          className={`fill-red-400 ${
+          className={`fill-red ${
             props.armed
               ? 'animate-pulse-custom'
               : props.recording

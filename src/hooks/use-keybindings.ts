@@ -6,6 +6,7 @@ type IgnorableTagName = 'INPUT' | 'SELECT' | 'BUTTON'
 type KeyBinding = {
   callback: KeyboardEventHandler
   tagIgnoreList?: Array<IgnorableTagName>
+  preventDefault?: boolean
 }
 type CallbackMap = Record<string, KeyBinding>
 
@@ -22,8 +23,10 @@ export function useKeybindings(bindings: CallbackMap) {
           (document.activeElement?.tagName as IgnorableTagName) ?? ''
         )
       ) {
-        binding?.callback(e)
-        e.preventDefault()
+        binding.callback(e)
+        if (binding.preventDefault) {
+          e.preventDefault()
+        }
       }
     }
     window.addEventListener('keydown', keydownCallback)

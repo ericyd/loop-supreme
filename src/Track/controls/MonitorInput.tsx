@@ -14,7 +14,7 @@ export function MonitorInput(props: Props) {
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
-        className={props.monitoring ? 'fill-orange-400' : ''}
+        className={props.monitoring ? 'fill-orange' : ''}
       >
         <title>Toggle input monitoring</title>
         <path
