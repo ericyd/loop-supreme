@@ -33,7 +33,9 @@ module.exports = {
       'dark-gray': '#4b5563',
       blue: '#bfdbfe',
       red: '#f87171',
+      'light-red': '#fecaca',
       orange: '#fb923c',
+      link: '#0890b2',
     },
     extend: {
       animation: {
