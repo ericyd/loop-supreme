@@ -28,11 +28,11 @@ export function BeatCounter(props: BeatCounterProps) {
 
   return (
     <ControlPanelItem>
-      <span className="font-mono text-2xl pr-2">
+      <span className="text-2xl pr-2">
         {/* `+ 1` to convert "computer numbers" to "musician numbers"  */}
         {(currentTick % props.beatsPerMeasure) + 1}
       </span>
-      <span className="font-mono text-l">
+      <span className="text-l">
         . {Math.floor(currentTick / props.beatsPerMeasure) + 1}
       </span>
     </ControlPanelItem>

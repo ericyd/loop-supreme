@@ -112,6 +112,11 @@ export const Track: React.FC<Props> = ({
   )
   const downloadLinkRef = useRef<HTMLAnchorElement>(null)
 
+  const titleRef = useRef<HTMLInputElement>(null)
+  const rename = useCallback(() => {
+    titleRef.current?.select()
+  }, [])
+
   /**
    * Set up track gain.
    * Refs vs State vs Memo:
@@ -160,7 +165,7 @@ export const Track: React.FC<Props> = ({
       return (event: MessageEvent<RecordingMessage>) => {
         // If the max length is reached, we can no longer record.
         if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
-          // TODO: stop recording, or show alert or something
+          // Not exactly sure what should happen in this case ¯\_(ツ)_/¯
           logger.error(event.data)
         }
 
@@ -387,6 +392,7 @@ export const Track: React.FC<Props> = ({
           r: { callback: toggleArmRecording },
           i: { callback: toggleMonitoring },
           m: { callback: toggleMuted },
+          n: { callback: rename },
         }
       : {}
   )
@@ -402,8 +408,10 @@ export const Track: React.FC<Props> = ({
           {/* Title, Record, Monitor */}
           <div className="flex items-stretch content-center">
             <input
+              ref={titleRef}
               value={title}
               onChange={handleChangeTitle}
+              onFocus={rename}
               className="pl-2 -pr-2 flex-initial mr-2 rounded-full"
             />
             <ArmTrackRecording

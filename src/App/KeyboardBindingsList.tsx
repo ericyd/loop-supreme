@@ -7,6 +7,7 @@ const globalKeyBindings = {
   escape: 'Clear current selection',
   space: 'Play / pause',
   c: 'Mute click track',
+  t: 'Tap tempo',
   '0-9': 'Select track',
 }
 
@@ -14,6 +15,7 @@ const trackKeyBindings = {
   r: 'Arm for recording',
   m: 'Mute track',
   i: 'Monitor input',
+  n: 'Rename track',
 }
 
 export function KeyboardBindingsList() {

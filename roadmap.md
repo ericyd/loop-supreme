@@ -72,13 +72,13 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [ ] Bounced master can be exported
 - [ ] Live performance can be saved and exported
 
-## Keyboard
+## ✅ Keyboard
 
 - [x] Keyboard shortcuts are added for most common actions https://github.com/ericyd/loop-supreme/pull/24
   - [x] `1`, `2`, `3`, etc select a track
   - [x] once a track is selected, `r` toggles "armed for recording", `m` toggles mute
   - [x] `space` is play/pause
-- [ ] add "tap tempo" functionlity and bind to `t` key
+- [x] add "tap tempo" functionlity and bind to `t` key https://github.com/ericyd/loop-supreme/pull/32
 
 ## ✅ HTML
 
@@ -96,7 +96,7 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [x] `Bug`: using keyboard shortcuts is causing weird recording artifacts... 😭 https://github.com/ericyd/loop-supreme/pull/30
 - [x] clean up "start" button/view
 - [x] Allow user to change inputs https://github.com/ericyd/loop-supreme/pull/25
-- [ ] clean up TODOs
+- [x] clean up TODOs https://github.com/ericyd/loop-supreme/pull/32
 - [x] show alert to user if latency cannot be detected due to their environment
 - [ ] show alert if track latency cannot be detected, or if it seems wildly out of the norm (~100ms +/ 20ms ???). Consider adding a "custom latency" input option???
 - [x] remove useInterval hook (not used)
