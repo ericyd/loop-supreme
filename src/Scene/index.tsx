@@ -83,10 +83,11 @@ export const Scene: React.FC<Props> = ({ clock }) => {
 
   return (
     <>
-      {tracks.map(({ id, selected }) => (
+      {tracks.map(({ id, selected }, index) => (
         <Track
           key={id}
           id={id}
+          index={index}
           selected={selected}
           onRemove={handleRemoveTrack(id)}
           clock={clock}

@@ -42,6 +42,7 @@ type Props = {
   clock: Worker
   selected: boolean
   exportTarget: EventTarget
+  index: number
 }
 
 type RecordingProperties = {
@@ -82,6 +83,7 @@ export const Track: React.FC<Props> = ({
   clock,
   selected,
   exportTarget,
+  index,
 }) => {
   const { audioContext } = useAudioContext()
   // stream is initialized in SelectInput
@@ -407,12 +409,15 @@ export const Track: React.FC<Props> = ({
         <div className="flex flex-col">
           {/* Title, Record, Monitor */}
           <div className="flex items-stretch content-center">
+            <span className="w-4 h-4 text-xs pl-1 mr-2 rounded-full">
+              {index + 1}
+            </span>
             <input
               ref={titleRef}
               value={title}
               onChange={handleChangeTitle}
               onFocus={rename}
-              className="pl-2 -pr-2 flex-initial mr-2 rounded-full"
+              className="pl-2 -pr-2 flex-initial mr-2 rounded-full bg-gray-50 dark:bg-zinc-900"
             />
             <ArmTrackRecording
               toggleArmRecording={toggleArmRecording}

@@ -50,6 +50,7 @@ function ButtonBase(
     <button
       onClick={props.onClick}
       className={`border-zinc-900 border-solid rounded-full flex-initial mr-2
+                  dark:border-gray-100 dark:fill-gray-100
                   hover:shadow-button focus:shadow-button
                   ${h} ${w} ${p} ${b} ${props.className ?? ''}`}
       ref={forwardRef}
