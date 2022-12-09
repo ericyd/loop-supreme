@@ -1,5 +1,5 @@
-import { useEffect } from "react"
-import { logger } from "../util/logger"
+import { useEffect } from 'react'
+import { logger } from '../util/logger'
 
 type KeyboardEventHandler = (event: KeyboardEvent) => void
 type IgnorableTagName = 'INPUT' | 'SELECT' | 'BUTTON'
