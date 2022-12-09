@@ -18,7 +18,6 @@ import type {
   ClockWorkerUpdateMessage,
 } from '../workers/clock'
 import { useDecayingSine } from './waveforms'
-import { useDebouncedCallback } from 'use-debounce'
 import { PlayPause } from '../icons/PlayPause'
 import { useKeybindings } from '../hooks/use-keybindings'
 
@@ -36,11 +35,7 @@ type Props = {
 
 export const Metronome: React.FC<Props> = ({ clock }) => {
   const { audioContext } = useAudioContext()
-  const [bpm, setBpmDefault] = useState(120)
-  const setBpm = useDebouncedCallback(setBpmDefault, 100, {
-    leading: true,
-    trailing: false,
-  })
+  const [bpm, setBpm] = useState(120)
   const [timeSignature, setTimeSignature] = useState<TimeSignature>({
     beatsPerMeasure: 4,
     beatUnit: 4,

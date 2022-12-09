@@ -7,6 +7,7 @@ const globalKeyBindings = {
   escape: 'Clear current selection',
   space: 'Play / pause',
   c: 'Mute click track',
+  t: 'Tap tempo',
   '0-9': 'Select track',
 }
 
