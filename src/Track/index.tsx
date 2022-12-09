@@ -417,7 +417,7 @@ export const Track: React.FC<Props> = ({
               value={title}
               onChange={handleChangeTitle}
               onFocus={rename}
-              className="pl-2 -pr-2 flex-initial mr-2 rounded-full dark:bg-zinc-900"
+              className="pl-2 -pr-2 flex-initial mr-2 rounded-full bg-gray-50 dark:bg-zinc-900"
             />
             <ArmTrackRecording
               toggleArmRecording={toggleArmRecording}

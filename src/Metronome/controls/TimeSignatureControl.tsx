@@ -32,7 +32,7 @@ export function TimeSignatureControl(props: TimeSignatureProps) {
       <select
         onChange={handleChange}
         value={`${props.beatsPerMeasure}/${props.beatUnit}`}
-        className="text-xl border border-solid border-zinc-400 dark:border-gray-600 dark:bg-zinc-900 rounded-full p-2"
+        className="text-xl border border-solid border-zinc-400 dark:border-gray-600 bg-gray-50 dark:bg-zinc-900 rounded-full p-2"
       >
         <option value="4/4">4/4</option>
         <option value="7/8">7/8</option>

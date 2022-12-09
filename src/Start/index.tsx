@@ -112,7 +112,7 @@ export const Start: React.FC = () => {
         {!latencySupported && <LatencyNotSupportedAlert />}
         <button
           onClick={handleClick}
-          className="px-10 py-5 border-4 border-solid border-black rounded-full text-xl bg-blue-200"
+          className="px-10 py-5 border-4 border-solid border-zinc-900 rounded-full text-xl bg-blue-200 dark:text-zinc-900"
         >
           Start
         </button>
@@ -123,7 +123,7 @@ export const Start: React.FC = () => {
 
 function LatencyNotSupportedAlert() {
   return (
-    <div className="mb-5 font-bold bg-red-200 p-2 rounded-md">
+    <div className="mb-5 font-bold bg-red-200 dark:text-zinc-900 p-2 rounded-md">
       <p>Heads up!</p>
       <p>Your browser does not appear to report recording latency 😢.</p>
       <p>
