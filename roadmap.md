@@ -65,11 +65,11 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 - [x] Ensure the audio buffer is always exactly as long as it needs to be to fill the loop https://github.com/ericyd/loop-supreme/pull/23
 - [x] clean up functionality from recorder worklet that isn't being used (might want to hold off until I know how visualization will work) https://github.com/ericyd/loop-supreme/pull/20
 
-## Saving audio
+## ✅ Saving audio
 
 - [x] Stems can be exported https://github.com/ericyd/loop-supreme/pull/26
-- [ ] Bounced master can be exported
-- [ ] Live performance can be saved and exported
+- [x] ~Bounced master can be exported~ not entirely sure what my goal was here...
+- [x] Live performance can be saved and exported https://github.com/ericyd/loop-supreme/pull/37
 
 ## ✅ Keyboard
 
