@@ -95,11 +95,9 @@ export const Start: React.FC = () => {
   }
 
   async function handleClick() {
-    await Promise.all([
-      grantDevicePermission(),
-      enumerateDevices(),
-      initializeAudioContext(),
-    ])
+    await grantDevicePermission()
+    await enumerateDevices()
+    await initializeAudioContext()
   }
 
   return defaultDeviceId && audioContext && devices?.length ? (

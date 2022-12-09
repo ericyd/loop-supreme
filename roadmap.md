@@ -30,6 +30,7 @@ The `Metronome` is the heart of the app. The BPM, measure, current tick, and tim
 - [x] Metronome must initialize as "stopped", and can be "started" by user input https://github.com/ericyd/loop-supreme/pull/4
 - [x] Metronome can be muted, while still running https://github.com/ericyd/loop-supreme/pull/11
 - [x] ~move "playing" state into MetronomeControls; there is no obvious need for it to live in Metronome~ irrelevant after https://github.com/ericyd/loop-supreme/pull/28
+- [ ] allow changing tempo by typing value into an input
 
 ## Scene
 
