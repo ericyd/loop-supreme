@@ -36,6 +36,8 @@ module.exports = {
       'light-red': '#fecaca',
       orange: '#fb923c',
       link: '#0890b2',
+      yellow: '#fadd8e',
+      purple: '#411a71',
     },
     extend: {
       animation: {
