@@ -1,0 +1,83 @@
+<svg version="1.1" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+
+<defs>
+<!-- From: https://tympanus.net/codrops/2019/01/22/svg-filter-effects-outline-text-with-femorphology/ -->
+<filter id="outline1" x="-256" y="-256" height="512" width="512">
+  <!-- dilate the alpha channel twice: once for the padding (transparent), and another time for the outline -->
+  <feMorphology operator="dilate" radius="5" in="SourceAlpha" result="PADDING" />
+  <feMorphology operator="dilate" radius="25" in="SourceAlpha" result="OUTLINE_BASE" />
+
+  <!-- define the color we want for the outline -->
+  <feFlood flood-color="#528eb0ff" flood-opacity="1" result="OUTLINE_COLOR"></feFlood>
+  
+
+    <!-- cut out the "padding" from the base outline -->
+  <feComposite operator="out" in="OUTLINE_BASE" in2="PADDING" result="CUTOUT"></feComposite>
+  <!-- color the outline with the flood color -->
+  <feComposite operator="in" in="OUTLINE_COLOR" in2="CUTOUT" result="CUTOUT_COLOR"></feComposite>
+</filter>
+
+<filter id="outline2" x="-256" y="-256" height="512" width="512">
+  <feMorphology operator="dilate" radius="30" in="SourceAlpha" result="PADDING" />
+  <feMorphology operator="dilate" radius="50" in="SourceAlpha" result="OUTLINE_BASE" />
+  <feFlood flood-color="#c6c0e9ff" flood-opacity="1" result="OUTLINE_COLOR"></feFlood>
+  <feComposite operator="out" in="OUTLINE_BASE" in2="PADDING" result="CUTOUT"></feComposite>
+  <feComposite operator="in" in="OUTLINE_COLOR" in2="CUTOUT" result="CUTOUT_COLOR"></feComposite>
+</filter>
+
+<filter id="outline3" x="-256" y="-256" height="512" width="512">
+  <feMorphology operator="dilate" radius="55" in="SourceAlpha" result="PADDING" />
+  <feMorphology operator="dilate" radius="75" in="SourceAlpha" result="OUTLINE_BASE" />
+  <feFlood flood-color="#fadd8eff" flood-opacity="1" result="OUTLINE_COLOR"></feFlood>
+  <feComposite operator="out" in="OUTLINE_BASE" in2="PADDING" result="CUTOUT"></feComposite>
+  <feComposite operator="in" in="OUTLINE_COLOR" in2="CUTOUT" result="CUTOUT_COLOR"></feComposite>
+</filter>
+
+<filter id="outline4" x="-256" y="-256" height="512" width="512">
+  <feMorphology operator="dilate" radius="80" in="SourceAlpha" result="PADDING" />
+  <feMorphology operator="dilate" radius="100" in="SourceAlpha" result="OUTLINE_BASE" />
+  <feFlood flood-color="#f1b0b0ff" flood-opacity="1" result="OUTLINE_COLOR"></feFlood>
+  <feComposite operator="out" in="OUTLINE_BASE" in2="PADDING" result="CUTOUT"></feComposite>
+  <feComposite operator="in" in="OUTLINE_COLOR" in2="CUTOUT" result="CUTOUT_COLOR"></feComposite>
+</filter>
+
+<filter id="outline5" x="-256" y="-256" height="512" width="512">
+  <feMorphology operator="dilate" radius="105" in="SourceAlpha" result="PADDING" />
+  <feMorphology operator="dilate" radius="125" in="SourceAlpha" result="OUTLINE_BASE" />
+  <feFlood flood-color="#b1daeeff" flood-opacity="1" result="OUTLINE_COLOR"></feFlood>
+  <feComposite operator="out" in="OUTLINE_BASE" in2="PADDING" result="CUTOUT"></feComposite>
+  <feComposite operator="in" in="OUTLINE_COLOR" in2="CUTOUT" result="CUTOUT_COLOR"></feComposite>
+</filter>
+
+<filter id="outline6" x="-256" y="-256" height="512" width="512">
+  <feMorphology operator="dilate" radius="130" in="SourceAlpha" result="PADDING" />
+  <feMorphology operator="dilate" radius="150" in="SourceAlpha" result="OUTLINE_BASE" />
+  <feFlood flood-color="#411a71ff" flood-opacity="1" result="OUTLINE_COLOR"></feFlood>
+  <feComposite operator="out" in="OUTLINE_BASE" in2="PADDING" result="CUTOUT"></feComposite>
+  <feComposite operator="in" in="OUTLINE_COLOR" in2="CUTOUT" result="CUTOUT_COLOR"></feComposite>
+</filter>
+
+<filter id="outline7" x="-256" y="-256" height="512" width="512">
+  <feMorphology operator="dilate" radius="155" in="SourceAlpha" result="PADDING" />
+  <feMorphology operator="dilate" radius="175" in="SourceAlpha" result="OUTLINE_BASE" />
+  <feFlood flood-color="#c9574fff" flood-opacity="1" result="OUTLINE_COLOR"></feFlood>
+  <feComposite operator="out" in="OUTLINE_BASE" in2="PADDING" result="CUTOUT"></feComposite>
+  <feComposite operator="in" in="OUTLINE_COLOR" in2="CUTOUT" result="CUTOUT_COLOR"></feComposite>
+</filter>
+
+ <g stroke-width="107.67" aria-label="L" id="L">
+  <path d="m324.27 315.07q0 30.827-12.134 44.6t-58.046 13.774q-20.988 0-31.81-2.2956-10.494-2.2956-12.79-4.9191-2.2956-2.9515-2.2956-8.1986l0.65588-4.9191q7.5427-40.665 7.5427-110.52l-1.3118-55.75q-0.65589-11.806-7.5427-21.316-4.2632-4.2632-4.2632-8.8544 0-10.822 19.677-21.316 20.004-10.494 31.154-10.494 11.15 0 11.15 9.1824-4.2632 32.794-5.2471 60.013-0.65588 26.891-0.65588 61.653 0 34.434 0.32794 41.649 0.32794 7.2147 0.32794 7.8706 0.32794 0.65589 0.98383 2.2956 0.98382 1.6397 2.6235 2.9515 3.9353 2.9515 12.134 2.9515 18.037 0 28.859-12.462 5.2471-5.2471 10.494-5.2471 10.166 0 10.166 19.349z"/>
+ </g>
+
+ </defs>
+
+<use href="#L" filter="url(#outline7)" />
+<use href="#L" filter="url(#outline6)" />
+<use href="#L" filter="url(#outline5)" />
+<use href="#L" filter="url(#outline4)" />
+<use href="#L" filter="url(#outline3)" />
+<use href="#L" filter="url(#outline2)" />
+<use href="#L" filter="url(#outline1)" />
+<use href="#L"  />
+
+</svg>

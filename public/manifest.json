@@ -3,14 +3,28 @@
   "name": "Loop Supreme",
   "icons": [
     {
-      "src": "icons/loop-supreme-logo.png",
+      "src": "icons/loop-supreme-icon-192.png",
       "type": "image/png",
-      "sizes": "240x240"
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
-      "src": "icons/loop-supreme-logo.svg",
-      "type": "image/svg",
-      "sizes": "240x240"
+      "src": "icons/loop-supreme-icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/loop-supreme-icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/loop-supreme-icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
   "start_url": "https://loopsupreme.com",
