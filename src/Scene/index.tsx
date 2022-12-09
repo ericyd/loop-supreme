@@ -228,5 +228,8 @@ export const Scene: React.FC<Props> = ({ clock }) => {
 
 // returns a timestamp that is safe for any OS filename
 function timestamp() {
-  return new Date().toISOString().replace(/[^0-9TZ.-]/g, '')
+  return new Date()
+    .toISOString()
+    .replace(/\.\d{0,5}Z$/, '')
+    .replace(/:/g, '-')
 }
