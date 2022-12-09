@@ -87,6 +87,14 @@ class RecordingProcessor extends AudioWorkletProcessor {
     this.port.onmessage = (event) => {
       if (event.data.message === 'UPDATE_RECORDING_STATE') {
         this.recording = event.data.recording
+        if (event.data.reset) {
+          this.channelsData = new Array(this.numberOfChannels).fill(
+            new Float32Array(this.maxRecordingSamples)
+          )
+          this.recordedSamples = 0
+          this.samplesSinceLastPublish = 0
+          this.gainSum = 0
+        }
 
         // When the recording ends, send the buffer back to the Track
         if (this.recording === false) {

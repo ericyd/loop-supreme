@@ -36,7 +36,7 @@ export function TempoControl({ onChange, defaultValue }: TempoProps) {
     } else {
       setTaps((taps) => [...taps, now])
     }
-    if (taps.length > 2) {
+    if (taps.length >= 2) {
       const averageMs = averageBetween(taps.slice(-3))
       const bpm = 60 / (averageMs / 1000)
       debouncedOnChange(bpm)

@@ -154,8 +154,8 @@ export const Track: React.FC<Props> = ({
   /**
    * Both of these are instantiated on mount
    */
-  const recorderWorklet = useRef<AudioWorkletNode>()
-  const bufferSource = useRef<AudioBufferSourceNode>()
+  const recorderWorklet = useRef<AudioWorkletNode | null>(null)
+  const bufferSource = useRef<AudioBufferSourceNode | null>(null)
 
   /**
    * Builds a callback that handles the messages from the recorder worker.
@@ -271,7 +271,7 @@ export const Track: React.FC<Props> = ({
       if (recorderWorklet.current) {
         recorderWorklet.current.disconnect()
         recorderWorklet.current.port.onmessage = null
-        recorderWorklet.current = undefined
+        recorderWorklet.current = null
       }
       bufferSource.current?.stop()
       mediaSource.disconnect()
@@ -290,9 +290,11 @@ export const Track: React.FC<Props> = ({
     if (armed) {
       setRecording(true)
       setArmed(false)
+      bufferSource.current = null
       recorderWorklet.current?.port?.postMessage({
         message: 'UPDATE_RECORDING_STATE',
         recording: true,
+        reset: true,
       })
       waveformWorker.postMessage({
         message: 'RESET_FRAMES',
