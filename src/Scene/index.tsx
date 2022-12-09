@@ -100,7 +100,7 @@ export const Scene: React.FC<Props> = ({ clock }) => {
         </ButtonBase>
         <button
           onClick={handleExport}
-          className="border border-zinc-400 border-solid rounded-full p-2 mr-2 hover:shadow-button"
+          className="border border-light-gray border-solid rounded-full p-2 mr-2 hover:shadow-button"
         >
           Download stems
         </button>

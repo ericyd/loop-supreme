@@ -25,6 +25,16 @@ module.exports = {
         'Helvetica Neue',
       ],
     },
+    colors: {
+      // taken from https://tailwindcss.com/docs/customizing-colors
+      black: '#18181b',
+      white: '#f9fafb',
+      'light-gray': '#a1a1aa',
+      'dark-gray': '#4b5563',
+      blue: '#bfdbfe',
+      red: '#f87171',
+      orange: '#fb923c',
+    },
     extend: {
       animation: {
         'pulse-custom': 'pulse-custom 1s ease-in-out infinite',
