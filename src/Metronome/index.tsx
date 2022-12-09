@@ -1,3 +1,9 @@
+/**
+ * Metronome provides controls for the common metronome settings:
+ * BPM, measures per loop, and time signature.
+ * It also controls whether or not the click track makes noise,
+ * and the global "playing" state of the app.
+ */
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useAudioContext } from '../AudioProvider'
 import { BeatCounter } from './BeatCounter'
@@ -56,43 +62,53 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
    * Set up metronome gain node.
    * See Track/index.tsx for description of the useRef/useEffect pattern
    */
-  const gainNode = useRef(
-    new GainNode(audioContext, { gain: muted ? 0.0 : gain })
-  )
+  const gainNode = useRef<GainNode | null>()
   useEffect(() => {
-    gainNode.current.gain.value = muted ? 0.0 : gain
+    gainNode.current = new GainNode(audioContext, { gain: 0.5 })
+    gainNode.current.connect(audioContext.destination)
+    return () => {
+      gainNode.current?.disconnect()
+    }
+  }, [audioContext])
+  useEffect(() => {
+    if (gainNode.current) {
+      gainNode.current.gain.value = muted ? 0.0 : gain
+    }
   }, [gain, muted])
 
+  // I don't think this is an ideal use for a ref,
+  // but this is the easiest way to be able to "disconnect" on each loop.
+  // This isn't strictly necessary afaik, but I think it will help with garbage cleanup
+  const source = useRef<AudioBufferSourceNode | null>(null)
+
   /**
+   * Add clock event listeners.
    * On each tick, set the "currentTick" value and emit a beep.
    * The AudioBufferSourceNode must be created fresh each time,
    * because it can only be played once.
    */
-  const clockMessageHandler = useCallback(
-    (event: MessageEvent<ClockControllerMessage>) => {
+  useEffect(() => {
+    const clockMessageHandler = (
+      event: MessageEvent<ClockControllerMessage>
+    ) => {
       // console.log(event.data) // this is really noisy
-      if (event.data.message === 'TICK') {
-        const source = new AudioBufferSourceNode(audioContext, {
+      if (event.data.message === 'TICK' && gainNode.current) {
+        if (source.current) {
+          source.current.disconnect()
+        }
+        source.current = new AudioBufferSourceNode(audioContext, {
           buffer: event.data.downbeat ? sine380 : sine330,
         })
-
-        gainNode.current.connect(audioContext.destination)
-        source.connect(gainNode.current)
-        source.start()
+        source.current.connect(gainNode.current)
+        source.current.start()
       }
-    },
-    [audioContext, sine330, sine380]
-  )
+    }
 
-  /**
-   * Add clock event listeners
-   */
-  useEffect(() => {
     clock.addEventListener('message', clockMessageHandler)
     return () => {
       clock.removeEventListener('message', clockMessageHandler)
     }
-  }, [clockMessageHandler, clock])
+  }, [audioContext, sine330, sine380, clock])
 
   /**
    * When "playing" is toggled on/off,
