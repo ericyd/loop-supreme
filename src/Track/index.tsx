@@ -154,8 +154,12 @@ export const Track: React.FC<Props> = ({
       0.1
     )
   }, [monitoring, audioContext])
-  // this works correctly, but makes me wonder if monitorNode should automatically mute when recording has stopped?
-  // maybe toggleRecording should setMonitoring(false) if (recording)
+
+  /**
+   * Connect the monitor and gain nodes to the sessionWorklet.
+   * This creates a continuous recording stream into sessionWorklet,
+   * so that the live performance can be captured.
+   */
   useEffect(() => {
     const gain = gainNode.current
     const monitor = monitorNode.current
@@ -300,6 +304,8 @@ export const Track: React.FC<Props> = ({
       recorderWorklet.current?.port?.postMessage({
         message: 'TOGGLE_RECORDING_STATE',
       })
+      // for now, assume that track monitoring should end when the loop ends
+      setMonitoring(false)
       return
     }
     if (armed) {
@@ -332,7 +338,7 @@ export const Track: React.FC<Props> = ({
         gainNode.current.gain.setTargetAtTime(
           gain,
           audioContext.currentTime,
-          0.02
+          0.005
         )
       }
       bufferSource.current.start()
