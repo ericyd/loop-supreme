@@ -43,6 +43,7 @@ type Props = {
   selected: boolean
   exportTarget: EventTarget
   index: number
+  sessionWorklet: AudioWorkletNode
 }
 
 type RecordingProperties = {
@@ -64,6 +65,8 @@ type ShareRecordingBufferMessage = {
   message: 'SHARE_RECORDING_BUFFER'
   channelsData: Array<Float32Array>
   recordingLength: number
+  // this allows us to send data through the recorder in messages. Saves an extra ref or piece of state
+  forwardData: Record<string, any>
 }
 
 type UpdateWaveformMessage = {
@@ -72,7 +75,7 @@ type UpdateWaveformMessage = {
   samplesPerFrame: number
 }
 
-type RecordingMessage =
+export type RecordingMessage =
   | MaxRecordingLengthReachedMessage
   | ShareRecordingBufferMessage
   | UpdateWaveformMessage
@@ -84,6 +87,7 @@ export const Track: React.FC<Props> = ({
   selected,
   exportTarget,
   index,
+  sessionWorklet,
 }) => {
   const { audioContext } = useAudioContext()
   // stream is initialized in SelectInput
@@ -150,6 +154,22 @@ export const Track: React.FC<Props> = ({
       0.1
     )
   }, [monitoring, audioContext])
+
+  /**
+   * Connect the monitor and gain nodes to the sessionWorklet.
+   * This creates a continuous recording stream into sessionWorklet,
+   * so that the live performance can be captured.
+   */
+  useEffect(() => {
+    const gain = gainNode.current
+    const monitor = monitorNode.current
+    gain.connect(sessionWorklet)
+    monitor.connect(sessionWorklet)
+    return () => {
+      gain.disconnect(sessionWorklet)
+      monitor.connect(sessionWorklet)
+    }
+  }, [sessionWorklet])
 
   /**
    * Both of these are instantiated on mount
@@ -282,9 +302,10 @@ export const Track: React.FC<Props> = ({
     if (recording) {
       setRecording(false)
       recorderWorklet.current?.port?.postMessage({
-        message: 'UPDATE_RECORDING_STATE',
-        recording: false,
+        message: 'TOGGLE_RECORDING_STATE',
       })
+      // for now, assume that track monitoring should end when the loop ends
+      setMonitoring(false)
       return
     }
     if (armed) {
@@ -292,9 +313,7 @@ export const Track: React.FC<Props> = ({
       setArmed(false)
       bufferSource.current = null
       recorderWorklet.current?.port?.postMessage({
-        message: 'UPDATE_RECORDING_STATE',
-        recording: true,
-        reset: true,
+        message: 'TOGGLE_RECORDING_STATE',
       })
       waveformWorker.postMessage({
         message: 'RESET_FRAMES',
@@ -319,7 +338,7 @@ export const Track: React.FC<Props> = ({
         gainNode.current.gain.setTargetAtTime(
           gain,
           audioContext.currentTime,
-          0.02
+          0.005
         )
       }
       bufferSource.current.start()
@@ -456,7 +475,7 @@ export const Track: React.FC<Props> = ({
       {/* Download element - inspired by this SO answer https://stackoverflow.com/a/19328891/3991555 */}
       <a
         ref={downloadLinkRef}
-        href="https://test.example.com"
+        href="https://loopsupreme.com"
         className="hidden"
       >
         Download

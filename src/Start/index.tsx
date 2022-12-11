@@ -123,7 +123,7 @@ export const Start: React.FC = () => {
 
 function LatencyNotSupportedAlert() {
   return (
-    <div className="mb-5 font-bold bg-red dark:text-black p-2 rounded-md">
+    <div className="mb-5 font-bold bg-light-red dark:text-black p-2 rounded-md">
       <p>Heads up!</p>
       <p>Your browser does not appear to report recording latency 😢.</p>
       <p>
@@ -136,7 +136,7 @@ function LatencyNotSupportedAlert() {
           href="https://ericyd.hashnode.dev/loop-supreme-part-7-latency-and-adding-track-functionality"
           target="_blank"
           rel="noreferrer"
-          className="underline text-cyan-600"
+          className="underline text-link"
         >
           (why tho?)
         </a>

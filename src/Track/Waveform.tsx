@@ -46,7 +46,7 @@ export function Waveform({ worker, sampleRate }: Props) {
       className="h-full w-full"
     >
       <path
-        className="fill-zinc-200 stroke-black"
+        className="fill-yellow dark:fill-purple stroke-black dark:stroke-white"
         strokeWidth={0.01}
         d={path}
       />

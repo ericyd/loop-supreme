@@ -85,16 +85,8 @@ class RecordingProcessor extends AudioWorkletProcessor {
     // Consider defining a typedef for MessagePort, to constrain the types of messages it will send/receive
     // From https://github.com/microsoft/TypeScript-DOM-lib-generator/blob/b929eb7863a3bf73f4a887fb97063276b10b92bc/baselines/audioworklet.generated.d.ts#L463-L482
     this.port.onmessage = (event) => {
-      if (event.data.message === 'UPDATE_RECORDING_STATE') {
-        this.recording = event.data.recording
-        if (event.data.reset) {
-          this.channelsData = new Array(this.numberOfChannels).fill(
-            new Float32Array(this.maxRecordingSamples)
-          )
-          this.recordedSamples = 0
-          this.samplesSinceLastPublish = 0
-          this.gainSum = 0
-        }
+      if (event.data.message === 'TOGGLE_RECORDING_STATE') {
+        this.recording = !this.recording
 
         // When the recording ends, send the buffer back to the Track
         if (this.recording === false) {
@@ -102,8 +94,17 @@ class RecordingProcessor extends AudioWorkletProcessor {
             message: 'SHARE_RECORDING_BUFFER',
             channelsData: this.channelsData,
             recordingLength: this.recordedSamples,
+            forwardData: event.data,
           })
         }
+
+        // reset values so re-recording works
+        this.channelsData = new Array(this.numberOfChannels).fill(
+          new Float32Array(this.maxRecordingSamples)
+        )
+        this.recordedSamples = 0
+        this.samplesSinceLastPublish = 0
+        this.gainSum = 0
       }
     }
   }

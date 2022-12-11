@@ -27,6 +27,8 @@ export function TimeSignatureControl(props: TimeSignatureProps) {
     })
   }
 
+  const options = ['4/4', '3/4', '6/8', '7/8', '9/8']
+
   return (
     <ControlPanelItem>
       <select
@@ -34,8 +36,11 @@ export function TimeSignatureControl(props: TimeSignatureProps) {
         value={`${props.beatsPerMeasure}/${props.beatUnit}`}
         className="text-xl border border-solid border-light-gray dark:border-dark-gray bg-white dark:bg-black rounded-full p-2"
       >
-        <option value="4/4">4/4</option>
-        <option value="7/8">7/8</option>
+        {options.map((opt) => (
+          <option value={opt} key={opt}>
+            {opt}
+          </option>
+        ))}
       </select>
     </ControlPanelItem>
   )
