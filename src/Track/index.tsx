@@ -244,7 +244,7 @@ export const Track: React.FC<Props> = ({
                 0,
                 recordingProperties.latencySamples
               ),
-              firstPart.length
+              firstPart.byteLength // length vs byteLength...
             )
             // channelsData is an Array of Float32Arrays;
             // each element of Array is a channel, which contain
