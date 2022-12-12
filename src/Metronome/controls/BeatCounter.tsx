@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { ClockControllerMessage } from '../workers/clock'
+import type { ClockControllerMessage } from '../../workers/clock'
 import { ControlPanelItem } from './ControlPanelItem'
 
 type BeatCounterProps = {

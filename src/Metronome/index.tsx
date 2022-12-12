@@ -6,7 +6,7 @@
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useAudioContext } from '../AudioProvider'
-import { BeatCounter } from './BeatCounter'
+import { BeatCounter } from './controls/BeatCounter'
 import { MeasuresPerLoopControl } from './controls/MeasuresPerLoopControl'
 import { TempoControl } from './controls/TempoControl'
 import { TimeSignatureControl } from './controls/TimeSignatureControl'
@@ -17,7 +17,7 @@ import type {
   ClockWorkerStopMessage,
   ClockWorkerUpdateMessage,
 } from '../workers/clock'
-import { useDecayingSine } from './waveforms'
+import { useSineAudioBuffer } from '../hooks/use-audio-buffer'
 import { PlayPause } from '../icons/PlayPause'
 import { useKeybindings } from '../hooks/use-keybindings'
 
@@ -50,8 +50,8 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
    * create 2 AudioBuffers with different frequencies,
    * to be used for the metronome beep.
    */
-  const sine330 = useDecayingSine(audioContext, 330)
-  const sine380 = useDecayingSine(audioContext, 380)
+  const sine330 = useSineAudioBuffer(audioContext, 330)
+  const sine380 = useSineAudioBuffer(audioContext, 380)
 
   /**
    * Set up metronome gain node.
