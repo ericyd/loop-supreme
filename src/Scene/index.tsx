@@ -10,9 +10,17 @@ import { ExportWavWorkerEvent, WavBlobControllerEvent } from '../workers/export'
 
 type Props = {
   clock: Worker
+  bpm: number
+  measuresPerLoop: number
+  beatsPerMeasure: number
 }
 
-export const Scene: React.FC<Props> = ({ clock }) => {
+export const Scene: React.FC<Props> = ({
+  clock,
+  bpm,
+  measuresPerLoop,
+  beatsPerMeasure,
+}) => {
   const [tracks, setTracks] = useState([{ id: 1, selected: false }])
   const exportTarget = useMemo(() => new EventTarget(), [])
   const downloadLinkRef = useRef<HTMLAnchorElement>(null)
@@ -198,6 +206,9 @@ export const Scene: React.FC<Props> = ({ clock }) => {
           clock={clock}
           exportTarget={exportTarget}
           sessionWorklet={sessionWorklet}
+          bpm={bpm}
+          measuresPerLoop={measuresPerLoop}
+          beatsPerMeasure={beatsPerMeasure}
         />
       ))}
       <div className="my-8 flex justify-between items-end">

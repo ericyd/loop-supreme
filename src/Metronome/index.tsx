@@ -193,7 +193,12 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
           />
         </div>
       </div>
-      <Scene clock={clock} />
+      <Scene
+        clock={clock}
+        bpm={bpm}
+        measuresPerLoop={measuresPerLoop}
+        beatsPerMeasure={timeSignature.beatsPerMeasure}
+      />
     </>
   )
 }
