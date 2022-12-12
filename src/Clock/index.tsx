@@ -16,10 +16,5 @@ export const Clock: React.FC = () => {
     []
   )
 
-  return (
-    <>
-      <Metronome clock={clock} />
-      <Scene clock={clock} />
-    </>
-  )
+  return <Metronome clock={clock} />
 }

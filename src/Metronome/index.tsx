@@ -20,6 +20,7 @@ import type {
 import { useSineAudioBuffer } from '../hooks/use-audio-buffer'
 import { PlayPause } from '../icons/PlayPause'
 import { useKeybindings } from '../hooks/use-keybindings'
+import { Scene } from '../Scene'
 
 export type TimeSignature = {
   beatsPerMeasure: number
@@ -157,39 +158,42 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
   })
 
   return (
-    <div className="flex mb-8 items-end justify-between sticky top-0 bg-white dark:bg-black py-4">
-      <div className="flex items-start content-center mb-2 mr-2">
-        <PlayPause onClick={togglePlaying} playing={playing} />
+    <>
+      <div className="flex mb-8 items-end justify-between sticky top-0 bg-white dark:bg-black py-4">
+        <div className="flex items-start content-center mb-2 mr-2">
+          <PlayPause onClick={togglePlaying} playing={playing} />
 
-        <VolumeControl
-          muted={muted}
-          toggleMuted={toggleMuted}
-          gain={gain}
-          onChange={setGain}
-        />
-      </div>
-
-      <div className="flex">
-        <div className="flex flex-col items-center">
-          <BeatCounter
-            clock={clock}
-            beatsPerMeasure={timeSignature.beatsPerMeasure}
-          />
-
-          <TimeSignatureControl
-            onChange={setTimeSignature}
-            beatsPerMeasure={timeSignature.beatsPerMeasure}
-            beatUnit={timeSignature.beatUnit}
+          <VolumeControl
+            muted={muted}
+            toggleMuted={toggleMuted}
+            gain={gain}
+            onChange={setGain}
           />
         </div>
 
-        <TempoControl onChange={setBpm} defaultValue={bpm} />
+        <div className="flex">
+          <div className="flex flex-col items-center">
+            <BeatCounter
+              clock={clock}
+              beatsPerMeasure={timeSignature.beatsPerMeasure}
+            />
 
-        <MeasuresPerLoopControl
-          onChange={setMeasuresPerLoop}
-          measuresPerLoop={measuresPerLoop}
-        />
+            <TimeSignatureControl
+              onChange={setTimeSignature}
+              beatsPerMeasure={timeSignature.beatsPerMeasure}
+              beatUnit={timeSignature.beatUnit}
+            />
+          </div>
+
+          <TempoControl onChange={setBpm} defaultValue={bpm} />
+
+          <MeasuresPerLoopControl
+            onChange={setMeasuresPerLoop}
+            measuresPerLoop={measuresPerLoop}
+          />
+        </div>
       </div>
-    </div>
+      <Scene clock={clock} />
+    </>
   )
 }
