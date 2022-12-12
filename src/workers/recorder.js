@@ -169,16 +169,8 @@ class RecordingProcessor extends AudioWorkletProcessor {
 
           // Copy data to recording buffer.
           if (this.recording) {
-            this.channelsData[channel][
-              // The input hardware will have some recording latency.
-              // To account for that latency, we shift the input data left by `latencySamples` samples.
-              // Alternatives:
-              //    1. This could be done when copying the buffer to the AudioBuffer channel.
-              //       However, to keep everything synchronized (including visuals eventually),
-              //       it made sense for the recording processor to automatically account for input latency.
-              // See Track.tsx for latency determination
-              Math.max(sample + this.recordedSamples - this.latencySamples, 0)
-            ] = currentSample
+            this.channelsData[channel][sample + this.recordedSamples] =
+              currentSample
 
             // Sum values for visualizer
             this.gainSum += currentSample

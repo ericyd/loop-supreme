@@ -230,6 +230,22 @@ export const Track: React.FC<Props> = ({
           )
 
           for (let i = 0; i < recordingProperties.numberOfChannels; i++) {
+            // The input hardware will have some recording latency.
+            // To account for that latency, we shift the input data left by `latencySamples` samples,
+            // and add the remainder on to the end of the array. In theory, this will preserve transients that occur right at the beginning of the loop
+            const buffer = new Float32Array(targetRecordingLength)
+            const firstPart = event.data.channelsData[i].slice(
+              recordingProperties.latencySamples,
+              targetRecordingLength
+            )
+            buffer.set(firstPart)
+            buffer.set(
+              event.data.channelsData[i].slice(
+                0,
+                recordingProperties.latencySamples
+              ),
+              firstPart.length
+            )
             // channelsData is an Array of Float32Arrays;
             // each element of Array is a channel, which contain
             // the raw samples for the audio data of that channel
@@ -244,7 +260,7 @@ export const Track: React.FC<Props> = ({
               // See `worklets/recorder` for the buffer offset
               // [1] https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer/copyToChannel
               // [2] https://jsfiddle.net/y7qL9wr4/7
-              event.data.channelsData[i].slice(0, targetRecordingLength),
+              buffer,
               i,
               0
             )
