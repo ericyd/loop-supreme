@@ -363,18 +363,9 @@ export const Track: React.FC<Props> = ({
         buffer: bufferSource.current.buffer,
       })
       bufferSource.current.connect(gainNode.current)
-      // ramp up to desired gain quickly to avoid clips at the beginning of the loop
-      gainNode.current.gain.value = 0.0
-      if (!muted) {
-        gainNode.current.gain.setTargetAtTime(
-          gain,
-          audioContext.currentTime,
-          0.005
-        )
-      }
       bufferSource.current.start()
     }
-  }, [armed, audioContext, gain, muted, recording, waveformWorker])
+  }, [armed, audioContext, recording, waveformWorker])
 
   useEffect(() => {
     function delegateClockMessage(event: MessageEvent<ClockControllerMessage>) {
