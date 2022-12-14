@@ -28,7 +28,10 @@ function decayingSine(sampleRate: number, frequency: number) {
   return channel
 }
 
-export function useDecayingSine(audioContext: AudioContext, frequency: number) {
+export function useSineAudioBuffer(
+  audioContext: AudioContext,
+  frequency: number
+) {
   return useMemo(() => {
     const buffer = audioContext.createBuffer(
       1,

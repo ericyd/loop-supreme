@@ -94,7 +94,7 @@ function writeAudioBufferToArray({
         writeInt32ToArray(sample, targetArray, offset)
         offset += 4
       } else {
-        console.log('Invalid bit depth for PCM encoding.')
+        console.error(`Invalid bit depth "${bitDepth}" for PCM encoding.`)
         return
       }
     }

@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { Metronome } from '../Metronome'
-import { Scene } from '../Scene'
 
 export const Clock: React.FC = () => {
   /**
@@ -16,10 +15,5 @@ export const Clock: React.FC = () => {
     []
   )
 
-  return (
-    <>
-      <Metronome clock={clock} />
-      <Scene clock={clock} />
-    </>
-  )
+  return <Metronome clock={clock} />
 }

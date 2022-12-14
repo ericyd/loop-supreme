@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
 import { useKeybindings } from '../../hooks/use-keybindings'
-import { ControlPanelItem } from '../ControlPanelItem'
+import { ControlPanelItem } from './ControlPanelItem'
 
 type TempoProps = {
   onChange(bpm: number): void
