@@ -234,21 +234,17 @@ export const Track: React.FC<Props> = ({
             // To account for that latency, we shift the input data left by `latencySamples` samples,
             // and add the remainder on to the end of the array. In theory, this will preserve transients that occur right at the beginning of the loop
             const buffer = new Float32Array(targetRecordingLength)
+            // why does half sound good? No idea!!!
+            const latencySamples = recordingProperties.latencySamples / 2
             const firstPart = event.data.channelsData[i].slice(
-              recordingProperties.latencySamples,
+              latencySamples,
               targetRecordingLength
             )
             buffer.set(firstPart)
             buffer.set(
-              event.data.channelsData[i].slice(
-                0,
-                recordingProperties.latencySamples
-              ),
-              firstPart.byteLength // length vs byteLength...
+              event.data.channelsData[i].slice(0, latencySamples),
+              firstPart.length // length vs byteLength... ?
             )
-            // channelsData is an Array of Float32Arrays;
-            // each element of Array is a channel, which contain
-            // the raw samples for the audio data of that channel
             recordingBuffer.copyToChannel(
               // copyToChannel accepts an optional 3rd argument, "startInChannel"[1] (or "bufferOffset" depending on your source).
               // which is described as
