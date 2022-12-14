@@ -7,6 +7,8 @@
  * was converted to a Worker so this could be done off the main thread.
  */
 
+import { logger } from '../util/logger'
+
 function writeStringToArray(
   value: string,
   targetArray: Uint8Array,
