@@ -229,10 +229,23 @@ export const Track: React.FC<Props> = ({
             audioContext.sampleRate
           )
 
+          // why does half sound good? No idea!!!
+          const latencySamples = recordingProperties.latencySamples / 2
+
           for (let i = 0; i < recordingProperties.numberOfChannels; i++) {
-            // channelsData is an Array of Float32Arrays;
-            // each element of Array is a channel, which contain
-            // the raw samples for the audio data of that channel
+            // The input hardware will have some recording latency.
+            // To account for that latency, we shift the input data left by `latencySamples` samples,
+            // and add the remainder on to the end of the array. In theory, this will preserve transients that occur right at the beginning of the loop
+            const buffer = new Float32Array(targetRecordingLength)
+            const firstPart = event.data.channelsData[i].slice(
+              latencySamples,
+              targetRecordingLength
+            )
+            buffer.set(firstPart)
+            buffer.set(
+              event.data.channelsData[i].slice(0, latencySamples),
+              firstPart.length // length vs byteLength... ?
+            )
             recordingBuffer.copyToChannel(
               // copyToChannel accepts an optional 3rd argument, "startInChannel"[1] (or "bufferOffset" depending on your source).
               // which is described as
@@ -241,10 +254,9 @@ export const Track: React.FC<Props> = ({
               // I believe the intended use case is to synchronize audio playback with other media (e.g. video).
               // However, in this case, we are trying to align recorded audio with the start of the loop.
               // In this case we need to **subtract** audio from the buffer, in accordance with the latency of the recording device.
-              // See `worklets/recorder` for the buffer offset
               // [1] https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer/copyToChannel
               // [2] https://jsfiddle.net/y7qL9wr4/7
-              event.data.channelsData[i].slice(0, targetRecordingLength),
+              buffer,
               i,
               0
             )
@@ -347,18 +359,9 @@ export const Track: React.FC<Props> = ({
         buffer: bufferSource.current.buffer,
       })
       bufferSource.current.connect(gainNode.current)
-      // ramp up to desired gain quickly to avoid clips at the beginning of the loop
-      gainNode.current.gain.value = 0.0
-      if (!muted) {
-        gainNode.current.gain.setTargetAtTime(
-          gain,
-          audioContext.currentTime,
-          0.005
-        )
-      }
       bufferSource.current.start()
     }
-  }, [armed, audioContext, gain, muted, recording, waveformWorker])
+  }, [armed, audioContext, recording, waveformWorker])
 
   useEffect(() => {
     function delegateClockMessage(event: MessageEvent<ClockControllerMessage>) {
