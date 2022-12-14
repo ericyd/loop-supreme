@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { Metronome } from '../Metronome'
-import { Scene } from '../Scene'
 
 export const Clock: React.FC = () => {
   /**

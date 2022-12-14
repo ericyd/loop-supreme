@@ -1,4 +1,4 @@
-import { ControlPanelItem } from '../ControlPanelItem'
+import { ControlPanelItem } from './ControlPanelItem'
 
 type MeasuresPerLoopProps = {
   onChange(measuresPerLoop: number): void

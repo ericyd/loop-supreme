@@ -1,5 +1,5 @@
 import { TimeSignature } from '..'
-import { ControlPanelItem } from '../ControlPanelItem'
+import { ControlPanelItem } from './ControlPanelItem'
 
 type TimeSignatureProps = {
   onChange(signature: TimeSignature): void
