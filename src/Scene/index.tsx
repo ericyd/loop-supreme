@@ -66,7 +66,7 @@ export const Scene: React.FC<Props> = ({
         const recordingDurationSamples = Math.ceil(
           audioContext.sampleRate * recordingDurationSeconds
         )
-        console.log({
+        logger.debug({
           recordingDurationSamples,
           recordingDurationSeconds,
           'event.data.channelsData[0].length':

@@ -1,6 +1,7 @@
 import { AudioProvider } from '../AudioProvider'
 import { Clock } from '../Clock'
 import { useKeybindings } from '../hooks/use-keybindings'
+import { logger } from '../util/logger'
 import { KeyboardBindingsList } from './KeyboardBindingsList'
 
 type Props = {
@@ -17,7 +18,7 @@ function App(props: Props) {
         const maybeFn = document.activeElement?.blur?.bind(
           document.activeElement
         )
-        console.log(maybeFn)
+        logger.debug(maybeFn)
         if (typeof maybeFn === 'function') {
           maybeFn()
         }

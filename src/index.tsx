@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import reportWebVitals from './reportWebVitals'
 import './index.css'
 import { Start } from './Start'
+import { logger } from './util/logger'
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
@@ -24,10 +25,10 @@ if ('serviceWorker' in navigator) {
       // but in addition, this code needs to register the generated sw
       .register('/sw.js')
       .then((registration) => {
-        console.log('SW registered: ', registration)
+        logger.debug('SW registered: ', registration)
       })
       .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError)
+        logger.debug('SW registration failed: ', registrationError)
       })
   })
 }
