@@ -13,7 +13,7 @@ export function TempoControl({ onChange, defaultValue }: TempoProps) {
 
   const debouncedOnChange = useDebouncedCallback(onChange, 100, {
     leading: true,
-    trailing: false,
+    trailing: true,
   })
 
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
