@@ -13,7 +13,7 @@ export function TempoControl({ onChange, defaultValue }: TempoProps) {
 
   const debouncedOnChange = useDebouncedCallback(onChange, 100, {
     leading: true,
-    trailing: false,
+    trailing: true,
   })
 
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
@@ -51,7 +51,9 @@ export function TempoControl({ onChange, defaultValue }: TempoProps) {
   return (
     <ControlPanelItem>
       <div className="flex flex-row">
-        <span className="text-4xl pr-3">{bpm.toFixed(1)}</span>
+        <span className="text-4xl pr-3">
+          {bpm < 100 ? bpm.toFixed(2) : bpm.toFixed(1)}
+        </span>
         <span className="text-sm">
           (t)ap
           <br />

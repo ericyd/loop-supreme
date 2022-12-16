@@ -433,7 +433,7 @@ export const Track: React.FC<Props> = ({
           r: { callback: toggleArmRecording },
           i: { callback: toggleMonitoring },
           m: { callback: toggleMuted },
-          n: { callback: rename },
+          n: { callback: rename, preventDefault: true },
         }
       : {}
   )

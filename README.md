@@ -16,10 +16,7 @@
 
 ## How to use
 
-1. Go to [loopsupreme.com](https://loopsupreme.com)
-2. Click "play"
-3. Arm a track for recording
-4. Add more tracks and keep building!
+Please [check out the wiki](https://github.com/ericyd/loop-supreme/wiki)
 
 ## Motivation
 
@@ -35,7 +32,7 @@ You can check out [The Roadmap](./roadmap.md)!
 
 I blogged about this as I made it
 
-* Part 12: v1.0 release, and project retro (_coming soon!_)
+* [Part 12: v1.0 release, and project retro](https://ericyd.hashnode.dev/loop-supreme-part-12-v10-release-and-project-retro)
 * [Part 11: Exporting stems and changing inputs](https://ericyd.hashnode.dev/loop-supreme-part-11-exporting-stems-and-changing-inputs)
 * [Part 10: Keyboard bindings](https://ericyd.hashnode.dev/loop-supreme-part-10-keyboard-bindings)
 * [Part 9: Visualizing the waveform](https://ericyd.hashnode.dev/loop-supreme-part-9-visualizing-the-waveform)
