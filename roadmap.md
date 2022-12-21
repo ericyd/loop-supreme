@@ -117,3 +117,6 @@ A `Track` is a single mono or stereo audio buffer that contains audio data. A `T
 
 - [ ] allow changing tempo by typing value into an input
 - [x] add workbox so PWA can be installed https://github.com/ericyd/loop-supreme/pull/36
+- [ ] is it possible to pass a Worker port to an AudioWorklet? If so, refactor so the app doesn't need to interact with the Waveform worker at all (currently app acts as a proxy between the Recording Processor and the Waveform worker)
+- [ ] add a "quantize" function
+  - bonus challenge: implement this using a WASM module inside a Worker
