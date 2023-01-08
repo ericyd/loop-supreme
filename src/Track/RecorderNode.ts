@@ -35,18 +35,10 @@ type UpdateWaveformMessage = {
   samplesPerFrame: number
 }
 
-type UpdateMetronomeSettings = {
-  message: 'UPDATE_METRONOME_SETTINGS'
-  bpm: number
-  measuresPerLoop: number
-  beatsPerMeasure: number
-}
-
 export type RecordingMessage =
   | MaxRecordingLengthReachedMessage
   | ShareRecordingBufferMessage
   | UpdateWaveformMessage
-  | UpdateMetronomeSettings
 
 export class RecorderNode extends AudioWorkletNode {
   bpm: number
@@ -162,10 +154,6 @@ export class RecorderNode extends AudioWorkletNode {
       this.onRecordingBuffer(recordingBuffer)
 
       return recordingBuffer
-    }
-
-    if (data.message === 'UPDATE_METRONOME_SETTINGS') {
-      // TODO: update bpm, etc
     }
   }
 

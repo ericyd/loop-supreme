@@ -143,10 +143,6 @@ export const Track: React.FC<Props> = ({
     }
   }, [sessionWorklet])
 
-  /**
-   * Both of these are instantiated on mount
-   */
-  const recorderWorklet = useRef<RecorderNode | null>(null)
   const bufferSource = useRef<AudioBufferSourceNode | null>(null)
 
   /**
@@ -169,12 +165,14 @@ export const Track: React.FC<Props> = ({
    * On mount, create a media stream source from the user's input stream.
    * Initialize the recorder worklet, and connect the audio graph for eventual playback.
    */
-  useEffect(() => {
+  const [recorderWorklet, mediaSource] = useMemo<
+    [RecorderNode, MediaStreamAudioSourceNode] | [null, null]
+  >(() => {
     if (!stream) {
-      return
+      return [null, null]
     }
     const mediaSource = audioContext.createMediaStreamSource(stream)
-    recorderWorklet.current = new RecorderNode(audioContext, {
+    const worklet = new RecorderNode(audioContext, {
       numberOfChannels: mediaSource.channelCount,
       sampleRate: audioContext.sampleRate,
       // max recording length of 30 seconds. I think that should be sufficient for now?
@@ -192,18 +190,11 @@ export const Track: React.FC<Props> = ({
     })
 
     mediaSource
-      .connect(recorderWorklet.current)
+      .connect(worklet)
       .connect(monitorNode.current)
       .connect(audioContext.destination)
 
-    return () => {
-      if (recorderWorklet.current) {
-        recorderWorklet.current.destroy()
-        recorderWorklet.current = null
-      }
-      bufferSource.current?.stop()
-      mediaSource.disconnect()
-    }
+    return [worklet, mediaSource]
   }, [
     audioContext,
     onRecordingBuffer,
@@ -214,10 +205,21 @@ export const Track: React.FC<Props> = ({
     measuresPerLoop,
   ])
 
+  /**
+   * Stop track playback immediately if track is unmounted
+   */
+  useEffect(() => {
+    return () => {
+      bufferSource?.current?.stop()
+      bufferSource?.current?.disconnect()
+      mediaSource?.disconnect()
+    }
+  }, [mediaSource])
+
   const handleLoopstart = useCallback(() => {
     if (recording) {
       setRecording(false)
-      recorderWorklet.current?.port?.postMessage({
+      recorderWorklet?.port.postMessage({
         message: 'TOGGLE_RECORDING_STATE',
       })
       // for now, assume that track monitoring should end when the loop ends
@@ -228,7 +230,7 @@ export const Track: React.FC<Props> = ({
       setRecording(true)
       setArmed(false)
       bufferSource.current = null
-      recorderWorklet.current?.port?.postMessage({
+      recorderWorklet?.port.postMessage({
         message: 'TOGGLE_RECORDING_STATE',
       })
       waveformWorker.postMessage({
@@ -250,7 +252,7 @@ export const Track: React.FC<Props> = ({
       bufferSource.current.connect(gainNode.current)
       bufferSource.current.start()
     }
-  }, [armed, audioContext, recording, waveformWorker])
+  }, [armed, audioContext, recording, recorderWorklet?.port, waveformWorker])
 
   useEffect(() => {
     function delegateClockMessage(event: MessageEvent<ClockControllerMessage>) {
