@@ -44,9 +44,7 @@ type Props = {
   exportTarget: EventTarget
   index: number
   sessionWorklet: AudioWorkletNode
-  bpm: number
-  measuresPerLoop: number
-  beatsPerMeasure: number
+  loopLengthSeconds: number
 }
 
 export const Track: React.FC<Props> = ({
@@ -57,9 +55,7 @@ export const Track: React.FC<Props> = ({
   exportTarget,
   index,
   sessionWorklet,
-  bpm,
-  measuresPerLoop,
-  beatsPerMeasure,
+  loopLengthSeconds,
 }) => {
   const { audioContext } = useAudioContext()
   // stream is initialized in SelectInput
@@ -182,9 +178,7 @@ export const Track: React.FC<Props> = ({
         stream,
         audioContext
       ),
-      bpm,
-      measuresPerLoop,
-      beatsPerMeasure,
+      loopLengthSeconds,
       waveformWorker,
       onRecordingBuffer,
     })
@@ -200,9 +194,7 @@ export const Track: React.FC<Props> = ({
     onRecordingBuffer,
     waveformWorker,
     stream,
-    bpm,
-    beatsPerMeasure,
-    measuresPerLoop,
+    loopLengthSeconds,
   ])
 
   /**
@@ -262,6 +254,7 @@ export const Track: React.FC<Props> = ({
         // keep waveform worker updated to metronome settings
         waveformWorker.postMessage({
           message: 'UPDATE_METRONOME',
+          // TODO
           beatsPerSecond: event.data.bpm / 60,
           measuresPerLoop: event.data.measuresPerLoop,
           beatsPerMeasure: event.data.beatsPerMeasure,

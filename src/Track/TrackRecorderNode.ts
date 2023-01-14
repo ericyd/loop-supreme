@@ -10,9 +10,7 @@ export type RecordingProperties = {
    * default: false
    */
   monitorInput?: boolean
-  bpm: number
-  measuresPerLoop: number
-  beatsPerMeasure: number
+  loopLengthSeconds: number
   waveformWorker: Worker
   onRecordingBuffer: (buffer: AudioBuffer) => void
 }
@@ -41,9 +39,7 @@ export type RecordingMessage =
   | UpdateWaveformMessage
 
 export class TrackRecorderNode extends AudioWorkletNode {
-  bpm: number
-  measuresPerLoop: number
-  beatsPerMeasure: number
+  loopLengthSeconds: number
   numberOfChannels: number
   latencySamples: number
   audioContext: AudioContext
@@ -64,9 +60,7 @@ export class TrackRecorderNode extends AudioWorkletNode {
     this.port.onmessage = (event) => this.onmessage(event.data)
     this.destroy.bind(this)
 
-    this.bpm = processorOptions.bpm
-    this.measuresPerLoop = processorOptions.measuresPerLoop
-    this.beatsPerMeasure = processorOptions.beatsPerMeasure
+    this.loopLengthSeconds = processorOptions.loopLengthSeconds
     this.audioContext = audioContext
     this.numberOfChannels = processorOptions.numberOfChannels
     this.latencySamples = processorOptions.latencySamples
@@ -95,19 +89,9 @@ export class TrackRecorderNode extends AudioWorkletNode {
     }
 
     if (data.message === 'SHARE_RECORDING_BUFFER') {
-      // When in doubt... use dimensional analysis! 🙃 (not clear why the unicode rendering is so different in editor vs online)
-      //
-      //  60 seconds    beats       60 seconds    minute
-      // ———————————— ➗ —————   🟰  ——————————— 𝒙  ———————      =>
-      //   minute      minute        minute       beats
-      //
-      //   seconds    minutes   measures    beats     samples     samples
-      //  ————————— 𝒙 ———————— 𝒙 ———————— 𝒙 ———————— 𝒙 ————————— 🟰 ——————————
-      //   minute     beat      loop       measure    second       loop
+      
       const targetRecordingLength =
-        (60 / this.bpm) *
-        this.measuresPerLoop *
-        this.beatsPerMeasure *
+        this.loopLengthSeconds *
         this.audioContext.sampleRate
 
       // create recording buffer with targetRecordingLength,

@@ -46,6 +46,17 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
   const [gain, setGain] = useState(0.5)
   const [muted, setMuted] = useState(false)
   const toggleMuted = useCallback(() => setMuted((muted) => !muted), [])
+  // When in doubt... use dimensional analysis! 🙃 (not clear why the unicode rendering is so different in editor vs online)
+  //
+  //  60 seconds    beats       60 seconds    minute
+  // ———————————— ➗ —————   🟰  ——————————— 𝒙  ———————      =>
+  //   minute      minute        minute       beats
+  //
+  //   seconds    minutes   measures    beats        seconds
+  //  ————————— 𝒙 ———————— 𝒙 ———————— 𝒙 ————————  🟰 ——————————
+  //   minute     beat      loop       measure        loop
+  const loopLengthSeconds =
+    (60 / bpm) * measuresPerLoop * timeSignature.beatsPerMeasure
 
   /**
    * create 2 AudioBuffers with different frequencies,
@@ -193,12 +204,7 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
           />
         </div>
       </div>
-      <Scene
-        clock={clock}
-        bpm={bpm}
-        measuresPerLoop={measuresPerLoop}
-        beatsPerMeasure={timeSignature.beatsPerMeasure}
-      />
+      <Scene clock={clock} loopLengthSeconds={loopLengthSeconds} />
     </>
   )
 }
