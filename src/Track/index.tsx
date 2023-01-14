@@ -19,7 +19,6 @@ import { logger } from '../util/logger'
 import { VolumeControl } from './controls/VolumeControl'
 import type { ClockControllerMessage } from '../workers/clock'
 import type {
-  WaveformWorkerFrameMessage,
   WaveformWorkerMetronomeMessage,
   WaveformWorkerResetMessage,
 } from '../workers/waveform'
@@ -35,6 +34,7 @@ import type {
   WavBlobControllerEvent,
 } from '../workers/export'
 import { useKeybindings } from '../hooks/use-keybindings'
+import { RecorderNode } from './RecorderNode'
 
 type Props = {
   id: number
@@ -48,40 +48,6 @@ type Props = {
   measuresPerLoop: number
   beatsPerMeasure: number
 }
-
-type RecordingProperties = {
-  numberOfChannels: number
-  sampleRate: number
-  maxRecordingSamples: number
-  latencySamples: number
-  /**
-   * default: false
-   */
-  monitorInput?: boolean
-}
-
-type MaxRecordingLengthReachedMessage = {
-  message: 'MAX_RECORDING_LENGTH_REACHED'
-}
-
-type ShareRecordingBufferMessage = {
-  message: 'SHARE_RECORDING_BUFFER'
-  channelsData: Array<Float32Array>
-  recordingLength: number
-  // this allows us to send data through the recorder in messages. Saves an extra ref or piece of state
-  forwardData: Record<string, any>
-}
-
-type UpdateWaveformMessage = {
-  message: 'UPDATE_WAVEFORM'
-  gain: number
-  samplesPerFrame: number
-}
-
-export type RecordingMessage =
-  | MaxRecordingLengthReachedMessage
-  | ShareRecordingBufferMessage
-  | UpdateWaveformMessage
 
 export const Track: React.FC<Props> = ({
   id,
@@ -177,116 +143,36 @@ export const Track: React.FC<Props> = ({
     }
   }, [sessionWorklet])
 
-  /**
-   * Both of these are instantiated on mount
-   */
-  const recorderWorklet = useRef<AudioWorkletNode | null>(null)
   const bufferSource = useRef<AudioBufferSourceNode | null>(null)
 
   /**
-   * Builds a callback that handles the messages from the recorder worker.
-   * The most important message to handle is SHARE_RECORDING_BUFFER,
-   * which indicates that the recording buffer is ready for playback.
+   * When the RecorderNode returns a complete AudioBuffer, assign it to the bufferSource node and connect to the audio graph
    */
-  const buildRecorderMessageHandler = useCallback(
-    (recordingProperties: RecordingProperties) => {
-      return (event: MessageEvent<RecordingMessage>) => {
-        // If the max length is reached, we can no longer record.
-        if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
-          // Not exactly sure what should happen in this case ¯\_(ツ)_/¯
-          logger.error(event.data)
-        }
+  const onRecordingBuffer = useCallback(
+    (audioBuffer: AudioBuffer) => {
+      bufferSource.current = new AudioBufferSourceNode(audioContext, {
+        buffer: audioBuffer,
+      })
 
-        if (event.data.message === 'UPDATE_WAVEFORM') {
-          waveformWorker.postMessage({
-            message: 'FRAME',
-            gain: event.data.gain,
-            samplesPerFrame: event.data.samplesPerFrame,
-          } as WaveformWorkerFrameMessage)
-        }
-
-        if (event.data.message === 'SHARE_RECORDING_BUFFER') {
-          // When in doubt... use dimensional analysis! 🙃 (not clear why the unicode rendering is so different in editor vs online)
-          //
-          //  60 seconds    beats       60 seconds    minute
-          // ———————————— ➗ —————   🟰  ——————————— 𝒙  ———————      =>
-          //   minute      minute        minute       beats
-          //
-          //   seconds    minutes   measures    beats     samples     samples
-          //  ————————— 𝒙 ———————— 𝒙 ———————— 𝒙 ———————— 𝒙 ————————— 🟰 ——————————
-          //   minute     beat      loop       measure    second       loop
-          const targetRecordingLength =
-            (60 / bpm) *
-            measuresPerLoop *
-            beatsPerMeasure *
-            audioContext.sampleRate
-
-          // create recording buffer with targetRecordingLength,
-          // to ensure it matches the loop length precisely.
-          const recordingBuffer = audioContext.createBuffer(
-            recordingProperties.numberOfChannels,
-            targetRecordingLength,
-            audioContext.sampleRate
-          )
-
-          // why does half sound good? No idea!!!
-          const latencySamples = recordingProperties.latencySamples / 2
-
-          for (let i = 0; i < recordingProperties.numberOfChannels; i++) {
-            // The input hardware will have some recording latency.
-            // To account for that latency, we shift the input data left by `latencySamples` samples,
-            // and add the remainder on to the end of the array. In theory, this will preserve transients that occur right at the beginning of the loop
-            const buffer = new Float32Array(targetRecordingLength)
-            const firstPart = event.data.channelsData[i].slice(
-              latencySamples,
-              targetRecordingLength
-            )
-            buffer.set(firstPart)
-            buffer.set(
-              event.data.channelsData[i].slice(0, latencySamples),
-              firstPart.length // length vs byteLength... ?
-            )
-            recordingBuffer.copyToChannel(
-              // copyToChannel accepts an optional 3rd argument, "startInChannel"[1] (or "bufferOffset" depending on your source).
-              // which is described as
-              //    > An optional offset to copy the data to
-              // The way this works is it actually inserts silence at the beginning of the **target channel** for `startInChannel` samples[2].
-              // I believe the intended use case is to synchronize audio playback with other media (e.g. video).
-              // However, in this case, we are trying to align recorded audio with the start of the loop.
-              // In this case we need to **subtract** audio from the buffer, in accordance with the latency of the recording device.
-              // [1] https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer/copyToChannel
-              // [2] https://jsfiddle.net/y7qL9wr4/7
-              buffer,
-              i,
-              0
-            )
-          }
-
-          bufferSource.current = new AudioBufferSourceNode(audioContext, {
-            buffer: recordingBuffer,
-          })
-
-          gainNode.current.connect(audioContext.destination)
-          bufferSource.current.connect(gainNode.current)
-          bufferSource.current.start()
-
-          return recordingBuffer
-        }
-      }
+      gainNode.current.connect(audioContext.destination)
+      bufferSource.current.connect(gainNode.current)
+      bufferSource.current.start()
     },
-    [audioContext, waveformWorker, bpm, measuresPerLoop, beatsPerMeasure]
+    [audioContext]
   )
 
   /**
    * On mount, create a media stream source from the user's input stream.
    * Initialize the recorder worklet, and connect the audio graph for eventual playback.
    */
-  useEffect(() => {
+  const [recorderWorklet, mediaSource] = useMemo<
+    [RecorderNode, MediaStreamAudioSourceNode] | [null, null]
+  >(() => {
     if (!stream) {
-      return
+      return [null, null]
     }
     const mediaSource = audioContext.createMediaStreamSource(stream)
-    const recordingProperties: RecordingProperties = {
+    const worklet = new RecorderNode(audioContext, {
       numberOfChannels: mediaSource.channelCount,
       sampleRate: audioContext.sampleRate,
       // max recording length of 30 seconds. I think that should be sufficient for now?
@@ -296,39 +182,44 @@ export const Track: React.FC<Props> = ({
         stream,
         audioContext
       ),
-    }
-    logger.debug({ recordingProperties })
-    recorderWorklet.current = new AudioWorkletNode(audioContext, 'recorder', {
-      processorOptions: recordingProperties,
+      bpm,
+      measuresPerLoop,
+      beatsPerMeasure,
+      waveformWorker,
+      onRecordingBuffer,
     })
 
-    // Wanna have your mind blown?
-    // Adding an event listener to this port with `addEventListener` simply doesn't work!
-    // go ahead and try it:
-    // recorderWorklet.current.port.addEventListener('message', console.log.bind(console))
-    recorderWorklet.current.port.onmessage =
-      buildRecorderMessageHandler(recordingProperties)
-
     mediaSource
-      .connect(recorderWorklet.current)
+      .connect(worklet)
       .connect(monitorNode.current)
       .connect(audioContext.destination)
 
+    return [worklet, mediaSource]
+  }, [
+    audioContext,
+    onRecordingBuffer,
+    waveformWorker,
+    stream,
+    bpm,
+    beatsPerMeasure,
+    measuresPerLoop,
+  ])
+
+  /**
+   * Stop track playback immediately if track is unmounted
+   */
+  useEffect(() => {
     return () => {
-      if (recorderWorklet.current) {
-        recorderWorklet.current.disconnect()
-        recorderWorklet.current.port.onmessage = null
-        recorderWorklet.current = null
-      }
-      bufferSource.current?.stop()
-      mediaSource.disconnect()
+      bufferSource?.current?.stop()
+      bufferSource?.current?.disconnect()
+      mediaSource?.disconnect()
     }
-  }, [audioContext, buildRecorderMessageHandler, stream])
+  }, [mediaSource])
 
   const handleLoopstart = useCallback(() => {
     if (recording) {
       setRecording(false)
-      recorderWorklet.current?.port?.postMessage({
+      recorderWorklet?.port.postMessage({
         message: 'TOGGLE_RECORDING_STATE',
       })
       // for now, assume that track monitoring should end when the loop ends
@@ -339,7 +230,7 @@ export const Track: React.FC<Props> = ({
       setRecording(true)
       setArmed(false)
       bufferSource.current = null
-      recorderWorklet.current?.port?.postMessage({
+      recorderWorklet?.port.postMessage({
         message: 'TOGGLE_RECORDING_STATE',
       })
       waveformWorker.postMessage({
@@ -361,7 +252,7 @@ export const Track: React.FC<Props> = ({
       bufferSource.current.connect(gainNode.current)
       bufferSource.current.start()
     }
-  }, [armed, audioContext, recording, waveformWorker])
+  }, [armed, audioContext, recording, recorderWorklet?.port, waveformWorker])
 
   useEffect(() => {
     function delegateClockMessage(event: MessageEvent<ClockControllerMessage>) {
