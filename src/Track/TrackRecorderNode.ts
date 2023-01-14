@@ -40,7 +40,7 @@ export type RecordingMessage =
   | ShareRecordingBufferMessage
   | UpdateWaveformMessage
 
-export class RecorderNode extends AudioWorkletNode {
+export class TrackRecorderNode extends AudioWorkletNode {
   bpm: number
   measuresPerLoop: number
   beatsPerMeasure: number

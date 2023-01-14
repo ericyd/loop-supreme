@@ -34,7 +34,7 @@ import type {
   WavBlobControllerEvent,
 } from '../workers/export'
 import { useKeybindings } from '../hooks/use-keybindings'
-import { RecorderNode } from './RecorderNode'
+import { TrackRecorderNode } from './TrackRecorderNode'
 
 type Props = {
   id: number
@@ -166,13 +166,13 @@ export const Track: React.FC<Props> = ({
    * Initialize the recorder worklet, and connect the audio graph for eventual playback.
    */
   const [recorderWorklet, mediaSource] = useMemo<
-    [RecorderNode, MediaStreamAudioSourceNode] | [null, null]
+    [TrackRecorderNode, MediaStreamAudioSourceNode] | [null, null]
   >(() => {
     if (!stream) {
       return [null, null]
     }
     const mediaSource = audioContext.createMediaStreamSource(stream)
-    const worklet = new RecorderNode(audioContext, {
+    const worklet = new TrackRecorderNode(audioContext, {
       numberOfChannels: mediaSource.channelCount,
       sampleRate: audioContext.sampleRate,
       // max recording length of 30 seconds. I think that should be sufficient for now?
