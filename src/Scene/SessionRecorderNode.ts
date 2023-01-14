@@ -1,3 +1,5 @@
+// maybe not the most elegant to import from here, but since they share the underlying worklet, the message types are the same
+import type { RecordingMessage } from '../Track/TrackRecorderNode'
 import { logger } from '../util/logger'
 import type { ExportWavWorkerEvent } from '../workers/export'
 
@@ -11,29 +13,6 @@ type RecordingProperties = {
   monitorInput?: boolean
   exportWorker: Worker
 }
-
-type MaxRecordingLengthReachedMessage = {
-  message: 'MAX_RECORDING_LENGTH_REACHED'
-}
-
-type ShareRecordingBufferMessage = {
-  message: 'SHARE_RECORDING_BUFFER'
-  channelsData: Array<Float32Array>
-  recordingLength: number
-  // this allows us to send data through the recorder in messages. Saves an extra ref or piece of state
-  forwardData: Record<string, any>
-}
-
-type UpdateWaveformMessage = {
-  message: 'UPDATE_WAVEFORM'
-  gain: number
-  samplesPerFrame: number
-}
-
-export type RecordingMessage =
-  | MaxRecordingLengthReachedMessage
-  | ShareRecordingBufferMessage
-  | UpdateWaveformMessage
 
 export class SessionRecorderNode extends AudioWorkletNode {
   numberOfChannels: number
