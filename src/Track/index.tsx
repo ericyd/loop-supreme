@@ -254,10 +254,7 @@ export const Track: React.FC<Props> = ({
         // keep waveform worker updated to metronome settings
         waveformWorker.postMessage({
           message: 'UPDATE_METRONOME',
-          // TODO
-          beatsPerSecond: event.data.bpm / 60,
-          measuresPerLoop: event.data.measuresPerLoop,
-          beatsPerMeasure: event.data.beatsPerMeasure,
+          loopLengthSeconds: event.data.loopLengthSeconds,
         } as WaveformWorkerMetronomeMessage)
       }
     }

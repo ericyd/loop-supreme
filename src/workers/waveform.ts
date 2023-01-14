@@ -13,9 +13,7 @@ export type WaveformWorkerInitializeMessage = {
 
 export type WaveformWorkerMetronomeMessage = {
   message: 'UPDATE_METRONOME'
-  beatsPerSecond: number
-  measuresPerLoop: number
-  beatsPerMeasure: number
+  loopLengthSeconds: number
 }
 
 export type WaveformWorkerResetMessage = {
@@ -88,8 +86,7 @@ self.onmessage = (e: MessageEvent<WaveformWorkerMessage>) => {
     // This is all to get the number of frames per loop.
     // Each data point on the waveform corresponds to a frame (many samples).
     // To correctly position the point along the x axis, we need to know how many frames to expect for the whole loop.
-    const beatsPerLoop = e.data.beatsPerMeasure * e.data.measuresPerLoop
-    samplesPerLoop = (samplesPerSecond * beatsPerLoop) / e.data.beatsPerSecond
+    samplesPerLoop = samplesPerSecond * e.data.loopLengthSeconds
   }
 
   if (e.data.message === 'RESET_FRAMES') {

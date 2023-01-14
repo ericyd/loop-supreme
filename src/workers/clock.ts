@@ -25,6 +25,7 @@ export type ClockWorkerStartMessage = {
   bpm: number
   beatsPerMeasure: number
   measuresPerLoop: number
+  loopLengthSeconds: number
 }
 
 export type ClockWorkerUpdateMessage = {
@@ -32,6 +33,7 @@ export type ClockWorkerUpdateMessage = {
   bpm: number
   beatsPerMeasure: number
   measuresPerLoop: number
+  loopLengthSeconds: number
 }
 
 export type ClockWorkerStopMessage = {
@@ -50,9 +52,7 @@ export type ClockControllerMessage = {
   downbeat: boolean
   // true on the first beat of each loop
   loopStart: boolean
-  bpm: number
-  measuresPerLoop: number
-  beatsPerMeasure: number
+  loopLengthSeconds: number
 }
 
 // must add `webWorker` to `compilerOptions.lib` prop of tsconfig.json
@@ -67,7 +67,8 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
   function start(
     bpm: number,
     beatsPerMeasure: number,
-    measuresPerLoop: number
+    measuresPerLoop: number,
+    loopLengthSeconds: number
   ) {
     // post one message immediately so the start doesn't appear delayed by one beat
     currentTick = (currentTick + 1) % (beatsPerMeasure * measuresPerLoop)
@@ -76,10 +77,8 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
       currentTick,
       downbeat: currentTick % beatsPerMeasure === 0,
       loopStart: currentTick === 0,
-      bpm,
-      beatsPerMeasure,
-      measuresPerLoop,
-    })
+      loopLengthSeconds
+    } as ClockControllerMessage)
     timeoutId = setInterval(() => {
       currentTick = (currentTick + 1) % (beatsPerMeasure * measuresPerLoop)
       postMessage({
@@ -87,15 +86,13 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
         currentTick,
         downbeat: currentTick % beatsPerMeasure === 0,
         loopStart: currentTick === 0,
-        bpm,
-        beatsPerMeasure,
-        measuresPerLoop,
+        loopLengthSeconds
       } as ClockControllerMessage)
     }, (60 / bpm) * 1000)
   }
 
   if (e.data.message === 'START') {
-    start(e.data.bpm, e.data.beatsPerMeasure, e.data.measuresPerLoop)
+    start(e.data.bpm, e.data.beatsPerMeasure, e.data.measuresPerLoop, e.data.loopLengthSeconds)
   } else if (e.data.message === 'STOP') {
     clearInterval(timeoutId!)
     timeoutId = null
@@ -103,7 +100,7 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
     // only start if it was already running
     if (timeoutId) {
       clearInterval(timeoutId)
-      start(e.data.bpm, e.data.beatsPerMeasure, e.data.measuresPerLoop)
+      start(e.data.bpm, e.data.beatsPerMeasure, e.data.measuresPerLoop, e.data.loopLengthSeconds)
     }
   }
 }

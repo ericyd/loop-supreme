@@ -139,6 +139,7 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
         bpm,
         beatsPerMeasure: timeSignature.beatsPerMeasure,
         measuresPerLoop,
+        loopLengthSeconds,
       } as ClockWorkerStartMessage)
       setPlaying(true)
     }
@@ -160,6 +161,7 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
       bpm,
       beatsPerMeasure: timeSignature.beatsPerMeasure,
       measuresPerLoop,
+      loopLengthSeconds,
     } as ClockWorkerUpdateMessage)
   }, [bpm, timeSignature.beatsPerMeasure, measuresPerLoop, clock])
 
