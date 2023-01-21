@@ -4,7 +4,7 @@
  * It also controls whether or not the click track makes noise,
  * and the global "playing" state of the app.
  */
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAudioContext } from '../AudioProvider'
 import { BeatCounter } from './controls/BeatCounter'
 import { MeasuresPerLoopControl } from './controls/MeasuresPerLoopControl'
@@ -17,10 +17,11 @@ import type {
   ClockWorkerStopMessage,
   ClockWorkerUpdateMessage,
 } from '../workers/clock'
-import { useSineAudioBuffer } from '../hooks/use-audio-buffer'
+import { generateClickTrack } from './audio-buffer'
 import { PlayPause } from '../icons/PlayPause'
 import { useKeybindings } from '../hooks/use-keybindings'
 import { Scene } from '../Scene'
+import { logger } from '../util/logger'
 
 export type TimeSignature = {
   beatsPerMeasure: number
@@ -59,13 +60,6 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
     (60 / bpm) * measuresPerLoop * timeSignature.beatsPerMeasure
 
   /**
-   * create 2 AudioBuffers with different frequencies,
-   * to be used for the metronome beep.
-   */
-  const sine330 = useSineAudioBuffer(audioContext, 330)
-  const sine380 = useSineAudioBuffer(audioContext, 380)
-
-  /**
    * Set up metronome gain node.
    * See Track/index.tsx for description of the useRef/useEffect pattern
    */
@@ -89,6 +83,37 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
   const source = useRef<AudioBufferSourceNode | null>(null)
 
   /**
+   * generate click track buffer for duration of loop
+   */
+  const clickTrackBuffer = useMemo<AudioBuffer>(() => {
+    // this is a little janky, but the idea is that whenever we generate a new click track buffer,
+    // the old AudioBufferSourceNode might still be playing. We want to stop it if it is.
+    try {
+      source.current?.stop()
+    } catch (e) {
+      logger.error('tried to stop click track node but failed', e)
+    }
+    try {
+      source.current?.disconnect()
+    } catch (e) {
+      logger.error('tried to disconnect click track node but failed', e)
+    }
+    return generateClickTrack({
+      loopLengthSeconds,
+      sampleRate: audioContext.sampleRate,
+      bpm,
+      measuresPerLoop,
+      beatsPerMeasure: timeSignature.beatsPerMeasure,
+    })
+  }, [
+    bpm,
+    loopLengthSeconds,
+    audioContext.sampleRate,
+    timeSignature.beatsPerMeasure,
+    measuresPerLoop,
+  ])
+
+  /**
    * Add clock event listeners.
    * On each tick, set the "currentTick" value and emit a beep.
    * The AudioBufferSourceNode must be created fresh each time,
@@ -98,13 +123,17 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
     const clockMessageHandler = (
       event: MessageEvent<ClockControllerMessage>
     ) => {
-      // console.log(event.data) // this is really noisy
-      if (event.data.message === 'TICK' && gainNode.current) {
-        if (source.current) {
-          source.current.disconnect()
-        }
+      // DAMN! This doesn't work with pausing and restarting the metronome... DAMNNNNNNN!!!!
+      if (
+        event.data.message === 'TICK' &&
+        gainNode.current &&
+        event.data.loopStart
+      ) {
+        logger.debug(event.data)
+
+        // play click track buffer on loop start
         source.current = new AudioBufferSourceNode(audioContext, {
-          buffer: event.data.downbeat ? sine380 : sine330,
+          buffer: clickTrackBuffer,
         })
         source.current.connect(gainNode.current)
         source.current.start()
@@ -115,7 +144,7 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
     return () => {
       clock.removeEventListener('message', clockMessageHandler)
     }
-  }, [audioContext, sine330, sine380, clock])
+  }, [audioContext, clock, clickTrackBuffer])
 
   /**
    * When "playing" is toggled on/off,
@@ -150,6 +179,7 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
     measuresPerLoop,
     bpm,
     clock,
+    loopLengthSeconds,
   ])
 
   /**
@@ -163,7 +193,13 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
       measuresPerLoop,
       loopLengthSeconds,
     } as ClockWorkerUpdateMessage)
-  }, [bpm, timeSignature.beatsPerMeasure, measuresPerLoop, clock])
+  }, [
+    bpm,
+    timeSignature.beatsPerMeasure,
+    measuresPerLoop,
+    clock,
+    loopLengthSeconds,
+  ])
 
   useKeybindings({
     c: { callback: toggleMuted },

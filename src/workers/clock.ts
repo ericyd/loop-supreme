@@ -99,6 +99,7 @@ self.onmessage = (e: MessageEvent<ClockWorkerMessage>) => {
   } else if (e.data.message === 'UPDATE') {
     // only start if it was already running
     if (timeoutId) {
+      currentTick = -1
       clearInterval(timeoutId)
       start(e.data.bpm, e.data.beatsPerMeasure, e.data.measuresPerLoop, e.data.loopLengthSeconds)
     }
