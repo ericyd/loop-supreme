@@ -32,18 +32,18 @@ You can check out [The Roadmap](./roadmap.md)!
 
 I blogged about this as I made it
 
-* [Part 12: v1.0 release, and project retro](https://ericyd.hashnode.dev/loop-supreme-part-12-v10-release-and-project-retro)
-* [Part 11: Exporting stems and changing inputs](https://ericyd.hashnode.dev/loop-supreme-part-11-exporting-stems-and-changing-inputs)
-* [Part 10: Keyboard bindings](https://ericyd.hashnode.dev/loop-supreme-part-10-keyboard-bindings)
-* [Part 9: Visualizing the waveform](https://ericyd.hashnode.dev/loop-supreme-part-9-visualizing-the-waveform)
-* [Part 8: Building and hosting](https://ericyd.hashnode.dev/loop-supreme-part-8-building-and-hosting)
-* [Part 7: Latency and adding Track functionality](https://ericyd.hashnode.dev/loop-supreme-part-7-latency-and-adding-track-functionality)
-* [Part 6: Workers and AudioWorklets](https://ericyd.hashnode.dev/loop-supreme-part-6-workers-and-audioworklets)
-* [Part 5: Record and loop a track](https://ericyd.hashnode.dev/loop-supreme-part-5-record-and-loop-a-track)
-* [Part 4: Adding a Scene](https://ericyd.hashnode.dev/loop-supreme-part-4-adding-a-scene)
-* [Part 3: Metronome click](https://ericyd.hashnode.dev/loop-supreme-part-3-metronome-click)
-* [Part 2: Adding a Metronome](https://ericyd.hashnode.dev/loop-supreme-part-2-adding-a-metronome)
-* [Part 1: New project: building a web-based audio looper!](https://ericyd.hashnode.dev/new-project-building-a-web-based-audio-looper)
+- [Part 12: v1.0 release, and project retro](https://blog.ericyd.com/loop-supreme-part-12-v10-release-and-project-retro)
+- [Part 11: Exporting stems and changing inputs](https://blog.ericyd.com/loop-supreme-part-11-exporting-stems-and-changing-inputs)
+- [Part 10: Keyboard bindings](https://blog.ericyd.com/loop-supreme-part-10-keyboard-bindings)
+- [Part 9: Visualizing the waveform](https://blog.ericyd.com/loop-supreme-part-9-visualizing-the-waveform)
+- [Part 8: Building and hosting](https://blog.ericyd.com/loop-supreme-part-8-building-and-hosting)
+- [Part 7: Latency and adding Track functionality](https://blog.ericyd.com/loop-supreme-part-7-latency-and-adding-track-functionality)
+- [Part 6: Workers and AudioWorklets](https://blog.ericyd.com/loop-supreme-part-6-workers-and-audioworklets)
+- [Part 5: Record and loop a track](https://blog.ericyd.com/loop-supreme-part-5-record-and-loop-a-track)
+- [Part 4: Adding a Scene](https://blog.ericyd.com/loop-supreme-part-4-adding-a-scene)
+- [Part 3: Metronome click](https://blog.ericyd.com/loop-supreme-part-3-metronome-click)
+- [Part 2: Adding a Metronome](https://blog.ericyd.com/loop-supreme-part-2-adding-a-metronome)
+- [Part 1: New project: building a web-based audio looper!](https://blog.ericyd.com/new-project-building-a-web-based-audio-looper)
 
 ## Building / running locally
 

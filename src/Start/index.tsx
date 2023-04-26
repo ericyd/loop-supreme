@@ -133,7 +133,7 @@ function LatencyNotSupportedAlert() {
       <p>For best results, try Chrome (we know, we tried, we're sorry)</p>
       <p>
         <a
-          href="https://ericyd.hashnode.dev/loop-supreme-part-7-latency-and-adding-track-functionality"
+          href="https://blog.ericyd.com/loop-supreme-part-7-latency-and-adding-track-functionality"
           target="_blank"
           rel="noreferrer"
           className="underline text-link"
