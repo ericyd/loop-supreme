@@ -188,7 +188,9 @@ export const Metronome: React.FC<Props> = ({ clock }) => {
           <div className="flex flex-col items-center">
             <BeatCounter
               clock={clock}
-              beatsPerMeasure={timeSignature.beatsPerMeasure}
+              beatsPerLoop={timeSignature.beatsPerMeasure * measuresPerLoop}
+              loopLengthSeconds={loopLengthSeconds}
+              playing={playing}
             />
 
             <TimeSignatureControl
