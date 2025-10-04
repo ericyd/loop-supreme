@@ -6,6 +6,7 @@
   <strong><em>Browser-based live looper for music performance and audio fun!</em></strong>
 </p>
 
+- [Check it out](#check-it-out)
 - [How to use](#how-to-use)
 - [Motivation](#motivation)
 - [What features does this have?](#what-features-does-this-have)
@@ -13,6 +14,10 @@
 - [Building / running locally](#building-running-locally)
 - [Useful resources in my Web Audio journey](#useful-resources-in-my-web-audio-journey)
 - [Acknowledgements](#acknowledgements)
+
+## Check it out
+
+https://loopsupreme.pages.dev/
 
 ## How to use
 
