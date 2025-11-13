@@ -1,5 +1,3 @@
-import { useMemo } from 'react'
-
 /**
  * This function builds and returns a Float32Array.
  * The data of the array is a quickly decaying sine wave.
@@ -28,19 +26,27 @@ function decayingSine(sampleRate: number, frequency: number) {
   return channel
 }
 
-export function useSineAudioBuffer(
-  audioContext: AudioContext,
-  frequency: number
-) {
-  return useMemo(() => {
-    const buffer = audioContext.createBuffer(
-      1,
-      // this should be the maximum length needed for the audio;
-      // since this buffer is just holding a short sine wave, 1 second will be plenty
-      audioContext.sampleRate,
-      audioContext.sampleRate
-    )
-    buffer.copyToChannel(decayingSine(buffer.sampleRate, frequency), 0)
-    return buffer
-  }, [audioContext, frequency])
+type ClickTrackConfig = {
+  loopLengthSeconds: number
+  sampleRate: number
+  bpm: number
+  beatsPerMeasure: number
+  measuresPerLoop: number
+}
+
+export function generateClickTrack(config: ClickTrackConfig) {
+  const buffer = new AudioBuffer({
+    length: config.loopLengthSeconds * config.sampleRate,
+    numberOfChannels: 1,
+    sampleRate: config.sampleRate
+  })
+
+  // for each beat in the loop, copy a decaying sine to the correct beat position
+  for (let i = 0; i < config.beatsPerMeasure * config.measuresPerLoop; i++) {
+    const offset = Math.ceil(i * config.sampleRate * (60 / config.bpm))
+    const frequency = i % config.beatsPerMeasure === 0 ? 380 : 330
+    buffer.copyToChannel(decayingSine(config.sampleRate, frequency), 0, offset)
+  }
+
+  return buffer
 }
