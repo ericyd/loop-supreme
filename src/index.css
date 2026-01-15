@@ -2,3 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+This is defined here instead of tailwind.config.js because the usage of this keyframe (in BeatCounter)
+is programmatically adjusted and the Tailwind compiler can't generate the classes properly
+*/
+@keyframes circle-stroke-shrink-9-radius {
+  0% {
+    stroke-dashoffset: 0;
+  }
+
+  100% {
+    /* this is 2x the circumfrence for a circle with radius 9.
+    this looks nice because first the circle will shrink to 0% stroke,
+    then it will grow to 100%. It is smoother than flashing to a full stroke each loop. */
+    stroke-dashoffset: 113.1;
+  }
+}
